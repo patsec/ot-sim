@@ -1,0 +1,3 @@
+[submodule "deps/json-c"]
+	path = deps/json-c
+	url = https://github.com/json-c/json-c
