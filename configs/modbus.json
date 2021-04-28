@@ -1,28 +1,11 @@
 {
-  "name": "valueFed",
-  "observer": false,
-  "rollback": false,
-  "only_update_on_change": false,
-  "only_transmit_on_change": false,
-  "source_only": false,
-  "uninterruptible": false,
-  "coretype": "test",
-  "corename": "the name of the core",
-  "coreinit": "--autobroker",
-  "max_iterations": 10,
-  "period": 1.0,
-  "offset": 0.0,
-  "time_delta": 0.0,
-  "output_delay": 0,
-  "input_delay": 0,
-
+  "name": "ot",
   "publications": [
     {
       "key": "line-650632.closed",
       "type": "boolean"
     }
   ],
-
   "subscriptions": [
     {
       "key": "OpenDSS/line-650632.closed",
@@ -33,16 +16,6 @@
       "type": "double"
     }
   ],
-
-  "inputs": [
-    { "key": "ipt2", "type": "double", "required": true, "target": "pub1" }
-  ],
-
-  "globals": [
-    ["global1", "this is a global1 value"],
-    ["global2", "this is another global value"]
-  ],
-
   "modbus": {
     "address": "0.0.0.0",
     "port": 5502,
@@ -53,6 +26,8 @@
         "reg": 0
       }
     ],
+    "discrete-inputs": [],
+    "holding-registers": [],
     "input-registers": [
       {
         "sub": "OpenDSS/line-650632.kW",

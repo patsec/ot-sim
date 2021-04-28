@@ -10,50 +10,129 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <deps/json-c/json.h>
 #include <helics/chelics.h>
 #include <modbus/modbus.h>
 
-#include "util/table.h"
-#include "util/register.h"
+#include <json.h>
+#include "register.h"
+
+// ---- BEGIN PUB/SUB STUFF
+// ---- PUTTING THIS HERE SINCE HAVING IT IN A SEPARATE HEADER/SOURCE FILE
+// ---- CAUSES "MULTIPLE DEFINITION" ERRORS WITH HELICS CONSTANTS
+typedef struct _subscriptions
+{
+  const char **names;
+  const char **types;
+  int *registers;
+
+  unsigned int size;
+
+  helics_input *subs;
+} otsim_subscriptions_t;
+
+typedef struct _publications
+{
+  const char **names;
+  const char **types;
+  int *registers;
+
+  unsigned int size;
+
+  helics_publication *pubs;
+} otsim_publications_t;
+
+otsim_subscriptions_t *otsim_subscriptions_new(unsigned int size)
+{
+  otsim_subscriptions_t *subs;
+
+  subs = (otsim_subscriptions_t *)malloc(sizeof(otsim_subscriptions_t));
+  if (subs == NULL)
+    return NULL;
+
+  
+  subs->names = (const char **)malloc(size * sizeof(const char *));
+  subs->types = (const char **)malloc(size * sizeof(const char *));
+  subs->registers = (int *)malloc(size * sizeof(int));
+  subs->subs = (helics_input *)malloc(size * sizeof(helics_input));
+  subs->size = size;
+
+  return subs;
+}
+
+void otsim_subscriptions_free(otsim_subscriptions_t *subs)
+{
+  free(subs->names);
+  free(subs->types);
+  free(subs->registers);
+  free(subs->subs);
+}
+
+int otsim_subscriptions_set_register(otsim_subscriptions_t *subs, const char *name, int reg)
+{
+  for (int i = 0; i < subs->size; i++)
+  {
+    if (strcmp(subs->names[i], name) == 0)
+    {
+      subs->registers[i] = reg;
+      return 0;
+    }
+  }
+
+  return -1;
+}
+
+otsim_publications_t *otsim_publications_new(unsigned int size)
+{
+  otsim_publications_t *pubs;
+
+  pubs = (otsim_publications_t *)malloc(sizeof(otsim_publications_t));
+  if (pubs == NULL)
+    return NULL;
+
+  
+  pubs->names = (const char **)malloc(size * sizeof(const char *));
+  pubs->types = (const char **)malloc(size * sizeof(const char *));
+  pubs->registers = (int *)malloc(size * sizeof(int));
+  pubs->pubs = (helics_publication *)malloc(size * sizeof(helics_publication));
+  pubs->size = size;
+
+  return pubs;
+}
+
+void otsim_publications_free(otsim_publications_t *pubs)
+{
+  free(pubs->names);
+  free(pubs->types);
+  free(pubs->registers);
+  free(pubs->pubs);
+}
+
+int otsim_publications_set_register(otsim_publications_t *pubs, const char *name, int reg)
+{
+  for (int i = 0; i < pubs->size; i++)
+  {
+    if (strcmp(pubs->names[i], name) == 0)
+    {
+      pubs->registers[i] = reg;
+      return 0;
+    }
+  }
+
+  return -1;
+}
+// ---- END PUB/SUB STUFF
 
 #define MAX_CONN 10
 
 static modbus_t *ctx;
-static modbus_mapping_t *registers;
 
 static helics_federate_info fed_info;
 static helics_federate fed;
 
 static int lsocket = -1;
-static int updated[10];
 
-static pthread_mutex_t mu_reg_lock;
-
-struct _subscriptions
-{
-  char **names;
-  char **types;
-
-  int length;
-
-  helics_input *subs;
-} subscriptions;
-
-struct _publications
-{
-  char **names;
-  char **types;
-
-  int length;
-
-  helics_publication *pubs;
-} publications;
-
-tbl_t *coil_mappings;
-tbl_t *discrete_mappings;
-tbl_t *input_mappings;
-tbl_t *holding_mappings;
+static otsim_subscriptions_t *subs;
+static otsim_publications_t *pubs;
 
 static void trap(int dummy)
 {
@@ -63,19 +142,13 @@ static void trap(int dummy)
   }
 
   modbus_free(ctx);
-  modbus_mapping_free(registers);
-
   register_destroy();
 
   helicsFederateDestroy(fed);
   helicsFederateInfoFree(fed_info);
 
-  pthread_mutex_destroy(&mu_reg_lock);
-
-  tbl_destroy(coil_mappings);
-  tbl_destroy(discrete_mappings);
-  tbl_destroy(input_mappings);
-  tbl_destroy(holding_mappings);
+  otsim_subscriptions_free(subs);
+  otsim_publications_free(pubs);
 
   exit(dummy);
 }
@@ -84,43 +157,26 @@ void *federate(void *argv)
 {
   char *name = (char *)argv;
 
-  printf("starting federate...%s\n", name);
-
-  // fed_cfg_t c = *(fed_cfg_t*) argv;
-  // helics_federate_info fedinfo = helicsCreateFederateInfo();
-  // helicsFederateInfoLoadFromArgs(fed_info, c.argc, (const char *const *)c.argv, NULL);
-
-  helics_publication closed_pub = NULL;
-  helics_input closed_sub = NULL;
-  helics_input kva_sub = NULL;
-
-  char message[1024];
+  printf("starting federate %s...\n", name);
 
   fed = helicsCreateValueFederate(name, fed_info, NULL);
-  name = helicsFederateGetName(fed);
 
-  printf("registering publisher line-650632.closed for %s\n", name);
-
-  closed_pub = helicsFederateRegisterPublication(fed, "line-650632.closed", helics_data_type_boolean, NULL, NULL);
-
-  subscriptions.subs = (helics_input *)malloc(subscriptions.length * sizeof(helics_input *));
-
-  for (int i = 0; i < subscriptions.length; i++)
+  for (int i = 0; i < subs->size; i++)
   {
-    char *key = subscriptions.names[i];
+    const char *key = subs->names[i];
 
     printf("registering subscription %s for %s\n", key, name);
 
-    subscriptions.subs[i] = helicsFederateRegisterSubscription(fed, key, NULL, NULL);
+    subs->subs[i] = helicsFederateRegisterSubscription(fed, key, NULL, NULL);
   }
 
-  for (int i = 0; i < publications.length; i++)
+  for (int i = 0; i < pubs->size; i++)
   {
-    char *key = publications.names[i];
+    const char *key = pubs->names[i];
 
     printf("registering publication %s for %s\n", key, name);
 
-    publications.pubs[i] = helicsFederateRegisterTypePublication(fed, key, publications.types[i], NULL, NULL);
+    pubs->pubs[i] = helicsFederateRegisterTypePublication(fed, key, pubs->types[i], NULL, NULL);
   }
 
   printf("entering init Mode\n");
@@ -137,15 +193,19 @@ void *federate(void *argv)
 
     // printf("granted time %f\n", time);
 
-    for (int i = 0; i < subscriptions.length; i++)
+    for (int i = 0; i < subs->size; i++)
     {
-      char *key = subscriptions.names[i];
-      char *type = subscriptions.types[i];
+      const char *key = subs->names[i];
+      const char *type = subs->types[i];
+      int addr = subs->registers[i];
 
-      helics_input sub = subscriptions.subs[i];
+      printf("SUB -- KEY: %s, TYPE: %s, REG: %d\n", key, type, addr);
+
+      helics_input sub = subs->subs[i];
 
       if (!helicsInputIsUpdated(sub))
       {
+        printf("  NO UPDATE AVAILABLE\n");
         continue;
       }
 
@@ -153,168 +213,165 @@ void *federate(void *argv)
       {
         helics_bool status = helicsInputGetBoolean(sub, NULL);
 
-        void *addr;
-
-        addr = tbl_get(coil_mappings, key);
-        if (addr && !register_is_updated((int)addr))
-          update_register(registers, (int)addr, status);
-
-        addr = tbl_get(discrete_mappings, key);
-        if (addr && !register_is_updated((int)addr))
-          update_register(registers, (int)addr, status);
+        if (!register_is_updated(addr)) {
+          printf("  UPDATING REGISTER: ADDR: %d, STATUS: %d\n", addr, status);
+          register_update(addr, status);
+        } else {
+          printf("  PROCESSING MODBUS WRITE -- SKIPPING SUB\n");
+        }
       }
       else if (strcmp(type, "double") == 0)
       {
         double value = helicsInputGetDouble(sub, NULL);
 
-        void *addr;
-
-        addr = tbl_get(input_mappings, key);
-        if (addr && !register_is_updated((int)addr))
-          update_register(registers, (int)addr, (int)value);
-
-        addr = tbl_get(discrete_mappings, key);
-        if (addr && !register_is_updated((int)addr))
-          update_register(registers, (int)addr, (int)value);
+        if (!register_is_updated(addr)) {
+          printf("  UPDATING REGISTER: ADDR: %d, VALUE: %f (%d)\n", addr, value, (int)value);
+          if (register_update(addr, (int)value) != 0) {
+            printf("  ERROR UPDATING REGISTER\n");
+          }
+        } else {
+          printf("  PROCESSING MODBUS WRITE -- SKIPPING SUB\n");
+        }
       }
     }
 
-    for (int i = 0; i < publications.length; i++)
+    for (int i = 0; i < pubs->size; i++)
     {
-      char *key = publications.names[i];
-      char *type = publications.types[i];
+      const char *key = pubs->names[i];
+      const char *type = pubs->types[i];
+      int addr = pubs->registers[i];
 
-      helics_publication pub = publications.pubs[i];
+      if (register_is_updated(addr)) {
+        helics_publication pub = pubs->pubs[i];
 
-      if (strcmp(type, "boolean") == 0)
-      {
-        void *addr = tbl_get(coil_mappings, key);
-        if (addr && register_is_updated((int)addr))
+        if (strcmp(type, "boolean") == 0)
         {
-          int status = register_value(registers, (int)addr);
+          int status = register_value(addr);
           helicsPublicationPublishBoolean(pub, status, NULL);
         }
-      }
-      else if (strcmp(type, "double") == 0)
-      {
-        void *addr = tbl_get(holding_mappings, key);
-        if (addr && register_is_updated((int)addr))
+        else if (strcmp(type, "double") == 0)
         {
-          int value = register_value(registers, (int)addr);
-          helicsPublicationPublishDouble(pub, (double)value, NULL);
+          int value = register_value(addr);
+          helicsPublicationPublishDouble(pub, (double)value, NULL); // TODO: scaling
         }
       }
     }
+
+    register_clear_updated();
   }
 
   return NULL;
 }
 
-int detect_write(modbus_t *ctx, const uint8_t *req, int req_length, modbus_mapping_t *mb_mapping)
-{
-  int rep = modbus_reply(ctx, req, req_length, mb_mapping);
-  if (rep == -1)
-    return -1;
-
-  int offset = modbus_get_header_length(ctx);
-  int function = req[offset];
-  uint16_t address = (req[offset + 1] << 8) + req[offset + 2];
-
-  switch (function)
-  {
-  case MODBUS_FC_WRITE_SINGLE_COIL:
-    printf("write to coil %d detected -- new value: %d\n", address, registers->tab_bits[address]);
-    updated[address] = 1;
-
-    break;
-
-  case MODBUS_FC_WRITE_SINGLE_REGISTER:
-    break;
-  }
-
-  return rep;
-}
-
-void update_register(modbus_mapping_t *registers, int addr, int val)
-{
-  int coils_min = registers->start_bits;
-  int coils_max = coils_min + registers->nb_bits;
-
-  int inputs_min = registers->start_input_registers;
-  int inputs_max = inputs_min + registers->nb_input_registers;
-
-  pthread_mutex_lock(&mu_reg_lock);
-
-  if (addr >= coils_min && addr < coils_max)
-  {
-    registers->tab_bits[addr] = val;
-  }
-  else if (addr >= inputs_min && addr < inputs_max)
-  {
-    registers->tab_input_registers[addr] = val;
-  }
-
-  pthread_mutex_unlock(&mu_reg_lock);
-}
-
 int main(int argc, char **argv)
 {
-  json_object *root = json_object_from_file("configs/modbus.json");
-  json_object *name = json_object_object_get(root, "name");
-  json_object *subs = json_object_object_get(root, "subscriptions");
+  const char *file = NULL;
 
-  int arr_len = json_object_array_length(subs);
+  for (int i = 0; i < argc; ++i) {
+    if (strcmp(argv[i], "--config") == 0) {
+      file = argv[i + 1];
+      ++i;
+    }
+  }
+
+  if (!file) {
+    fprintf(stderr, "must provide config file option (--config)\n");
+    return -1;
+  }
+
+  json_object *root = json_object_from_file(file);
+  json_object *name = json_object_object_get(root, "name");
+
+  json_object *subscriptions = json_object_object_get(root, "subscriptions");
+
+  int arr_len = json_object_array_length(subscriptions);
   json_object *temp;
 
-  subscriptions.names = (char **)malloc(arr_len * sizeof(char *));
-  subscriptions.types = (char **)malloc(arr_len * sizeof(char *));
-  subscriptions.length = arr_len;
+  subs = otsim_subscriptions_new(arr_len);
 
   for (int i = 0; i < arr_len; i++)
   {
-    temp = json_object_array_get_idx(subs, i);
+    temp = json_object_array_get_idx(subscriptions, i);
     json_object *key = json_object_object_get(temp, "key");
     json_object *type = json_object_object_get(temp, "type");
-    subscriptions.names[i] = json_object_get_string(key);
-    subscriptions.types[i] = json_object_get_string(type);
+    subs->names[i] = json_object_get_string(key);
+    subs->types[i] = json_object_get_string(type);
   }
 
-  int coil_count = 0;
-  int discrete_count = 0;
-  int holding_count = 0;
-  int input_count = 0;
+  json_object *publications = json_object_object_get(root, "publications");
+
+  arr_len = json_object_array_length(publications);
+
+  pubs = otsim_publications_new(arr_len);
+
+  for (int i = 0; i < arr_len; i++)
+  {
+    temp = json_object_array_get_idx(publications, i);
+    json_object *key = json_object_object_get(temp, "key");
+    json_object *type = json_object_object_get(temp, "type");
+    pubs->names[i] = json_object_get_string(key);
+    pubs->types[i] = json_object_get_string(type);
+  }
 
   json_object *mb = json_object_object_get(root, "modbus");
   json_object *coils = json_object_object_get(mb, "coils");
+  json_object *discretes = json_object_object_get(mb, "discrete-inputs");
+  json_object *holdings = json_object_object_get(mb, "holding-registers");
   json_object *inputs = json_object_object_get(mb, "input-registers");
 
-  coil_count = json_object_array_length(coils);
-  coil_mappings = tbl_create(coil_count * 2 * 2);
+  int coil_count = json_object_array_length(coils);
 
   for (int i = 0; i < coil_count; i++)
   {
     temp = json_object_array_get_idx(coils, i);
 
     json_object *sub = json_object_object_get(temp, "sub");
-    json_object *pub = json_object_object_get(temp, "sub");
-    json_object *reg = json_object_object_get(temp, "register");
+    json_object *pub = json_object_object_get(temp, "pub");
+    json_object *reg = json_object_object_get(temp, "reg");
 
-    table_add(coil_mappings, json_object_get_string(sub), json_object_get_int(reg));
-    table_add(coil_mappings, json_object_get_string(pub), json_object_get_int(reg));
+    otsim_subscriptions_set_register(subs, json_object_get_string(sub), json_object_get_int(reg));
+    otsim_publications_set_register(pubs, json_object_get_string(pub), json_object_get_int(reg));
   }
 
-  input_count = json_object_array_length(inputs);
-  input_mappings = tbl_create(input_count * 2);
+  int discrete_count = json_object_array_length(discretes);
+
+  for (int i = 0; i < discrete_count; i++)
+  {
+    temp = json_object_array_get_idx(discretes, i);
+
+    json_object *sub = json_object_object_get(temp, "sub");
+    json_object *reg = json_object_object_get(temp, "reg");
+
+    otsim_subscriptions_set_register(subs, json_object_get_string(sub), json_object_get_int(reg));
+  }
+
+  int holding_count = json_object_array_length(holdings);
+
+  for (int i = 0; i < holding_count; i++)
+  {
+    temp = json_object_array_get_idx(holdings, i);
+
+    json_object *sub = json_object_object_get(temp, "sub");
+    json_object *pub = json_object_object_get(temp, "pub");
+    json_object *reg = json_object_object_get(temp, "reg");
+
+    otsim_subscriptions_set_register(subs, json_object_get_string(sub), json_object_get_int(reg));
+    otsim_publications_set_register(pubs, json_object_get_string(pub), json_object_get_int(reg));
+  }
+
+  int input_count = json_object_array_length(inputs);
 
   for (int i = 0; i < input_count; i++)
   {
     temp = json_object_array_get_idx(inputs, i);
 
     json_object *sub = json_object_object_get(temp, "sub");
-    json_object *reg = json_object_object_get(temp, "register");
+    json_object *reg = json_object_object_get(temp, "reg");
 
-    table_add(input_mappings, json_object_get_string(sub), json_object_get_int(reg));
+    otsim_subscriptions_set_register(subs, json_object_get_string(sub), json_object_get_int(reg));
   }
+
+  register_init(coil_count, discrete_count, holding_count, input_count);
 
   json_object *addr = json_object_object_get(mb, "address");
   json_object *port = json_object_object_get(mb, "port");
@@ -322,15 +379,6 @@ int main(int argc, char **argv)
   ctx = modbus_new_tcp(json_object_get_string(addr), json_object_get_int(port));
 
   modbus_set_debug(ctx, FALSE);
-
-  registers = modbus_mapping_new_start_address(0, coil_count, 10000, 0, 40000, 0, 30000, input_count);
-  if (registers == NULL)
-  {
-    fprintf(stderr, "failed to allocate registers: %s\n", modbus_strerror(errno));
-    trap(-1);
-  }
-
-  register_init(registers);
 
   lsocket = modbus_tcp_listen(ctx, MAX_CONN);
   if (lsocket == -1)
@@ -342,41 +390,14 @@ int main(int argc, char **argv)
   fed_info = helicsCreateFederateInfo();
   helicsFederateInfoLoadFromArgs(fed_info, argc, (const char *const *)argv, NULL);
 
-  pthread_mutex_init(&mu_reg_lock, NULL);
-
-  /*
-  coils_tab = calloc(1, sizeof(coils_tab));
-  hcreate_r(10, coils_tab);
-
-  ENTRY e;
-  
-  e.key = "OpenDSS/line-650632.closed";
-  e.data = (void *)0;
-
-  hsearch_r(e, ENTER, coils_tab);
-  */
-
-  // ensure cleanup on user cancellation
   signal(SIGINT, trap);
 
-  /*
-  fed_cfg_t c;
-
-  strncpy(c.msg_target, "fed", 1024);
-  strncpy(c.val_target, "fed", 1024);
-  strncpy(c.source, "endpoint", 1024);
-  strncpy(c.endpoint, "endpoint", 1024);
-
-  c.argc = argc;
-  c.argv = (char**)malloc(argc * sizeof(char*));
-
-  for (int i = 0; i < argc; i++) {
-    c.argv[i] = strdup(argv[i]);
-  }
-  */
-
+  // TODO: move threaded federate code to same loop as Modbus listener to get rid of threaded hassles.
+  // 1. Process Modbus requests.
+  // 2. Process HELICS publications.
+  // 3. Process HELICS subscriptions.
   pthread_t fedid;
-  pthread_create(&fedid, NULL, federate, json_object_get_string(name));
+  pthread_create(&fedid, NULL, federate, (void *)json_object_get_string(name));
 
   fd_set refset;
   fd_set rdset;
@@ -454,12 +475,10 @@ int main(int argc, char **argv)
 
         if (rc > 0)
         {
-          pthread_mutex_lock(&mu_reg_lock);
-          if (detect_write(ctx, query, rc, registers) == -1)
+          if (register_reply_detect_write(ctx, query, rc) == -1)
           {
             fprintf(stderr, "failed to reply to client: %s\n", modbus_strerror(errno));
           }
-          pthread_mutex_unlock(&mu_reg_lock);
         }
       }
     }
