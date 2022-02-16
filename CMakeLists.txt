@@ -1,17 +1,24 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.11)
 
-project(outstation LANGUAGES C)
+project(ot-sim)
 
-# file(GLOB outstation_SRC CONFIGURE_DEPENDS "*.c")
+find_package(Git QUIET)
+if (GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+  message(STATUS "Executing git submodule update")
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE GIT_SUBMOD_RESULT
+  )
 
-set(CMAKE_BUILD_TYPE Debug)
-set(SRC_FILES ${PROJECT_SOURCE_DIR}/outstation.c
-              ${PROJECT_SOURCE_DIR}/register.c
-)
+  if (NOT GIT_SUBMOD_RESULT EQUAL "0")
+    message(
+      FATAL_ERROR "git submodule update failed with ${GIT_SUBMOD_RESULT}"
+    )
+  endif ()
+endif ()
 
-add_subdirectory(deps/json-c)
+OPTION(BUILD_E2E "Build E2E test executables" OFF)
 
-find_package(HELICS 2 REQUIRED)
-
-add_executable(outstation ${SRC_FILES})
-target_link_libraries(outstation HELICS::helicsSharedLib json-c modbus pthread)
+add_subdirectory(src/c)
+add_subdirectory(src/c++)

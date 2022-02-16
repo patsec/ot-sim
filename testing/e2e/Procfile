@@ -1,0 +1,4 @@
+broker: python3 helics/broker.py
+dss: python3 helics/opendss-federate.py
+device-2: ot-sim-cpu-module configs/device-2.xml
+device-1: ot-sim-cpu-module configs/device-1.xml

@@ -1,3 +1,15 @@
-[submodule "deps/json-c"]
-	path = deps/json-c
-	url = https://github.com/json-c/json-c
+[submodule "src/old/c/deps/json-c"]
+	path = src/old/c/deps/json-c
+	url = https://github.com/json-c/json-c.git
+[submodule "src/c++/deps/cppzmq"]
+	path = src/c++/deps/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
+[submodule "src/c++/deps/fmt"]
+	path = src/c++/deps/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "src/c++/deps/json"]
+	path = src/c++/deps/json
+	url = https://github.com/nlohmann/json.git
+[submodule "src/c++/deps/opendnp3"]
+	path = src/c++/deps/opendnp3
+	url = https://github.com/dnp3/opendnp3.git

@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:9012</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:3456</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="io">ot-sim-io-module {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+    <!--<module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>-->
+  </cpu>
+  <modbus name="outstation" mode="server">
+    <endpoint>127.0.0.1:5502</endpoint>
+    <register type="coil">
+      <address>0</address>
+      <tag>line-650632.closed</tag>
+    </register>
+    <register type="input">
+      <address>30000</address>
+      <tag>bus-692.voltage</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30001</address>
+      <tag>line-650632.kW</tag>
+      <scaling>-2</scaling>
+    </register>
+  </modbus>
+  <!--
+  <dnp3 name="dnp3-outstation" mode="server">
+    <endpoint>127.0.0.1:20001</endpoint>
+    <cold-restart-delay>15</cold-restart-delay>
+    <outstation name="outstation-1">
+      <local-address>1024</local-address>
+      <remote-address>1</remote-address>
+      <warm-restart-delay>5</warm-restart-delay>
+      <input type="binary">
+        <address>0</address>
+        <tag>line-650632.closed</tag>
+        <svar>Group1Var1</svar>
+        <evar>Group2Var1</evar>
+        <class>Class1</class>
+      </input>
+      <output type="binary">
+        <address>10</address>
+        <tag>line-650632.closed</tag>
+        <svar>Group10Var2</svar>
+        <evar>Group11Var2</evar>
+        <class>Class1</class>
+        <sbo>false</sbo>
+      </output>
+      <input type="analog">
+        <address>0</address>
+        <tag>line-650632.kW</tag>
+        <svar>Group30Var6</svar>
+        <evar>Group32Var6</evar>
+        <class>Class1</class>
+      </input>
+    </outstation>
+  </dnp3>
+  -->
+  <io name="helics-federate">
+    <broker-endpoint>localhost</broker-endpoint>
+    <federate-name>ot-sim-io</federate-name>
+    <subscription>
+      <key>OpenDSS/bus-692.voltage</key>
+      <type>double</type>
+      <tag>bus-692.voltage</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/line-650632.kW</key>
+      <type>double</type>
+      <tag>line-650632.kW</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/line-650632.kVAR</key>
+      <type>double</type>
+      <tag>line-650632.kVAR</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/line-650632.closed</key>
+      <type>boolean</type>
+      <tag>line-650632.closed</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/switch-671692.closed</key>
+      <type>boolean</type>
+      <tag>switch-671692.closed</tag>
+    </subscription>
+    <publication>
+      <key>line-650632.closed</key>
+      <type>boolean</type>
+      <tag>line-650632.closed</tag>
+    </publication>
+  </io>
+</ot-sim>

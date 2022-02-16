@@ -1,4 +1,8 @@
 .devcontainer
 .vscode
 
+bin
 build
+
+__pycache__
+ot-sim.code-workspace
