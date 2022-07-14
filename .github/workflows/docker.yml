@@ -13,26 +13,25 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Get short SHA
-        id: short
-        run: |
-          echo "::set-output name=sha::$(git rev-parse --short HEAD)"
-          echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-      - name: Log in to GitHub Docker Registry
-        uses: docker/login-action@v1
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}/ot-sim
+      - name: Login to GitHub Docker Registry
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build container image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: Dockerfile
           target: prod
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/ot-sim:${{ steps.short.outputs.sha }}
-            ghcr.io/${{ github.repository }}/ot-sim:${{ steps.short.outputs.branch }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

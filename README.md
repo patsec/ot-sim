@@ -110,7 +110,7 @@ sudo python3 -m pip install src/python
 wget -O hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz \
   && gunzip hivemind.gz \
   && sudo mv hivemind /usr/local/bin/hivemind \
-  && sudo chmod +x /usr/local/bin/hivemind \
+  && sudo chmod +x /usr/local/bin/hivemind
 ```
 
 #### Overmind
@@ -119,7 +119,7 @@ wget -O hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.
 RUN wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v2.2.2/overmind-v2.2.2-linux-amd64.gz \
   && gunzip overmind.gz \
   && sudo mv overmind /usr/local/bin/overmind \
-  && chmod +x /usr/local/bin/overmind \
+  && chmod +x /usr/local/bin/overmind
 ```
 
 #### PyModbus
