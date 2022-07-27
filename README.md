@@ -84,7 +84,8 @@ sudo apt update && sudo apt install \
 #### Install Golang
 ```
 wget -O go.tgz https://golang.org/dl/go1.18.linux-amd64.tar.gz \
-  && sudo tar -C /usr/local -xzf go.tgz && rm go.tgz
+  && sudo tar -C /usr/local -xzf go.tgz && rm go.tgz \
+  && sudo ln -s /usr/local/go/bin/* /usr/local/bin
 ```
 
 ### Install OT-sim
@@ -93,7 +94,7 @@ Install the OT-sim C, C++, and Golang modules.
 
 ```
 cmake -S . -B build && sudo cmake --build build --target install && sudo ldconfig
-make -C src/go dev-install
+sudo make -C src/go install
 ```
 
 Install the OT-sim Python modules. This step will also install the Python HELICS code, on which some of the OT-sim Python modules depend.
