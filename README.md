@@ -117,7 +117,7 @@ wget -O hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.
 #### Overmind
 
 ```
-RUN wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v2.2.2/overmind-v2.2.2-linux-amd64.gz \
+wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v2.2.2/overmind-v2.2.2-linux-amd64.gz \
   && gunzip overmind.gz \
   && sudo mv overmind /usr/local/bin/overmind \
   && chmod +x /usr/local/bin/overmind
