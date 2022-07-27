@@ -1,4 +1,4 @@
-broker: python3 testing/helics/broker.py
-dss: python3 testing/helics/opendss-federate.py
+broker: python3 testing/e2e/helics/broker.py
+dss: python3 testing/e2e/helics/opendss-federate.py
 cpu-2: ot-sim-cpu-module config/multi-device/device-2.xml
 cpu-1: ot-sim-cpu-module config/multi-device/device-1.xml
