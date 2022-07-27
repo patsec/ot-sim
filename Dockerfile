@@ -21,9 +21,6 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" \
 
 ADD . /usr/local/src/ot-sim
 
-# Running the cmake command twice is a hack to get around CMake Policy CMP0077
-# when trying to disable tests for cppzmq.
-RUN cmake -S /usr/local/src/ot-sim -B /usr/local/src/ot-sim/build
 RUN cmake -S /usr/local/src/ot-sim -B /usr/local/src/ot-sim/build \
   && cmake --build /usr/local/src/ot-sim/build -j $(nproc) --target install
 RUN make -C /usr/local/src/ot-sim/src/go install

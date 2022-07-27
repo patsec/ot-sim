@@ -31,7 +31,6 @@ jobs:
         run: |
           go version
           cmake -S . -B ./build -DBUILD_E2E=ON
-          cmake -S . -B ./build -DBUILD_E2E=ON # doing this twice to get around CMake Policy CMP0077
           sudo cmake --build ./build -j $(nproc) --target install
           make -C ./src/go dev-install
           sudo python3 -m pip install ./src/python
