@@ -92,8 +92,10 @@ wget -O go.tgz https://golang.org/dl/go1.18.linux-amd64.tar.gz \
 Install the OT-sim C, C++, and Golang modules.
 
 ```
+# Running the cmake command twice is a hack to get around CMake Policy CMP0077 when trying to disable tests for cppzmq.
+cmake -S . -B build
 cmake -S . -B build && sudo cmake --build build --target install && sudo ldconfig
-make -C src/go dev-install
+make -C src/go install
 ```
 
 Install the OT-sim Python modules. This step will also install the Python HELICS code, on which some of the OT-sim Python modules depend.
