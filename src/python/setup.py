@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 REQUIRES = [
-    'helics~=2.8.1',
+    'helics~=3.2.1',
     'pyzmq',
 ]
 
