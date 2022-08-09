@@ -336,8 +336,8 @@ int main(int argc, char** argv) {
           std::uint64_t class2 = 0;
           std::uint64_t class3 = 0;
 
-          if (tree.get_child_optional("class-scan-rates")) {
-            auto rates = tree.get_child("class-scan-rates");
+          if (mstr.get_child_optional("class-scan-rates")) {
+            auto rates = mstr.get_child("class-scan-rates");
 
             all    = rates.get<std::uint64_t>("all", scanRate);
             class0 = rates.get<std::uint64_t>("class0", 0);
