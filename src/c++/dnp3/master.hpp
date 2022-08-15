@@ -75,45 +75,57 @@ public:
   }
 
   void AddBinaryTag(std::uint16_t address, std::string tag) {
-    binaryTags[address] = tag;
-
-    BinaryPoint point = {.address = address, .tag = tag};
-    binaryPoints[tag] = point;
+    binaryInputTags[address] = tag;
   }
 
   void AddBinaryTag(std::uint16_t address, std::string tag, bool sbo) {
-    binaryTags[address] = tag;
+    binaryOutputTags[address] = tag;
 
-    BinaryPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
-    binaryPoints[tag] = point;
+    BinaryOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
+    binaryOutputs[tag] = point;
   }
 
   void AddAnalogTag(std::uint16_t address, std::string tag) {
-    analogTags[address] = tag;
-
-    AnalogPoint point = {.address = address, .tag = tag};
-    analogPoints[tag] = point;
+    analogInputTags[address] = tag;
   }
 
   void AddAnalogTag(std::uint16_t address, std::string tag, bool sbo) {
-    analogTags[address] = tag;
+    analogOutputTags[address] = tag;
 
-    AnalogPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
-    analogPoints[tag] = point;
+    AnalogOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
+    analogOutputs[tag] = point;
   }
 
-  std::string GetBinaryTag(std::uint16_t address) {
-    auto iter = binaryTags.find(address);
-    if (iter != binaryTags.end()) {
+  std::string GetBinaryTag(std::uint16_t address, bool output = false) {
+    if (output) {
+      auto iter = binaryOutputTags.find(address);
+      if (iter != binaryOutputTags.end()) {
+        return iter->second;
+      }
+
+      return {};
+    }
+
+    auto iter = binaryInputTags.find(address);
+    if (iter != binaryInputTags.end()) {
       return iter->second;
     }
 
     return {};
   }
 
-  std::string GetAnalogTag(std::uint16_t address) {
-    auto iter = analogTags.find(address);
-    if (iter != analogTags.end()) {
+  std::string GetAnalogTag(std::uint16_t address, bool output = false) {
+    if (output) {
+      auto iter = analogOutputTags.find(address);
+      if (iter != analogOutputTags.end()) {
+        return iter->second;
+      }
+
+      return {};
+    }
+
+    auto iter = analogInputTags.find(address);
+    if (iter != analogInputTags.end()) {
       return iter->second;
     }
 
@@ -121,8 +133,8 @@ public:
   }
 
   bool WriteBinary(std::string tag, bool status) {
-    auto iter = binaryPoints.find(tag);
-    if (iter == binaryPoints.end()) {
+    auto iter = binaryOutputs.find(tag);
+    if (iter == binaryOutputs.end()) {
       return false;
     }
 
@@ -150,8 +162,8 @@ public:
   }
 
   bool WriteAnalog(std::string tag, double value) {
-    auto iter = analogPoints.find(tag);
-    if (iter == analogPoints.end()) {
+    auto iter = analogOutputs.find(tag);
+    if (iter == analogOutputs.end()) {
       return false;
     }
 
@@ -162,6 +174,9 @@ public:
     }
 
     auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+
+    // TODO: use point group and variation to determine which type of analog
+    // value to write.
 
     if (point.sbo) {
       auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
@@ -183,8 +198,8 @@ public:
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::Analog>>& values) override;
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::Counter>>& values) override {}
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::FrozenCounter>>& values) override {}
-  virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::BinaryOutputStatus>>& values) override {}
-  virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::AnalogOutputStatus>>& values) override {}
+  virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::BinaryOutputStatus>>& values) override;
+  virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::AnalogOutputStatus>>& values) override;
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::OctetString>>& values) override {}
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::TimeAndInterval>>& values) override {}
   virtual void Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollection<opendnp3::Indexed<opendnp3::BinaryCommandEvent>>& values) override {}
@@ -204,10 +219,12 @@ private:
 
   std::shared_ptr<opendnp3::IMaster> master;
 
-  std::map<std::uint16_t, std::string> binaryTags;
-  std::map<std::uint16_t, std::string> analogTags;
-  std::map<std::string, BinaryPoint> binaryPoints;
-  std::map<std::string, AnalogPoint> analogPoints;
+  std::map<std::uint16_t, std::string> binaryInputTags;
+  std::map<std::uint16_t, std::string> binaryOutputTags;
+  std::map<std::uint16_t, std::string> analogInputTags;
+  std::map<std::uint16_t, std::string> analogOutputTags;
+  std::map<std::string, BinaryOutputPoint> binaryOutputs;
+  std::map<std::string, AnalogOutputPoint> analogOutputs;
 };
 
 } // namespace dnp3

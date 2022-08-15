@@ -18,7 +18,7 @@ Outstation::Outstation(OutstationConfig config, OutstationRestartConfig restart,
 opendnp3::OutstationStackConfig Outstation::Init() {
   opendnp3::DatabaseConfig db = opendnp3::DatabaseConfig();
 
-  for (const auto& kv : binaryPoints) {
+  for (const auto& kv : binaryInputs) {
     db.binary_input[kv.first] = {};
 
     db.binary_input[kv.first].svariation = kv.second.svariation;
@@ -26,13 +26,30 @@ opendnp3::OutstationStackConfig Outstation::Init() {
     db.binary_input[kv.first].clazz = kv.second.clazz;
   }
 
-  for (const auto& kv : analogPoints) {
+  for (const auto& kv : binaryOutputs) {
+    db.binary_output_status[kv.first] = {};
+
+    db.binary_output_status[kv.first].svariation = kv.second.svariation;
+    db.binary_output_status[kv.first].evariation = kv.second.evariation;
+    db.binary_output_status[kv.first].clazz = kv.second.clazz;
+  }
+
+  for (const auto& kv : analogInputs) {
     db.analog_input[kv.first] = {};
 
     db.analog_input[kv.first].svariation = kv.second.svariation;
     db.analog_input[kv.first].evariation = kv.second.evariation;
     db.analog_input[kv.first].clazz = kv.second.clazz;
     db.analog_input[kv.first].deadband = kv.second.deadband;
+  }
+
+  for (const auto& kv : analogOutputs) {
+    db.analog_output_status[kv.first] = {};
+
+    db.analog_output_status[kv.first].svariation = kv.second.svariation;
+    db.analog_output_status[kv.first].evariation = kv.second.evariation;
+    db.analog_output_status[kv.first].clazz = kv.second.clazz;
+    db.analog_output_status[kv.first].deadband = kv.second.deadband;
   }
 
   opendnp3::OutstationStackConfig stack(db);
@@ -66,7 +83,7 @@ void Outstation::Run() {
 
     opendnp3::UpdateBuilder builder;
 
-    for (const auto& kv : binaryPoints) {
+    for (const auto& kv : binaryInputs) {
       const std::uint16_t addr = kv.first;
       const std::string   tag  = kv.second.tag;
 
@@ -76,11 +93,25 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::Binary(point.value != 0), addr);
 
-        std::cout << fmt::format("[{}] updated binary {} to {}", config.id, addr, point.value) << std::endl;
+        std::cout << fmt::format("[{}] updated binary input {} to {}", config.id, addr, point.value) << std::endl;
       } catch (const std::out_of_range&) {}
     }
 
-    for (const auto& kv : analogPoints) {
+    for (const auto& kv : binaryOutputs) {
+      const std::uint16_t addr = kv.first;
+      const std::string   tag  = kv.second.tag;
+
+      try {
+        auto lock = std::unique_lock<std::mutex>(pointsMu);
+
+        auto point = points.at(tag);
+        builder.Update(opendnp3::BinaryOutputStatus(point.value != 0), addr);
+
+        std::cout << fmt::format("[{}] updated binary output {} to {}", config.id, addr, point.value) << std::endl;
+      } catch (const std::out_of_range&) {}
+    }
+
+    for (const auto& kv : analogInputs) {
       const std::uint16_t addr = kv.first;
       const std::string   tag  = kv.second.tag;
 
@@ -90,7 +121,21 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::Analog(point.value, opendnp3::Flags(0), opendnp3::DNPTime(point.ts)), addr);
 
-        std::cout << fmt::format("[{}] updated analog {} to {}", config.id, addr, point.value) << std::endl;
+        std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
+      } catch (const std::out_of_range&) {}
+    }
+
+    for (const auto& kv : analogOutputs) {
+      const std::uint16_t addr = kv.first;
+      const std::string   tag  = kv.second.tag;
+
+      try {
+        auto lock = std::unique_lock<std::mutex>(pointsMu);
+
+        auto point = points.at(tag);
+        builder.Update(opendnp3::AnalogOutputStatus(point.value, opendnp3::Flags(0), opendnp3::DNPTime(point.ts)), addr);
+
+        std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
       } catch (const std::out_of_range&) {}
     }
 
@@ -101,41 +146,41 @@ void Outstation::Run() {
   metrics->Stop();
 }
 
-bool Outstation::AddBinaryInput(BinaryPoint point) {
-  binaryPoints[point.address] = point;
+bool Outstation::AddBinaryInput(BinaryInputPoint point) {
+  binaryInputs[point.address] = point;
   points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
   return true;
 }
 
-bool Outstation::AddBinaryOutput(BinaryPoint point) {
+bool Outstation::AddBinaryOutput(BinaryOutputPoint point) {
   point.output = true;
 
-  binaryPoints[point.address] = point;
+  binaryOutputs[point.address] = point;
   points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
   return true;
 }
 
-bool Outstation::AddAnalogInput(AnalogPoint point) {
-  analogPoints[point.address] = point;
+bool Outstation::AddAnalogInput(AnalogInputPoint point) {
+  analogInputs[point.address] = point;
   points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
   return true;
 }
 
-bool Outstation::AddAnalogOutput(AnalogPoint point) {
+bool Outstation::AddAnalogOutput(AnalogOutputPoint point) {
   point.output = true;
 
-  analogPoints[point.address] = point;
+  analogOutputs[point.address] = point;
   points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
   return true;
 }
 
 void Outstation::WriteBinary(std::uint16_t address, bool status) {
-  auto iter = binaryPoints.find(address);
-  if (iter == binaryPoints.end()) {
+  auto iter = binaryOutputs.find(address);
+  if (iter == binaryOutputs.end()) {
     return;
   }
 
@@ -151,8 +196,8 @@ void Outstation::WriteBinary(std::uint16_t address, bool status) {
 }
 
 void Outstation::WriteAnalog(std::uint16_t address, double value) {
-  auto iter = analogPoints.find(address);
-  if (iter == analogPoints.end()) {
+  auto iter = analogOutputs.find(address);
+  if (iter == analogOutputs.end()) {
     return;
   }
 
@@ -167,18 +212,18 @@ void Outstation::WriteAnalog(std::uint16_t address, double value) {
   pusher->Push("RUNTIME", env);
 }
 
-const BinaryPoint* Outstation::GetBinary(const uint16_t address) {
-  auto iter = binaryPoints.find(address);
-  if (iter == binaryPoints.end()) {
+const BinaryOutputPoint* Outstation::GetBinaryOutput(const uint16_t address) {
+  auto iter = binaryOutputs.find(address);
+  if (iter == binaryOutputs.end()) {
     return NULL;
   }
 
   return &iter->second;
 }
 
-const AnalogPoint* Outstation::GetAnalog(const uint16_t address) {
-  auto iter = analogPoints.find(address);
-  if (iter == analogPoints.end()) {
+const AnalogOutputPoint* Outstation::GetAnalogOutput(const uint16_t address) {
+  auto iter = analogOutputs.find(address);
+  if (iter == analogOutputs.end()) {
     return NULL;
   }
 
@@ -188,16 +233,12 @@ const AnalogPoint* Outstation::GetAnalog(const uint16_t address) {
 void Outstation::ResetOutputs() {
   otsim::msgbus::Points points;
 
-  for (const auto& kv : binaryPoints) {
-    if (kv.second.output) {
-      points.push_back(otsim::msgbus::Point{kv.second.tag, 0.0});
-    }
+  for (const auto& kv : binaryOutputs) {
+    points.push_back(otsim::msgbus::Point{kv.second.tag, 0.0});
   }
 
-  for (const auto& kv : analogPoints) {
-    if (kv.second.output) {
-      points.push_back(otsim::msgbus::Point{kv.second.tag, 0.0});
-    }
+  for (const auto& kv : analogOutputs) {
+    points.push_back(otsim::msgbus::Point{kv.second.tag, 0.0});
   }
 
   if (points.size()) {
@@ -240,7 +281,7 @@ uint16_t Outstation::WarmRestart() {
 }
 
 opendnp3::CommandStatus Outstation::Select(const opendnp3::ControlRelayOutputBlock& arCommand, std::uint16_t aIndex) {
-    if (!GetBinary(aIndex)) {
+    if (!GetBinaryOutput(aIndex)) {
         // This is our best guess at what status to return when the address
         // being selected doesn't exist locally.
         return opendnp3::CommandStatus::OUT_OF_RANGE;
@@ -250,7 +291,7 @@ opendnp3::CommandStatus Outstation::Select(const opendnp3::ControlRelayOutputBlo
 }
 
 opendnp3::CommandStatus Outstation::Operate(const opendnp3::ControlRelayOutputBlock& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) {
-    auto point = GetBinary(aIndex);
+    auto point = GetBinaryOutput(aIndex);
 
     if (!point) {
         // This is our best guess at what status to return when the address
@@ -292,8 +333,62 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::ControlRelayOutputBl
     return opendnp3::CommandStatus::SUCCESS;
 }
 
+opendnp3::CommandStatus Outstation::Select(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex) {
+    if (!GetAnalogOutput(aIndex)) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
+opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) {
+    auto point = GetAnalogOutput(aIndex);
+
+    if (!point) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    if (point->sbo && opType != opendnp3::OperateType::SelectBeforeOperate) {
+        return opendnp3::CommandStatus::NO_SELECT;
+    }
+
+    WriteAnalog(aIndex, arCommand.value);
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
+opendnp3::CommandStatus Outstation::Select(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex) {
+    if (!GetAnalogOutput(aIndex)) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
+opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) {
+    auto point = GetAnalogOutput(aIndex);
+
+    if (!point) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    if (point->sbo && opType != opendnp3::OperateType::SelectBeforeOperate) {
+        return opendnp3::CommandStatus::NO_SELECT;
+    }
+
+    WriteAnalog(aIndex, arCommand.value);
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
 opendnp3::CommandStatus Outstation::Select(const opendnp3::AnalogOutputFloat32& arCommand, std::uint16_t aIndex) {
-    if (!GetAnalog(aIndex)) {
+    if (!GetAnalogOutput(aIndex)) {
         // This is our best guess at what status to return when the address
         // being selected doesn't exist locally.
         return opendnp3::CommandStatus::OUT_OF_RANGE;
@@ -303,7 +398,34 @@ opendnp3::CommandStatus Outstation::Select(const opendnp3::AnalogOutputFloat32& 
 }
 
 opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputFloat32& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) {
-    auto point = GetAnalog(aIndex);
+    auto point = GetAnalogOutput(aIndex);
+
+    if (!point) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    if (point->sbo && opType != opendnp3::OperateType::SelectBeforeOperate) {
+        return opendnp3::CommandStatus::NO_SELECT;
+    }
+
+    WriteAnalog(aIndex, arCommand.value);
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
+opendnp3::CommandStatus Outstation::Select(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex) {
+    if (!GetAnalogOutput(aIndex)) {
+        // This is our best guess at what status to return when the address
+        // being selected doesn't exist locally.
+        return opendnp3::CommandStatus::OUT_OF_RANGE;
+    }
+
+    return opendnp3::CommandStatus::SUCCESS;
+}
+
+opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) {
+    auto point = GetAnalogOutput(aIndex);
 
     if (!point) {
         // This is our best guess at what status to return when the address

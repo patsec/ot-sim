@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
             }
 
             if (typ.compare("binary") == 0) {
-              otsim::dnp3::BinaryPoint p;
+              otsim::dnp3::BinaryInputPoint p;
 
               p.address = point.get<std::uint16_t>("address");
               p.tag     = point.get<std::string>("tag");
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 
               outstation->AddBinaryInput(p);
             } else if (typ.compare("analog") == 0) {
-              otsim::dnp3::AnalogPoint p;
+              otsim::dnp3::AnalogInputPoint p;
 
               p.address  = point.get<std::uint16_t>("address");
               p.tag      = point.get<std::string>("tag");
@@ -217,21 +217,63 @@ int main(int argc, char** argv) {
             }
 
             if (typ.compare("binary") == 0) {
-              otsim::dnp3::BinaryPoint p;
+              otsim::dnp3::BinaryOutputPoint p;
 
               p.address = point.get<std::uint16_t>("address");
               p.tag     = point.get<std::string>("tag");
               p.sbo     = point.get<std::string>("sbo", "false") == "true";
               p.output  = true;
+
+              try {
+                  auto sgvar = point.get<std::string>("sgvar", "Group10Var2");
+                  p.svariation = opendnp3::StaticBinaryOutputStatusVariationSpec::from_string(sgvar);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
+
+              try {
+                  auto egvar = point.get<std::string>("egvar", "Group11Var2");
+                  p.evariation = opendnp3::EventBinaryOutputStatusVariationSpec::from_string(egvar);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
+
+              try {
+                  auto clazz = point.get<std::string>("class", "Class1");
+                  p.clazz = opendnp3::PointClassSpec::from_string(clazz);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
 
               outstation->AddBinaryOutput(p);
             } else if (typ.compare("analog") == 0) {
-              otsim::dnp3::AnalogPoint p;
+              otsim::dnp3::AnalogOutputPoint p;
 
               p.address = point.get<std::uint16_t>("address");
               p.tag     = point.get<std::string>("tag");
               p.sbo     = point.get<std::string>("sbo", "false") == "true";
               p.output  = true;
+
+              try {
+                  auto sgvar = point.get<std::string>("sgvar", "Group40Var4");
+                  p.svariation = opendnp3::StaticAnalogOutputStatusVariationSpec::from_string(sgvar);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
+
+              try {
+                  auto egvar = point.get<std::string>("egvar", "Group42Var6");
+                  p.evariation = opendnp3::EventAnalogOutputStatusVariationSpec::from_string(egvar);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
+
+              try {
+                  auto clazz = point.get<std::string>("class", "Class1");
+                  p.clazz = opendnp3::PointClassSpec::from_string(clazz);
+              } catch(const std::invalid_argument&) {
+                  continue;
+              }
 
               outstation->AddAnalogOutput(p);
             } else {

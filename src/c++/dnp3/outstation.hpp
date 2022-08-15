@@ -73,16 +73,16 @@ public:
 
   void Run();
 
-  bool AddBinaryInput(BinaryPoint point);
-  bool AddBinaryOutput(BinaryPoint point);
-  bool AddAnalogInput(AnalogPoint point);
-  bool AddAnalogOutput(AnalogPoint point);
+  bool AddBinaryInput(BinaryInputPoint point);
+  bool AddBinaryOutput(BinaryOutputPoint point);
+  bool AddAnalogInput(AnalogInputPoint point);
+  bool AddAnalogOutput(AnalogOutputPoint point);
 
   void WriteBinary(uint16_t address, bool value);
   void WriteAnalog(uint16_t address, double value);
 
-  const BinaryPoint* GetBinary(const uint16_t address);
-  const AnalogPoint* GetAnalog(const uint16_t address);
+  const BinaryOutputPoint* GetBinaryOutput(const uint16_t address);
+  const AnalogOutputPoint* GetAnalogOutput(const uint16_t address);
 
   void ResetOutputs();
   void HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env);
@@ -105,14 +105,14 @@ public:
   // BEGIN ICommandHandler Implementation
   opendnp3::CommandStatus Select(const opendnp3::ControlRelayOutputBlock& arCommand, std::uint16_t aIndex) override final;
   opendnp3::CommandStatus Operate(const opendnp3::ControlRelayOutputBlock& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final;
-  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
-  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
-  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
-  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
+  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex) override final;
+  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputInt16& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final;
+  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex) override final;
+  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputInt32& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final;
   opendnp3::CommandStatus Select(const opendnp3::AnalogOutputFloat32& arCommand, std::uint16_t aIndex) override final;
   opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputFloat32& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final;
-  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
-  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final {return opendnp3::CommandStatus::NOT_SUPPORTED;}
+  opendnp3::CommandStatus Select(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex) override final;
+  opendnp3::CommandStatus Operate(const opendnp3::AnalogOutputDouble64& arCommand, std::uint16_t aIndex, opendnp3::IUpdateHandler& handler, opendnp3::OperateType opType) override final;
   // END ICommandHandler Implementation
 
 protected:
@@ -130,9 +130,10 @@ private:
 
   std::shared_ptr<opendnp3::IOutstation> outstation;
 
-  // NOTE: this assumes inputs and outputs will not use the same addresses.
-  std::map<std::uint16_t, BinaryPoint> binaryPoints;
-  std::map<std::uint16_t, AnalogPoint> analogPoints;
+  std::map<std::uint16_t, BinaryInputPoint> binaryInputs;
+  std::map<std::uint16_t, BinaryOutputPoint> binaryOutputs;
+  std::map<std::uint16_t, AnalogInputPoint> analogInputs;
+  std::map<std::uint16_t, AnalogOutputPoint> analogOutputs;
 
   std::map<std::string, otsim::msgbus::Point> points;
   std::mutex pointsMu;

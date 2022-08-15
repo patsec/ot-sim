@@ -16,15 +16,8 @@
       <local-address>1024</local-address>
       <remote-address>1</remote-address>
       <warm-restart-delay>5</warm-restart-delay>
-      <input type="binary">
-        <address>0</address>
-        <tag>line-650632.closed</tag>
-        <svar>Group1Var1</svar>
-        <evar>Group2Var1</evar>
-        <class>Class1</class>
-      </input>
       <output type="binary">
-        <address>10</address>
+        <address>0</address>
         <tag>line-650632.closed</tag>
         <svar>Group10Var2</svar>
         <evar>Group11Var2</evar>

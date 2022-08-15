@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
 
   while(true) {
     try {
-      closed = handler->GetBinary(10);
-      kW = handler->GetAnalog(0);
+      closed = handler->GetBinaryOutput(0);
+      kW = handler->GetAnalogInput(0);
 
       break;
     } catch (const std::out_of_range&) {
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
   std::cout << "sending command" << std::endl;
 
-  master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, 10) }), callback);
+  master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, 0) }), callback);
 
   if (!f.get()) {
     return 1;
@@ -101,8 +101,8 @@ int main(int argc, char** argv) {
 
   while(true) {
     try {
-      closed = handler->GetBinary(10);
-      kW = handler->GetAnalog(0);
+      closed = handler->GetBinaryOutput(0);
+      kW = handler->GetAnalogInput(0);
 
       break;
     } catch (const std::out_of_range&) {
