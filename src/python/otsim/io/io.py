@@ -46,10 +46,11 @@ class IO(HelicsFederate):
 
     self.name = el.get('name', default='ot-sim-io')
 
-    broker = el.findtext('broker-endpoint', default='127.0.0.1')
-    name   = el.findtext('federate-name',   default=self.name)
+    broker    = el.findtext('broker-endpoint',    default='127.0.0.1')
+    name      = el.findtext('federate-name',      default=self.name)
+    log_level = el.findtext('federate-log-level', default='SUMMARY')
 
-    HelicsFederate.federate_info_core_init_string = f'--federates=1 --broker={broker}'
+    HelicsFederate.federate_info_core_init_string = f'--federates=1 --broker={broker} --loglevel={log_level}'
     HelicsFederate.federate_name = name
 
     start = el.findtext('start-time', default=1)
