@@ -119,7 +119,7 @@ void Outstation::Run() {
         auto lock = std::unique_lock<std::mutex>(pointsMu);
 
         auto point = points.at(tag);
-        builder.Update(opendnp3::Analog(point.value, opendnp3::Flags(0), opendnp3::DNPTime(point.ts)), addr);
+        builder.Update(opendnp3::Analog(point.value, opendnp3::Flags(1), opendnp3::DNPTime(point.ts)), addr);
 
         std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
       } catch (const std::out_of_range&) {}
@@ -133,7 +133,7 @@ void Outstation::Run() {
         auto lock = std::unique_lock<std::mutex>(pointsMu);
 
         auto point = points.at(tag);
-        builder.Update(opendnp3::AnalogOutputStatus(point.value, opendnp3::Flags(0), opendnp3::DNPTime(point.ts)), addr);
+        builder.Update(opendnp3::AnalogOutputStatus(point.value, opendnp3::Flags(1), opendnp3::DNPTime(point.ts)), addr);
 
         std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
       } catch (const std::out_of_range&) {}
