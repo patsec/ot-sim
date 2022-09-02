@@ -66,7 +66,6 @@ class Message(NamedTuple):
     destination: str = ""
     original_destination: str = ""
     original_source: str = ""
-    length: int = 0
 
 
 class Messages(NamedTuple):
@@ -217,14 +216,13 @@ class HelicsFederate(object):
         granted_time = -1
 
         for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
-
             while granted_time < t:
-                self.action_pre_request_time()
                 logger.debug("Requesting time {}".format(t))
                 granted_time = h.helicsFederateRequestTime(self._federate, t)
                 logger.debug("Granted time {}".format(granted_time))
                 self.current_time = granted_time
-                self.action_post_request_time()
+
+            self.action_pre_request_time()
 
             if len(self.publications) > 0:
                 # User defined action
@@ -248,6 +246,8 @@ class HelicsFederate(object):
             if len(self.subscriptions) > 0:
                 # User defined action
                 self.action_subscriptions(self.values.recv, self.current_time)
+
+            self.action_post_request_time()
 
         while granted_time < self.end_time:
             logger.debug("Requesting time {}".format(self.end_time))
@@ -293,7 +293,6 @@ class HelicsFederate(object):
                 msg = h.helicsEndpointGetMessage(endp)
                 message = Message(
                     data=msg.data,
-                    length=msg.length,
                     original_destination=msg.original_dest,
                     original_source=msg.original_source,
                     destination=e.name,

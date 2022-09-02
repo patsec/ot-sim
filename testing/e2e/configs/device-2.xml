@@ -54,10 +54,15 @@
       <type>boolean</type>
       <tag>switch-671692.closed</tag>
     </subscription>
+    <!--
     <publication>
       <key>line-650632.closed</key>
       <type>boolean</type>
       <tag>line-650632.closed</tag>
     </publication>
+    -->
+    <endpoint name="OpenDSS/updates">
+      <tag key="line-650632.closed">line-650632.closed</tag>
+    </endpoint>
   </io>
 </ot-sim>

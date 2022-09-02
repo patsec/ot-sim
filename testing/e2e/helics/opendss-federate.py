@@ -1,8 +1,8 @@
-import math, os, time
+import json, os, time
 
 import opendssdirect as dss
 
-from otsim.helics_helper import HelicsFederate, Publication, Subscription, DataType
+from otsim.helics_helper import DataType, Endpoint, HelicsFederate, Publication, Subscription
 
 
 current_directory = os.path.realpath(os.path.dirname(__file__))
@@ -26,10 +26,14 @@ class OpenDSSFederate(HelicsFederate):
         Publication("regulator-Reg1.vreg",  DataType.double),
     ]
 
-    HelicsFederate.subscriptions = [
-        Subscription("ot-sim-io/line-650632.closed", DataType.boolean),
-    ]
+#   HelicsFederate.subscriptions = [
+#       Subscription("ot-sim-io/line-650632.closed", DataType.boolean),
+#   ]
 
+    # Message federate endpoint to receive updates.
+    HelicsFederate.endpoints = [
+        Endpoint("updates"),
+    ]
 
     def __init__(self, *args, **kwargs):
         HelicsFederate.__init__(self)
@@ -46,7 +50,7 @@ class OpenDSSFederate(HelicsFederate):
         dss.Solution.Solve()
 
 
-    def action_subscriptions(self, data, current_time):
+    def action_subscriptions(self, data, ts):
         for k, v in data.items():
             _, topic = k.split('/', 1)
 
@@ -84,7 +88,7 @@ class OpenDSSFederate(HelicsFederate):
                 dss.Vsources.BasekV(v[0] * 115)
 
 
-    def action_publications(self, data, current_time):
+    def action_publications(self, data, ts):
         for topic in data.keys():
             # topic = line-650632.kW
             # kind  = line
@@ -137,6 +141,55 @@ class OpenDSSFederate(HelicsFederate):
 
                 if field == 'vreg':
                     data[topic] = dss.RegControls.ForwardVreg()
+
+
+    def action_endpoints_send(self, endpoints, ts):
+        pass
+
+
+    def action_endpoints_recv(self, endpoints, ts):
+        for msg in endpoints.get('updates', []):
+            updates = json.loads(msg.data)
+
+            for update in updates:
+                topic = update.get('tag',   None)
+                value = update.get('value', None)
+
+                assert topic is not None
+                assert value is not None
+
+                name, field = topic.split('.', 1)
+                kind, name  = name.split('-', 1)
+
+                if kind == 'switch':
+                    dss.Circuit.SetActiveClass("line")
+                    dss.Circuit.SetActiveElement(name)
+
+                    if field == 'closed':
+                        if value is True or value != 0:
+                            dss.CktElement.Close(0, 0)
+                        elif value is False or value == 0:
+                            dss.CktElement.Open(0, 0)
+                elif kind == 'line':
+                    dss.Circuit.SetActiveClass("line")
+                    dss.Circuit.SetActiveElement(name)
+
+                    if field == 'closed':
+                        if value is True or value != 0:
+                            dss.CktElement.Close(0, 0)
+                        elif value is False or value == 0:
+                            dss.CktElement.Open(0, 0)
+                elif kind == 'regulator':
+                    dss.Circuit.SetActiveClass('regcontrol')
+                    dss.Circuit.SetActiveElement(name)
+
+                    if field == 'vreg':
+                        dss.RegControls.ForwardVreg(value)
+                elif kind == 'bus':
+                    dss.Circuit.SetActiveClass("Vsource")
+                    dss.Circuit.SetActiveElement("source")
+
+                    dss.Vsources.BasekV(value[0] * 115)
 
 
 if __name__ == "__main__":
