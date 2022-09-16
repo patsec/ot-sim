@@ -147,24 +147,30 @@ int main(int argc, char** argv) {
               p.address = point.get<std::uint16_t>("address");
               p.tag     = point.get<std::string>("tag");
 
+              auto sgvar = point.get<std::string>("sgvar", "Group1Var2");
+
               try {
-                  auto sgvar = point.get<std::string>("sgvar", "Group1Var2");
                   p.svariation = opendnp3::StaticBinaryVariationSpec::from_string(sgvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: static group variation {} is invalid for binary input", sgvar) << std::endl;
                   continue;
               }
 
+              auto egvar = point.get<std::string>("egvar", "Group2Var2");
+
               try {
-                  auto egvar = point.get<std::string>("egvar", "Group2Var2");
                   p.evariation = opendnp3::EventBinaryVariationSpec::from_string(egvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: event group variation {} is invalid for binary input", egvar) << std::endl;
                   continue;
               }
 
+              auto clazz = point.get<std::string>("class", "Class1");
+
               try {
-                  auto clazz = point.get<std::string>("class", "Class1");
                   p.clazz = opendnp3::PointClassSpec::from_string(clazz);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: {} is an invalid DNP3 class", clazz) << std::endl;
                   continue;
               }
 
@@ -176,24 +182,30 @@ int main(int argc, char** argv) {
               p.tag      = point.get<std::string>("tag");
               p.deadband = point.get<double>("deadband", 0.0);
 
+              auto sgvar = point.get<std::string>("sgvar", "Group30Var6");
+
               try {
-                  auto sgvar = point.get<std::string>("sgvar", "Group30Var6");
                   p.svariation = opendnp3::StaticAnalogVariationSpec::from_string(sgvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: static group variation {} is invalid for analog input", sgvar) << std::endl;
                   continue;
               }
 
+              auto egvar = point.get<std::string>("egvar", "Group32Var6");
+
               try {
-                  auto egvar = point.get<std::string>("egvar", "Group32Var6");
                   p.evariation = opendnp3::EventAnalogVariationSpec::from_string(egvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: event group variation {} is invalid for analog input", egvar) << std::endl;
                   continue;
               }
 
+              auto clazz = point.get<std::string>("class", "Class1");
+
               try {
-                  auto clazz = point.get<std::string>("class", "Class1");
                   p.clazz = opendnp3::PointClassSpec::from_string(clazz);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: {} is an invalid DNP3 class", clazz) << std::endl;
                   continue;
               }
 
@@ -224,24 +236,30 @@ int main(int argc, char** argv) {
               p.sbo     = point.get<std::string>("sbo", "false") == "true";
               p.output  = true;
 
+              auto sgvar = point.get<std::string>("sgvar", "Group10Var2");
+
               try {
-                  auto sgvar = point.get<std::string>("sgvar", "Group10Var2");
                   p.svariation = opendnp3::StaticBinaryOutputStatusVariationSpec::from_string(sgvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: static group variation {} is invalid for binary output", sgvar) << std::endl;
                   continue;
               }
 
+              auto egvar = point.get<std::string>("egvar", "Group11Var2");
+
               try {
-                  auto egvar = point.get<std::string>("egvar", "Group11Var2");
                   p.evariation = opendnp3::EventBinaryOutputStatusVariationSpec::from_string(egvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: event group variation {} is invalid for binary output", egvar) << std::endl;
                   continue;
               }
 
+              auto clazz = point.get<std::string>("class", "Class1");
+
               try {
-                  auto clazz = point.get<std::string>("class", "Class1");
                   p.clazz = opendnp3::PointClassSpec::from_string(clazz);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: {} is an invalid DNP3 class", clazz) << std::endl;
                   continue;
               }
 
@@ -254,24 +272,30 @@ int main(int argc, char** argv) {
               p.sbo     = point.get<std::string>("sbo", "false") == "true";
               p.output  = true;
 
+              auto sgvar = point.get<std::string>("sgvar", "Group40Var4");
+
               try {
-                  auto sgvar = point.get<std::string>("sgvar", "Group40Var4");
                   p.svariation = opendnp3::StaticAnalogOutputStatusVariationSpec::from_string(sgvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: static group variation {} is invalid for analog output", sgvar) << std::endl;
                   continue;
               }
 
+              auto egvar = point.get<std::string>("egvar", "Group42Var6");
+
               try {
-                  auto egvar = point.get<std::string>("egvar", "Group42Var6");
                   p.evariation = opendnp3::EventAnalogOutputStatusVariationSpec::from_string(egvar);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: event group variation {} is invalid for analog output", egvar) << std::endl;
                   continue;
               }
 
+              auto clazz = point.get<std::string>("class", "Class1");
+
               try {
-                  auto clazz = point.get<std::string>("class", "Class1");
                   p.clazz = opendnp3::PointClassSpec::from_string(clazz);
               } catch(const std::invalid_argument&) {
+                  std::cerr << fmt::format("ERROR: {} is an invalid DNP3 class", clazz) << std::endl;
                   continue;
               }
 
