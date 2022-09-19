@@ -12,7 +12,6 @@
 
 #include "dnp3/client.hpp"
 #include "dnp3/server.hpp"
-#include "msgbus/metrics.hpp"
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
 

@@ -56,6 +56,8 @@ func metricsHandler(topic, msg string) error {
 					Name: nameRegex.ReplaceAllString(metric.Name, "_"),
 					Help: metric.Desc,
 				})
+
+				gauges[metric.Name] = gauge
 			}
 
 			gauge.Set(metric.Value)

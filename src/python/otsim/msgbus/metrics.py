@@ -4,7 +4,7 @@ import json, threading, time, typing
 
 import otsim.msgbus.envelope as envelope
 
-from otsim.msgbus.envelope import Metric
+from otsim.msgbus.envelope import Metric, MetricKind
 from otsim.msgbus.pusher   import Pusher
 
 class MetricsPusher:
@@ -22,8 +22,8 @@ class MetricsPusher:
     self.running = False
     self.thread.join()
 
-  def new_metric(self: MetricsPusher, kind: str, name: str, desc: str) -> None:
-    self.metrics[name] = {'kind': kind, 'name': name, 'desc': desc, 'value': 0.0}
+  def new_metric(self: MetricsPusher, kind: MetricKind, name: str, desc: str) -> None:
+    self.metrics[name] = {'kind': kind.value, 'name': name, 'desc': desc, 'value': 0.0}
 
   def incr_metric(self: MetricsPusher, name: str) -> None:
     if name in self.metrics:
@@ -49,7 +49,7 @@ class MetricsPusher:
     while self.running:
       updates: typing.List[Metric] = []
 
-      for name, metric in self.metrics.items():
+      for metric in self.metrics.values():
         copy = metric
 
         if not copy['name'].startswith(prefix):

@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 from otsim.helics_helper     import DataType, Endpoint, HelicsFederate, Message, Publication, Subscription
-from otsim.msgbus.envelope   import Envelope, Point
+from otsim.msgbus.envelope   import Envelope, MetricKind, Point
 from otsim.msgbus.metrics    import MetricsPusher
 from otsim.msgbus.pusher     import Pusher
 from otsim.msgbus.subscriber import Subscriber
@@ -123,7 +123,10 @@ class IO(HelicsFederate):
     self.metrics    = MetricsPusher()
 
     self.subscriber.add_update_handler(self.handle_msgbus_update)
-    self.metrics.new_metric('Counter', 'update_count', 'number of update messages processed')
+    self.metrics.new_metric(MetricKind.COUNTER, 'status_count',            'number of OT-sim status messages generated')
+    self.metrics.new_metric(MetricKind.COUNTER, 'update_count',            'number of OT-sim update messages processed')
+    self.metrics.new_metric(MetricKind.COUNTER, 'helics_sub_count',        'number of HELICS subscriptions processed')
+    self.metrics.new_metric(MetricKind.COUNTER, 'helics_pub_update_count', 'number of HELICS publication-based updates generated')
 
 
   def start(self: IO):
@@ -162,10 +165,12 @@ class IO(HelicsFederate):
       if not tag: continue
 
       points.append({'tag': tag, 'value': float(v), 'ts': 0})
+      self.metrics.incr_metric('helics_sub_count')
 
     if len(points) > 0:
       env = envelope.new_status_envelope(self.name, {'measurements': points})
       self.pusher.push('RUNTIME', env)
+      self.metrics.incr_metric('status_count')
 
 
   def action_publications(self: IO, data: typing.Dict, _):
@@ -185,6 +190,10 @@ class IO(HelicsFederate):
             data[k] = bool(value)
           elif pub.type == DataType.double:
             data[k] = float(value)
+          else:
+            continue
+
+          self.metrics.incr_metric('helics_pub_update_count')
 
       self.updated.clear()
 

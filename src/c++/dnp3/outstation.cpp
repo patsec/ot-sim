@@ -5,6 +5,8 @@
 #include "fmt/format.h"
 #include "opendnp3/outstation/UpdateBuilder.h"
 
+#include "msgbus/metrics.hpp"
+
 namespace otsim {
 namespace dnp3 {
 
@@ -12,7 +14,11 @@ Outstation::Outstation(OutstationConfig config, OutstationRestartConfig restart,
   DefaultOutstationApplication(opendnp3::TimeDuration::Minutes(1)), config(config), restartConfig(restart), pusher(pusher)
 {
   metrics = otsim::msgbus::MetricsPusher::Create();
-  metrics->NewMetric("Counter", "status_count", "number of status messages processed");
+
+  metrics->NewMetric("Counter", "status_count",            "number of OT-sim status messages processed");
+  metrics->NewMetric("Counter", "update_count",            "number of OT-sim update messages generated");
+  metrics->NewMetric("Counter", "dnp3_binary_write_count", "number of DNP3 binary writes processed");
+  metrics->NewMetric("Counter", "dnp3_analog_write_count", "number of DNP3 analog writes processed");
 }
 
 opendnp3::OutstationStackConfig Outstation::Init() {
@@ -193,6 +199,7 @@ void Outstation::WriteBinary(std::uint16_t address, bool status) {
   auto env = otsim::msgbus::NewEnvelope(config.id, contents);
 
   pusher->Push("RUNTIME", env);
+  metrics->IncrMetric("update_count");
 }
 
 void Outstation::WriteAnalog(std::uint16_t address, double value) {
@@ -210,6 +217,7 @@ void Outstation::WriteAnalog(std::uint16_t address, double value) {
   auto env = otsim::msgbus::NewEnvelope(config.id, contents);
 
   pusher->Push("RUNTIME", env);
+  metrics->IncrMetric("update_count");
 }
 
 const BinaryOutputPoint* Outstation::GetBinaryOutput(const uint16_t address) {
@@ -330,6 +338,8 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::ControlRelayOutputBl
     }
 
     WriteBinary(aIndex, val);
+    metrics->IncrMetric("dnp3_binary_write_count");
+
     return opendnp3::CommandStatus::SUCCESS;
 }
 
@@ -357,6 +367,8 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputInt16& a
     }
 
     WriteAnalog(aIndex, arCommand.value);
+    metrics->IncrMetric("dnp3_analog_write_count");
+
     return opendnp3::CommandStatus::SUCCESS;
 }
 
@@ -384,6 +396,8 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputInt32& a
     }
 
     WriteAnalog(aIndex, arCommand.value);
+    metrics->IncrMetric("dnp3_analog_write_count");
+
     return opendnp3::CommandStatus::SUCCESS;
 }
 
@@ -411,6 +425,8 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputFloat32&
     }
 
     WriteAnalog(aIndex, arCommand.value);
+    metrics->IncrMetric("dnp3_analog_write_count");
+
     return opendnp3::CommandStatus::SUCCESS;
 }
 
@@ -438,6 +454,8 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::AnalogOutputDouble64
     }
 
     WriteAnalog(aIndex, arCommand.value);
+    metrics->IncrMetric("dnp3_analog_write_count");
+
     return opendnp3::CommandStatus::SUCCESS;
 }
 
