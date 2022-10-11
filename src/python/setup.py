@@ -5,11 +5,13 @@ from setuptools import setup, find_packages
 REQUIRES = [
     'helics~=3.2.1',
     'pyzmq',
+    'requests',
 ]
 
 ENTRIES = {
     'console_scripts' : [
         'ot-sim-io-module = otsim.io.io:main',
+        'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
     ]
 }
 
