@@ -39,7 +39,7 @@ func (this *ModbusServer) writeCoil(ctx context.Context, f mbserver.Framer) ([]b
 	)
 
 	if val != 0 {
-		val = 65280 // FF00, per Modbus spec
+		val = 65280 // 0xFF00, per Modbus spec
 	}
 
 	reg, ok := this.registers["coil"][addr]

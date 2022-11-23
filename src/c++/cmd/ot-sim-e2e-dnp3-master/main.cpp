@@ -71,22 +71,22 @@ int main(int argc, char** argv) {
   auto code = opendnp3::OperationType::PULSE_ON;
   opendnp3::ControlRelayOutputBlock crob(code, opendnp3::TripCloseCode::TRIP);
 
-  std::promise<bool> p;
-  std::future<bool> f = p.get_future();
+  std::promise<bool> p0;
+  std::future<bool> f0 = p0.get_future();
 
-  auto callback = [&](const opendnp3::ICommandTaskResult& r) -> void {
+  auto callback0 = [&](const opendnp3::ICommandTaskResult& r) -> void {
     if (r.summary == opendnp3::TaskCompletion::SUCCESS) {
-      p.set_value(true);
+      p0.set_value(true);
     } else {
-      p.set_value(false);
+      p0.set_value(false);
     }
   };
 
-  std::cout << "sending command" << std::endl;
+  std::cout << "sending trip command" << std::endl;
 
-  master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, 0) }), callback);
+  master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, 0) }), callback0);
 
-  if (!f.get()) {
+  if (!f0.get()) {
     return 1;
   }
 
@@ -118,6 +118,59 @@ int main(int argc, char** argv) {
   }
 
   if (kW != 0.0) {
+    return 1;
+  }
+
+  code = opendnp3::OperationType::PULSE_ON;
+  crob = opendnp3::ControlRelayOutputBlock(code, opendnp3::TripCloseCode::CLOSE);
+
+  std::promise<bool> p1;
+  std::future<bool> f1 = p1.get_future();
+
+  auto callback1 = [&](const opendnp3::ICommandTaskResult& r) -> void {
+    if (r.summary == opendnp3::TaskCompletion::SUCCESS) {
+      p1.set_value(true);
+    } else {
+      p1.set_value(false);
+    }
+  };
+
+  std::cout << "sending close command" << std::endl;
+
+  master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, 0) }), callback1);
+
+  if (!f1.get()) {
+    return 1;
+  }
+
+  std::cout << "sleeping for 10s" << std::endl;
+
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+
+  std::cout << "getting updated values" << std::endl;
+
+  handler->Reset();
+  scan->Demand();
+
+  while(true) {
+    try {
+      closed = handler->GetBinaryOutput(0);
+      kW = handler->GetAnalogInput(0);
+
+      break;
+    } catch (const std::out_of_range&) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+  }
+
+  std::cout << "closed: " << closed << std::endl;
+  std::cout << "kW:     " << kW << std::endl;
+
+  if (!closed) {
+    return 1;
+  }
+
+  if (kW < 4.0 || kW > 5.0) {
     return 1;
   }
 

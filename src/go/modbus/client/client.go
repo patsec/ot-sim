@@ -252,11 +252,17 @@ func (this *ModbusClient) handleMsgBusUpdate(env msgbus.Envelope) {
 		if register, ok := this.registers[point.Tag]; ok {
 			switch register.typ {
 			case "coil":
-				if _, err := this.client.WriteSingleCoil(uint16(register.addr), uint16(point.Value)); err != nil {
+				value := point.Value
+
+				if value != 0 {
+					value = 65280 // 0xFF00, per Modbus spec
+				}
+
+				if _, err := this.client.WriteSingleCoil(uint16(register.addr), uint16(value)); err != nil {
 					this.log("[ERROR] writing to coil %d at %s: %v", register.addr, this.endpoint, err)
 				}
 
-				this.log("writing coil %d at %s --> %t", register.addr, this.endpoint, uint16(point.Value) != 0)
+				this.log("writing coil %d at %s --> %t", register.addr, this.endpoint, uint16(value) != 0)
 			case "holding":
 				scaled := point.Value * math.Pow(10, float64(register.scaling))
 
