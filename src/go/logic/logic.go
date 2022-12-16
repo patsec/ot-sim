@@ -280,6 +280,12 @@ func (this *Logic) Run(ctx context.Context, pubEndpoint, pullEndpoint string) er
 						point := msgbus.Point{Tag: tag}
 
 						switch value := this.env[u].(type) {
+						case bool:
+							if value {
+								point.Value = 1.0
+							} else {
+								point.Value = 0.0
+							}
 						case int:
 							point.Value = float64(value)
 						case float64:
