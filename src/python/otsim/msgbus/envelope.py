@@ -53,6 +53,12 @@ def new_status_envelope(sender: str, status: Status) -> Envelope:
   return env
 
 def new_update_envelope(sender: str, update: Update) -> Envelope:
+  if 'recipient' not in update:
+    update['recipient'] = ''
+
+  if 'confirm' not in update:
+    update['confirm'] = ''
+
   env: Envelope = {
     'version': 'v1',
     'kind': EnvelopeKind.UPDATE.value,
