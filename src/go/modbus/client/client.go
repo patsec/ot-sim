@@ -141,7 +141,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 			case <-time.After(this.period):
 				var points []msgbus.Point
 
-				// TODO: optimize this so all registers of the same time that are
+				// TODO: optimize this so all registers of the same kind that are
 				// consecutive can be read at once.
 
 				for tag, reg := range this.registers {

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	actshad.dev/mbserver v0.3.0
-	actshad.dev/modbus v0.2.0
+	actshad.dev/modbus v0.2.1
 	github.com/antonmedv/expr v1.9.0
 	github.com/beevik/etree v1.1.0
 	github.com/gorilla/mux v1.8.0
