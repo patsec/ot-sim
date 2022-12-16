@@ -29,6 +29,10 @@ type CPU struct {
 	apiCert     string
 	apiKey      string
 
+	elasticEndpoint string
+	elasticIndex    string
+	lokiEndpoint    string
+
 	modules map[string]string
 }
 
@@ -68,6 +72,16 @@ func (this *CPU) Configure(e *etree.Element) error {
 					this.apiCACert = child.Text()
 				}
 			}
+		case "logs":
+			for _, child := range child.ChildElements() {
+				switch child.Tag {
+				case "elastic":
+					this.elasticEndpoint = child.Text()
+					this.elasticIndex = child.SelectAttrValue("index", "ot-sim-logs")
+				case "loki":
+					this.lokiEndpoint = child.Text()
+				}
+			}
 		case "module":
 			path := child.Text()
 			name := child.SelectAttrValue("name", path)
@@ -85,6 +99,10 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 	for name, path := range this.modules {
 		path = strings.ReplaceAll(path, "{{config_file}}", config)
 		parts := strings.Split(path, " ")
+
+		ctx = ctxSetElasticEndpoint(ctx, this.elasticEndpoint)
+		ctx = ctxSetElasticIndex(ctx, this.elasticIndex)
+		ctx = ctxSetLokiEndpoint(ctx, this.lokiEndpoint)
 
 		if err := StartModule(ctx, name, parts[0], parts[1:]...); err != nil {
 			return fmt.Errorf("failed to start module %s: %w", name, err)
@@ -119,9 +137,11 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 		metricsErrors = make(chan error)
 	)
 
-	logHandlers := []MsgBusHandler{logger}
-	healthHandlers := []MsgBusHandler{metricsHandler}
-	runtimeHandlers := []MsgBusHandler{logger}
+	var (
+		logHandlers     = []MsgBusHandler{logger}
+		healthHandlers  = []MsgBusHandler{metricsHandler}
+		runtimeHandlers = []MsgBusHandler{logger}
+	)
 
 	go func() {
 		for {
