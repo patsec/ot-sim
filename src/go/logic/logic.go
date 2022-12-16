@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -338,6 +339,7 @@ func (this *Logic) initEnv() {
 	}
 
 	this.env["sprintf"] = fmt.Sprintf
+	this.env["abs"] = math.Abs
 }
 
 func (this *Logic) handleMsgBusStatus(env msgbus.Envelope) {
