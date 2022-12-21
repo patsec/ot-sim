@@ -1,0 +1,39 @@
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <api-endpoint>0.0.0.0:9101</api-endpoint>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+    <module name="logic">ot-sim-logic-module {{config_file}}</module>
+  </cpu>
+  <modbus name="modbus-outstation" mode="server">
+    <endpoint>1.1.1.11:502</endpoint>
+    <register type="input">
+      <address>30001</address>
+      <tag>yaw.current</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="holding">
+      <address>40001</address>
+      <tag>yaw.setpoint</tag>
+      <scaling>-2</scaling>
+    </register>
+  </modbus>
+  <logic name="yaw-controller">
+    <period>1s</period>
+    <process-updates>true</process-updates>
+    <program><![CDATA[
+      current_yaw = current_yaw == 0 ? yaw_setpoint : current_yaw
+      adjust = yaw_setpoint != current_yaw
+      dir = yaw_setpoint > current_yaw ? 1 : -1
+      current_yaw = adjust ? current_yaw + (dir * 0.1) : current_yaw
+    ]]></program>
+    <variables>
+      <current_yaw tag="yaw.current">0</current_yaw>
+      <yaw_setpoint tag="yaw.setpoint">0</yaw_setpoint>
+    </variables>
+  </logic>
+</ot-sim>

@@ -1,0 +1,18 @@
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <api-endpoint>0.0.0.0:9101</api-endpoint>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+  </cpu>
+  <modbus name="modbus-outstation" mode="server">
+    <endpoint>1.1.1.32:502</endpoint>
+    <register type="coil">
+      <address>1</address>
+      <tag>feathered</tag>
+    </register>
+  </modbus>
+</ot-sim>

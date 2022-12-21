@@ -1,0 +1,76 @@
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <api-endpoint>0.0.0.0:9101</api-endpoint>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="turbine-anemometer">ot-sim-wind-turbine-anemometer-module {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+  </cpu>
+  <wind-turbine>
+    <anemometer>
+      <weather-data>
+        <column name="Windspeed 58.2m">speed.high</column>
+        <column name="Windspeed 36.6m">speed.med</column>
+        <column name="Windspeed 15.0m">speed.low</column>
+        <column name="Wind Direction 58.2m">dir.high</column>
+        <column name="Wind Direction 36.6m">dir.med</column>
+        <column name="Wind Direction 15.0m">dir.low</column>
+        <column name="Temperature 58.2m">temp.high</column>
+        <column name="Temperature 3.0m">temp.low</column>
+        <column name="Barometric Pressure">pressure</column>
+      </weather-data>
+      <data-path>/workspaces/ot-sim/data/weather.csv</data-path>
+    </anemometer>
+  </wind-turbine>
+  <modbus name="modbus-outstation" mode="server">
+    <endpoint>1.1.1.21:502</endpoint>
+    <register type="input">
+      <address>30001</address>
+      <tag>speed.high</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30002</address>
+      <tag>speed.med</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30003</address>
+      <tag>speed.low</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30004</address>
+      <tag>dir.high</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30005</address>
+      <tag>dir.med</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30006</address>
+      <tag>dir.low</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30007</address>
+      <tag>temp.high</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30008</address>
+      <tag>temp.low</tag>
+      <scaling>-2</scaling>
+    </register>
+    <register type="input">
+      <address>30009</address>
+      <tag>pressure</tag>
+      <scaling>-2</scaling>
+    </register>
+  </modbus>
+</ot-sim>

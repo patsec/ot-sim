@@ -16,12 +16,17 @@ class GroundTruth:
 
     self.elastic    = 'http://localhost:9200'
     self.index_base = 'ot-sim'
+    self.labels     = {}
 
     elastic = el.find('elastic')
 
     if elastic:
       self.elastic    = elastic.findtext('endpoint',        default=self.elastic)
       self.index_base = elastic.findtext('index-base-name', default=self.index_base)
+
+      for field in elastic.findall('label'):
+        name = field.get('name')
+        self.labels[name] = field.text
 
     pub_endpoint    = el.findtext('pub-endpoint', default=pub)
     self.subscriber = Subscriber(pub_endpoint)
@@ -60,6 +65,9 @@ class GroundTruth:
           'value':      point['value'],
         }
 
+        if self.labels:
+          doc['labels'] = self.labels
+
         resp = requests.post(f'{self.elastic}/{index}/_doc', data=json.dumps(doc), headers=headers)
 
         if not resp.ok:
@@ -76,7 +84,8 @@ class GroundTruth:
             '@timestamp': {'type': 'date'},
             'source':     {'type': 'keyword'}, # don't analyze
             'field':      {'type': 'text'},    # analize
-            'value':      {'type': 'double'}
+            'value':      {'type': 'double'},
+            'labels':     {'type': 'flattened'},
           }
         }
       }

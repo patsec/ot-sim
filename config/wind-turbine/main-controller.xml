@@ -1,0 +1,154 @@
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <api-endpoint>0.0.0.0:9101</api-endpoint>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="turbine-power-output">ot-sim-wind-turbine-power-output-module {{config_file}}</module>
+    <module name="logic">ot-sim-logic-module {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+    <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
+  </cpu>
+  <wind-turbine>
+    <power-output>
+      <turbine-type>E-126/4200</turbine-type>
+      <hub-height>135</hub-height>
+      <roughness-length>0.15</roughness-length>
+      <weather-data>
+        <column name="wind_speed" height="58.2">speed.high</column>
+        <column name="wind_speed" height="36.6">speed.med</column>
+        <column name="wind_speed" height="15">speed.low</column>
+        <column name="temperature" height="58.2">temp.high</column>
+        <column name="temperature" height="3">temp.low</column>
+        <column name="pressure" height="0">pressure</column>
+      </weather-data>
+      <tags>
+        <cut-in>turbine.cut-in</cut-in>
+        <cut-out>turbine.cut-out</cut-out>
+        <output>turbine.mw-output</output>
+        <emergency-stop>turbine.emergency-stop</emergency-stop>
+      </tags>
+    </power-output>
+  </wind-turbine>
+  <logic name="main-controller">
+    <period>1s</period>
+    <process-updates>true</process-updates>
+    <program><![CDATA[
+      manual_stop = false
+      proto_stop = proto_emer_stop != 0
+      stop = proto_stop || manual_stop
+      feathered = stop || speed < cut_in || speed > cut_out
+      target = direction > 180 ? direction - 180 : direction + 180
+      error = target * 0.04
+      adjust = abs(target - current_yaw) > error
+      adjust = adjust && !feathered
+      yaw_setpoint = adjust ? target : yaw_setpoint
+    ]]></program>
+    <variables>
+      <speed tag="speed.high">0</speed>
+      <direction tag="dir.high">0</direction>
+      <cut_in tag="turbine.cut-in">100</cut_in>
+      <cut_out tag="turbine.cut-out">0</cut_out>
+      <current_yaw tag="yaw.current">0</current_yaw>
+      <yaw_setpoint tag="yaw.setpoint">0</yaw_setpoint>
+      <proto_emer_stop tag="turbine.emergency-stop">0</proto_emer_stop>
+      <feathered>0</feathered>
+    </variables>
+  </logic>
+  <modbus name="modbus-outstation" mode="client">
+    <endpoint>1.1.1.21:502</endpoint>
+    <register type="input">
+      <address>30001</address>
+      <tag>speed.high</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30002</address>
+      <tag>speed.med</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30003</address>
+      <tag>speed.low</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30004</address>
+      <tag>dir.high</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30005</address>
+      <tag>dir.med</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30006</address>
+      <tag>dir.low</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30007</address>
+      <tag>temp.high</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30008</address>
+      <tag>temp.low</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="input">
+      <address>30009</address>
+      <tag>pressure</tag>
+      <scaling>2</scaling>
+    </register>
+  </modbus>
+  <modbus name="modbus-outstation" mode="client">
+    <endpoint>1.1.1.11:502</endpoint>
+    <register type="input">
+      <address>30001</address>
+      <tag>yaw.current</tag>
+      <scaling>2</scaling>
+    </register>
+    <register type="holding">
+      <address>40001</address>
+      <tag>yaw.setpoint</tag>
+      <scaling>2</scaling>
+    </register>
+  </modbus>
+  <modbus name="modbus-outstation" mode="client">
+    <endpoint>1.1.1.31:502</endpoint>
+    <register type="coil">
+      <address>1</address>
+      <tag>feathered</tag>
+    </register>
+  </modbus>
+  <modbus name="modbus-outstation" mode="client">
+    <endpoint>1.1.1.32:502</endpoint>
+    <register type="coil">
+      <address>1</address>
+      <tag>feathered</tag>
+    </register>
+  </modbus>
+  <modbus name="modbus-outstation" mode="client">
+    <endpoint>1.1.1.33:502</endpoint>
+    <register type="coil">
+      <address>1</address>
+      <tag>feathered</tag>
+    </register>
+  </modbus>
+  <dnp3 name="dnp3-outstation" mode="server">
+    <endpoint>192.168.100.1:20000</endpoint>
+    <outstation name="dnp3-outstation">
+      <local-address>1024</local-address>
+      <remote-address>1</remote-address>
+      <output type="binary">
+        <address>0</address>
+        <tag>turbine.emergency-stop</tag>
+        <sbo>true</sbo>
+      </output>
+    </outstation>
+  </dnp3>
+</ot-sim>
