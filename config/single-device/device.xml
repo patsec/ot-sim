@@ -9,7 +9,12 @@
     <module name="io">ot-sim-io-module {{config_file}}</module>
     <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
+    <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
   </cpu>
+  <telnet name="SEL-Telnet">
+    <endpoint>:23</endpoint>
+    <banner>default</banner>
+  </telnet>
   <modbus name="modbus-outstation" mode="server">
     <endpoint>127.0.0.1:5502</endpoint>
     <register type="coil">

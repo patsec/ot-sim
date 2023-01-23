@@ -26,9 +26,9 @@ class OpenDSSFederate(HelicsFederate):
         Publication("regulator-Reg1.vreg",  DataType.double),
     ]
 
-#   HelicsFederate.subscriptions = [
-#       Subscription("ot-sim-io/line-650632.closed", DataType.boolean),
-#   ]
+    HelicsFederate.subscriptions = [
+        Subscription("ot-sim-io/line-650632.closed", DataType.boolean),
+    ]
 
     # Message federate endpoint to receive updates.
     HelicsFederate.endpoints = [

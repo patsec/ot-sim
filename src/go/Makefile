@@ -34,8 +34,15 @@ bin/ot-sim-modbus-module: $(MODBUS_SOURCES) $(MSGBUS_SOURCES)
 	mkdir -p bin
 	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-modbus-module cmd/ot-sim-modbus-module/main.go
 
+TELNET_SOURCES := $(shell find telnet \( -name '*.go' \))
+
+bin/ot-sim-telnet-module: $(TELNET_SOURCES) $(MSGBUS_SOURCES)
+	mkdir -p bin
+	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-telnet-module cmd/ot-sim-telnet-module/main.go
+
 .PHONY: install
-install: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module
+install: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module bin/ot-sim-telnet-module
 	cp bin/ot-sim-cpu-module    $(prefix)/bin/ot-sim-cpu-module
 	cp bin/ot-sim-logic-module  $(prefix)/bin/ot-sim-logic-module
 	cp bin/ot-sim-modbus-module $(prefix)/bin/ot-sim-modbus-module
+	cp bin/ot-sim-telnet-module $(prefix)/bin/ot-sim-telnet-module
