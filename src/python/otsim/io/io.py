@@ -49,8 +49,8 @@ class IO(HelicsFederate):
     self.pubs: typing.Dict[str, Publication] = {}
     # map HELICS topics --> HELICS sub
     self.subs: typing.Dict[str, Subscription] = {}
-    # map ot-sim tags --> HELICS topic and endpoint
-    self.eps: typing.Dict[str, typing.Dict] = {}
+    # map ot-sim tags --> list of HELICS topic and endpoint
+    self.eps: typing.Dict[str, typing.List[typing.Dict]] = defaultdict(list)
 
     self.name = el.get('name', default='ot-sim-io')
 
@@ -103,9 +103,9 @@ class IO(HelicsFederate):
 
       for t in e.findall('tag'):
         tag = t.text
-        key = t.get(key, default=tag)
+        key = t.get('key', default=tag)
 
-        self.eps[tag] = {'topic': key, 'endpoint': endpoint_name}
+        self.eps[tag].append({'topic': key, 'endpoint': endpoint_name})
 
     if need_endpoint:
       # We only need a single endpoint in this HELICS federate to send updates
@@ -207,15 +207,14 @@ class IO(HelicsFederate):
 
       for tag in self.updated:
         if tag in self.eps:
-          ep = self.eps[tag]
+          for ep in self.eps[tag]:
+            endpoint = ep['endpoint']
+            key      = ep['topic']
+            value    = self.updated[tag]
 
-          endpoint = ep['endpoint']
-          key      = ep['topic']
-          value    = self.updated[tag]
+            print(f'[{self.name}] updating federate topic {key} to {value}')
 
-          print(f'[{self.name}] updating federate topic {key} to {value}')
-
-          data[endpoint].append({'tag': key, 'value': value})
+            data[endpoint].append({'tag': key, 'value': value})
 
       for endpoint, data in data.items():
         endpoints['updates'].append(Message(destination=endpoint, time=ts, data=json.dumps(data)))
