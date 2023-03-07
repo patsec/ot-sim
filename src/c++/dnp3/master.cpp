@@ -44,7 +44,7 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
 
       pusher->Push("RUNTIME", env);
     } else {
-      std::cout << fmt::format("[{}] data manager in master missing tag for binary input at address {}", value.index) << std::endl;
+      std::cout << fmt::format("[{}] data manager in master missing tag for binary input at address {}", id, value.index) << std::endl;
     }
   });
 }
@@ -68,7 +68,7 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
 
       pusher->Push("RUNTIME", env);
     } else {
-      std::cout << fmt::format("[{}] data manager in master missing tag for binary output at address {}", value.index) << std::endl;
+      std::cout << fmt::format("[{}] data manager in master missing tag for binary output at address {}", id, value.index) << std::endl;
     }
   });
 }
@@ -92,7 +92,7 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
 
       pusher->Push("RUNTIME", env);
     } else {
-      std::cout << fmt::format("[{}] data manager in master missing tag for analog input at address {}", value.index) << std::endl;
+      std::cout << fmt::format("[{}] data manager in master missing tag for analog input at address {}", id, value.index) << std::endl;
     }
   });
 }
@@ -116,7 +116,7 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
 
       pusher->Push("RUNTIME", env);
     } else {
-      std::cout << fmt::format("[{}] data manager in master missing tag for analog output at address {}", value.index) << std::endl;
+      std::cout << fmt::format("[{}] data manager in master missing tag for analog output at address {}", id, value.index) << std::endl;
     }
   });
 }
