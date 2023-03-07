@@ -28,8 +28,16 @@ class PowerOutput:
     self.chain   = ModelChain(self.turbine)
 
     self.roughness  = float(el.findtext('roughness-length', default='0.15'))
+    self.target_mw  = el.findtext('target-mw', default=None)
     self.conditions = None
     self.emer_stop  = 0 # not in emergency stop mode
+
+    if self.target_mw:
+      assert(self.turbine.nominal_power)
+      self.target_mw = (self.turbine.nominal_power / 1e6) / self.target_mw
+
+    # don't mark as initialized until output is non-zero
+    self.initialized = False
 
     weather_data = el.find('weather-data')
     assert(weather_data)
@@ -141,10 +149,24 @@ class PowerOutput:
       output = self.chain.run_model(weather).power_output.values[0]
       output = output / 1e6 # W --> MW
 
-    points = [{'tag': self.output_tag, 'value': output, 'ts': 0}]
+      if self.target_mw:
+        output = output / self.target_mw
 
-    env = envelope.new_status_envelope(self.name, {'measurements': points})
-    self.pusher.push('RUNTIME', env)
+    # `output` could be zero for a while if this module starts up before the
+    # anemometer module does.
+    if not self.initialized and output:
+      self.initialized = True
+
+    # Prevent initial values of zero from messing up any physical system
+    # simulator the device this module is part of is connected to.
+    if self.initialized:
+      points = [{'tag': self.output_tag, 'value': output, 'ts': 0}]
+
+      env = envelope.new_status_envelope(self.name, {'measurements': points})
+      self.pusher.push('RUNTIME', env)
+
+      env = envelope.new_update_envelope(self.name, {'updates': points})
+      self.pusher.push('RUNTIME', env)
 
     self.conditions = None
 
