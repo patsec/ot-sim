@@ -34,11 +34,11 @@ bool Client::Init(const std::string& id, const std::string& endpoint) {
     return true;
 }
 
-std::shared_ptr<Master> Client::AddMaster(std::string id, std::uint16_t local, std::uint16_t remote, Pusher pusher) {
+std::shared_ptr<Master> Client::AddMaster(std::string id, std::uint16_t local, std::uint16_t remote, std::int64_t timeout, Pusher pusher) {
     std::cout << "adding master " << local << " --> " << remote << std::endl;
 
     auto master = Master::Create(id, pusher);
-    auto config = master->BuildConfig(local, remote);
+    auto config = master->BuildConfig(local, remote, timeout);
 
     auto iMaster = channel->AddMaster(id, master, opendnp3::DefaultMasterApplication::Create(), config);
 

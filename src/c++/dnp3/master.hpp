@@ -14,6 +14,7 @@
 #include "opendnp3/master/ISOEHandler.h"
 #include "opendnp3/master/MasterStackConfig.h"
 #include "opendnp3/master/ResponseInfo.h"
+#include "opendnp3/util/TimeDuration.h"
 
 namespace otsim {
 namespace dnp3 {
@@ -56,11 +57,12 @@ public:
     return duration;
   }
 
-  opendnp3::MasterStackConfig BuildConfig(std::uint16_t local, std::uint16_t remote) {
+  opendnp3::MasterStackConfig BuildConfig(std::uint16_t local, std::uint16_t remote, std::int64_t timeout) {
     address = local;
 
     opendnp3::MasterStackConfig config;
 
+    config.master.responseTimeout             = opendnp3::TimeDuration::Seconds(timeout);
     config.master.disableUnsolOnStartup       = false;
     config.master.startupIntegrityClassMask   = opendnp3::ClassField(opendnp3::ClassField::CLASS_0);
     config.master.unsolClassMask              = opendnp3::ClassField(opendnp3::ClassField::CLASS_0);

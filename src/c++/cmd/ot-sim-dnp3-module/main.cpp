@@ -331,9 +331,10 @@ int main(int argc, char** argv) {
           std::string id         = mstr.get<std::string>("<xmlattr>.name", "dnp3-master");
           std::uint16_t local    = mstr.get<std::uint16_t>("local-address", 1);
           std::uint16_t remote   = mstr.get<std::uint16_t>("remote-address", 1024);
+          std::int64_t timeout   = mstr.get<std::int64_t>("timeout", 5);
           std::uint64_t scanRate = mstr.get<std::uint64_t>("scan-rate", 30);
 
-          auto master = client->AddMaster(id, local, remote, pusher);
+          auto master = client->AddMaster(id, local, remote, timeout, pusher);
           sub->AddHandler(std::bind(&otsim::dnp3::Master::HandleMsgBusUpdate, master, std::placeholders::_1));
  
           auto inputs = mstr.equal_range("input");
