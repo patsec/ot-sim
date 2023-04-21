@@ -1,0 +1,58 @@
+<script type="text/javascript">
+    RED.nodes.registerType('ot-sim in', {
+        category: 'otsim',
+        color: '#FF4500',
+        defaults: {
+            tag: {value: ''},
+            updates: {value: false}
+        },
+        inputs:0,
+        outputs:1,
+        icon: "zeromq.png",
+        label: function() {
+            return this.tag || "ot-sim in";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="ot-sim in">
+    <div class="form-row">
+        <label for="node-input-tag" style="width:150px"><i class="fa fa-tag"></i> Tag</label>
+        <input type="text" id="node-input-tag" placeholder="Tag" style="width:50%" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-updates" style="width:150px">Include Updates</label>
+        <input type="checkbox" id="node-input-updates" style="width:5%" />
+    </div>
+</script>
+
+<script type="text/html" data-help-name="ot-sim in">
+    <p>OT-sim message bus subscription</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('ot-sim out', {
+        category: 'otsim',
+        color: '#FF4500',
+        defaults: {
+            tag: {value: ''}
+        },
+        inputs:1,
+        outputs:0,
+        icon: "zeromq.png",
+        label: function() {
+            return this.tag || "ot-sim out";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="ot-sim out">
+    <div class="form-row">
+        <label for="node-input-tag"><i class="fa fa-tag"></i> Tag</label>
+        <input type="text" id="node-input-tag" placeholder="Tag">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="ot-sim out">
+    <p>OT-sim message bus push</p>
+</script>

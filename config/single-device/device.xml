@@ -10,7 +10,21 @@
     <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
     <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
+    <module name="node-red">ot-sim-node-red-module {{config_file}}</module>
   </cpu>
+  <node-red>
+    <executable>node-red</executable>
+    <settings-path>/etc/node-red.js</settings-path>
+    <theme>dark</theme>
+    <flow-path></flow-path>
+    <!--
+    <authentiation>
+      <editor username="admin" password="admin"></editor>
+      <ui username="admin" password="admin"></ui>
+    </authentication>
+    -->
+    <endpoint host="0.0.0.0" port="1880"></endpoint>
+  </node-red>
   <telnet name="SEL-Telnet">
     <endpoint>:23</endpoint>
     <banner>default</banner>
@@ -91,10 +105,8 @@
       <type>boolean</type>
       <tag>switch-671692.closed</tag>
     </subscription>
-    <publication>
-      <key>line-650632.closed</key>
-      <type>boolean</type>
-      <tag>line-650632.closed</tag>
-    </publication>
+    <endpoint name="OpenDSS/updates">
+      <tag key="line-650632.closed">line-650632.closed</tag>
+    </endpoint>
   </io>
 </ot-sim>

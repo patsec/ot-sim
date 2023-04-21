@@ -1,0 +1,12 @@
+{
+  "name": "node-red-contrib-ot-sim",
+  "version": "0.0.1",
+  "dependencies": {
+    "zeromq": "^5.3.1"
+  },
+  "node-red": {
+    "nodes": {
+      "ot-sim": "ot-sim.js"
+    }
+  }
+}

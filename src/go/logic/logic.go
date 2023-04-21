@@ -214,6 +214,8 @@ func (this *Logic) Run(ctx context.Context, pubEndpoint, pullEndpoint string) er
 						continue
 					}
 
+					// This assumes the logic doesn't change the variable type (e.g., from
+					// float64 to int). An extra update may be published if it does.
 					if result != this.env[o] {
 						updated = append(updated, o)
 					}
