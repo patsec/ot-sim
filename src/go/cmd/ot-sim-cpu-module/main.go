@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,7 +22,7 @@ func main() {
 
 	if err := otsim.ParseConfigFile(os.Args[1]); err != nil {
 		fmt.Printf("Error parsing config file: %v\n", err)
-		os.Exit(1)
+		os.Exit(util.ExitNoRestart)
 	}
 
 	ctx := sigterm.CancelContext(context.Background())
@@ -29,14 +30,26 @@ func main() {
 
 	if err := otsim.Start(ctx); err != nil {
 		fmt.Printf("Error starting CPU module: %v\n", err)
+
+		var exitErr util.ExitError
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.ExitCode)
+		}
+
 		os.Exit(1)
 	}
 
 	<-ctx.Done()
 	otsim.Waiter.Wait() // wait for all started modules to stop
 
-	if err := ctx.Err(); err != nil && err != context.Canceled {
+	if err := ctx.Err(); err != nil && !errors.Is(err, context.Canceled) {
 		fmt.Printf("Error running CPU module: %v\n", err)
+
+		var exitErr util.ExitError
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.ExitCode)
+		}
+
 		os.Exit(1)
 	}
 }

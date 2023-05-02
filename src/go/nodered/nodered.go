@@ -12,6 +12,7 @@ import (
 	"time"
 
 	otsim "github.com/patsec/ot-sim"
+	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
 	"golang.org/x/crypto/bcrypt"
@@ -145,7 +146,7 @@ func (this *NodeRED) Run(ctx context.Context, pubEndpoint, pullEndpoint string) 
 func (this NodeRED) start(ctx context.Context) error {
 	exePath, err := exec.LookPath(this.executable)
 	if err != nil {
-		return fmt.Errorf("module executable does not exist at %s", this.executable)
+		return util.NewExitError(util.ExitNoRestart, "module executable does not exist at %s", this.executable)
 	}
 
 	otsim.Waiter.Add(1)

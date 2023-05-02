@@ -16,6 +16,7 @@ import (
 	"time"
 
 	otsim "github.com/patsec/ot-sim"
+	"github.com/patsec/ot-sim/util"
 )
 
 var hostname string
@@ -165,6 +166,13 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 
 			select {
 			case err := <-wait:
+				if err, ok := err.(*exec.ExitError); ok {
+					if err.ExitCode() == util.ExitNoRestart {
+						log.Printf("[CPU] [ERROR] %s module died and requested no restart\n", name)
+						return
+					}
+				}
+
 				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", name, err)
 				continue
 			case <-ctx.Done():
