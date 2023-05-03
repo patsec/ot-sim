@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -70,10 +71,10 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 			stdout, _ := cmd.StdoutPipe()
 			stderr, _ := cmd.StderrPipe()
 
-			fmt.Printf("[CPU] starting %s module\n", name)
+			log.Printf("[CPU] starting %s module\n", name)
 
 			if err := cmd.Start(); err != nil {
-				fmt.Printf("[CPU] [ERROR] starting %s module: %v\n", name, err)
+				log.Printf("[CPU] [ERROR] starting %s module: %v\n", name, err)
 				return
 			}
 
@@ -84,10 +85,10 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 				var values [][]string
 
 				for scanner.Scan() {
-					log := scanner.Text()
+					text := scanner.Text()
 
 					if elasticClient != nil || lokiClient != nil {
-						values = append(values, []string{fmt.Sprintf("%d", time.Now().UnixNano()), log})
+						values = append(values, []string{fmt.Sprintf("%d", time.Now().UnixNano()), text})
 
 						if len(values) >= 10 {
 							if elasticClient != nil {
@@ -112,7 +113,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 						}
 					}
 
-					fmt.Printf("[LOG] %s\n", log)
+					log.Printf("[LOG] %s\n", text)
 				}
 			}()
 
@@ -123,10 +124,10 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 				var values [][]string
 
 				for scanner.Scan() {
-					errLog := scanner.Text()
+					text := scanner.Text()
 
 					if elasticClient != nil || lokiClient != nil {
-						values = append(values, []string{fmt.Sprintf("%d", time.Now().UnixNano()), errLog})
+						values = append(values, []string{fmt.Sprintf("%d", time.Now().UnixNano()), text})
 
 						if len(values) >= 10 {
 							if elasticClient != nil {
@@ -151,7 +152,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 						}
 					}
 
-					fmt.Printf("[LOG] [ERROR] %s\n", errLog)
+					log.Printf("[LOG] [ERROR] %s\n", text)
 				}
 			}()
 
@@ -164,18 +165,18 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 
 			select {
 			case err := <-wait:
-				fmt.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", name, err)
+				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", name, err)
 				continue
 			case <-ctx.Done():
-				fmt.Printf("[CPU] stopping %s module\n", name)
+				log.Printf("[CPU] stopping %s module\n", name)
 				cmd.Process.Signal(syscall.SIGTERM)
 
 				select {
 				case <-wait: // SIGTERM *should* cause cmd to exit
-					fmt.Printf("[CPU] %s module has stopped\n", name)
+					log.Printf("[CPU] %s module has stopped\n", name)
 					return
 				case <-time.After(10 * time.Second):
-					fmt.Printf("[CPU] forcefully killing %s module\n", name)
+					log.Printf("[CPU] forcefully killing %s module\n", name)
 					cmd.Process.Kill()
 
 					return

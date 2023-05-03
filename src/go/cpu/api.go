@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -52,7 +53,7 @@ func NewAPIServer(pull, pub string) *APIServer {
 }
 
 func (this *APIServer) Start(endpoint, cert, key, ca string) error {
-	fmt.Printf("[CPU] starting API server at %s/api/v1\n", endpoint)
+	log.Printf("[CPU] starting API server at %s/api/v1\n", endpoint)
 
 	router := mux.NewRouter().StrictSlash(true)
 	api := router.PathPrefix("/api/v1").Subrouter()
@@ -93,7 +94,7 @@ func (this *APIServer) HandleMsgBusStatus(env msgbus.Envelope) {
 			return
 		}
 
-		fmt.Printf("[CPU] [ERROR] getting Status message from envelope: %v\n", err)
+		log.Printf("[CPU] [ERROR] getting Status message from envelope: %v\n", err)
 	}
 
 	this.Lock()
@@ -152,7 +153,7 @@ func (this *APIServer) handleQueryWS(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := this.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Printf("[CPU] [ERROR] [API] %v\n", err)
+		log.Printf("[CPU] [ERROR] [API] %v\n", err)
 		return
 	}
 

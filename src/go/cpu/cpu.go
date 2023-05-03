@@ -3,12 +3,17 @@ package cpu
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
+	"os"
+	"strconv"
 	"strings"
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Factory struct{}
@@ -34,12 +39,15 @@ type CPU struct {
 	lokiEndpoint    string
 
 	modules map[string]string
+
+	logFile io.Writer
 }
 
 func New(name string) *CPU {
 	return &CPU{
 		name:    name,
 		modules: make(map[string]string),
+		logFile: os.Stdout,
 	}
 }
 
@@ -75,6 +83,34 @@ func (this *CPU) Configure(e *etree.Element) error {
 		case "logs":
 			for _, child := range child.ChildElements() {
 				switch child.Tag {
+				case "file":
+					size, err := strconv.Atoi(child.SelectAttrValue("size", "5"))
+					if err != nil {
+						return fmt.Errorf("parsing 'size' attribute for log rotation: %w", err)
+					}
+
+					backups, err := strconv.Atoi(child.SelectAttrValue("backups", "1"))
+					if err != nil {
+						return fmt.Errorf("parsing 'backups' attribute for log rotation: %w", err)
+					}
+
+					age, err := strconv.Atoi(child.SelectAttrValue("age", "1"))
+					if err != nil {
+						return fmt.Errorf("parsing 'age' attribute for log rotation: %w", err)
+					}
+
+					compress, err := strconv.ParseBool(child.SelectAttrValue("compress", "true"))
+					if err != nil {
+						return fmt.Errorf("parsing 'compress' attribute for log rotation: %w", err)
+					}
+
+					log.SetOutput(&lumberjack.Logger{
+						Filename:   child.Text(),
+						MaxSize:    size,
+						MaxBackups: backups,
+						MaxAge:     age,
+						Compress:   compress,
+					})
 				case "elastic":
 					this.elasticEndpoint = child.Text()
 					this.elasticIndex = child.SelectAttrValue("index", "ot-sim-logs")
@@ -122,12 +158,12 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 	if this.apiEndpoint != "" {
 		api := NewAPIServer(pullEndpoint, pubEndpoint)
 		if err := api.Start(this.apiEndpoint, this.apiCert, this.apiKey, this.apiCACert); err != nil {
-			fmt.Printf("[CPU] [ERROR] starting API server: %v\n", err)
+			log.Printf("[CPU] [ERROR] starting API server: %v\n", err)
 		}
 	}
 
 	logger := func(topic, msg string) error {
-		fmt.Printf("[%s] %s\n", topic, msg)
+		log.Printf("[%s] %s\n", topic, msg)
 		return nil
 	}
 
@@ -149,13 +185,13 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 			case <-ctx.Done():
 				return
 			case err := <-logErrors:
-				fmt.Printf("[CPU] error processing logs: %v\n", err)
+				log.Printf("[CPU] [ERROR] processing logs: %v\n", err)
 				go MonitorMsgBusChannel(ctx, pubEndpoint, "LOG", logHandlers, logErrors)
 			case err := <-healthErrors:
-				fmt.Printf("[CPU] error processing health updates: %v\n", err)
+				log.Printf("[CPU] [ERROR] processing health updates: %v\n", err)
 				go MonitorMsgBusChannel(ctx, pubEndpoint, "HEALTH", healthHandlers, healthErrors)
 			case err := <-metricsErrors:
-				fmt.Printf("[CPU] error processing metrics: %v\n", err)
+				log.Printf("[CPU] [ERROR] error processing metrics: %v\n", err)
 				go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, metricsErrors)
 			}
 		}
