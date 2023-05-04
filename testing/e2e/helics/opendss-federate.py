@@ -16,14 +16,30 @@ class OpenDSSFederate(HelicsFederate):
     HelicsFederate.end_time   = 3600
 
     HelicsFederate.publications = [
-        Publication("line-650632.kW",       DataType.double),
-        Publication("line-650632.kVAR",     DataType.double),
-        Publication("line-650632.kVA",      DataType.complex),
-        Publication("line-650632.closed",   DataType.boolean),
-        Publication("bus-692.voltage",      DataType.double),
-        Publication("bus-RG60.voltage",     DataType.double),
-        Publication("switch-671692.closed", DataType.boolean),
-        Publication("regulator-Reg1.vreg",  DataType.double),
+        Publication("load-671.voltage",        DataType.double),
+        Publication("load-671.current",        DataType.double),
+        Publication("load-671.active_power",   DataType.double),
+        Publication("load-671.reactive_power", DataType.double),
+        Publication("load-645.voltage",        DataType.double),
+        Publication("load-645.current",        DataType.double),
+        Publication("load-645.active_power",   DataType.double),
+        Publication("load-645.reactive_power", DataType.double),
+        Publication("load-646.voltage",        DataType.double),
+        Publication("load-646.current",        DataType.double),
+        Publication("load-646.active_power",   DataType.double),
+        Publication("load-646.reactive_power", DataType.double),
+        Publication("load-692.voltage",        DataType.double),
+        Publication("load-692.current",        DataType.double),
+        Publication("load-692.active_power",   DataType.double),
+        Publication("load-692.reactive_power", DataType.double),
+        Publication("line-650632.kW",          DataType.double),
+        Publication("line-650632.kVAR",        DataType.double),
+        Publication("line-650632.kVA",         DataType.complex),
+        Publication("line-650632.closed",      DataType.boolean),
+        Publication("bus-692.voltage",         DataType.double),
+        Publication("bus-RG60.voltage",        DataType.double),
+        Publication("switch-671692.closed",    DataType.boolean),
+        Publication("regulator-Reg1.vreg",     DataType.double),
     ]
 
 #   HelicsFederate.subscriptions = [
@@ -108,6 +124,65 @@ class OpenDSSFederate(HelicsFederate):
                 if field == 'kV':
                     data[topic] = complex(dss.Bus.Voltages()[0], dss.Bus.Voltages()[1])
                     continue
+            elif kind == 'load':
+                dss.Circuit.SetActiveClass(b'load')
+                dss.Circuit.SetActiveElement(name)
+
+                phases   = dss.CktElement.NumPhases()
+                powers   = dss.CktElement.Powers()
+                currents = dss.CktElement.CurrentsMagAng()
+
+                # remove any trailing zeros
+                powers   = powers[:2*phases]
+                currents = currents[:2*phases]
+
+                real_or_mag = tuple(currents[0:2*phases:2])
+
+                active   = 0.0
+                reactive = 0.0
+                current  = 0.0
+
+                if phases == 1:
+                    active   = powers[0]
+                    reactive = powers[1]
+                    current  = real_or_mag[0]
+                elif phases in [2, 3]:
+                    p = tuple(powers[0:2*phases:2])
+                    q = tuple(powers[1:2*phases+1:2])
+
+                    active   = sum(p)
+                    reactive = sum(q)
+                    current  = sum(real_or_mag)
+
+                if field == 'active_power':
+                    data[topic] = active
+                    continue
+                if field == 'reactive_power':
+                    data[topic] = reactive
+                    continue
+                if field == 'current':
+                    data[topic] = current
+                    continue
+
+                bus = dss.CktElement.BusNames()[0]
+                dss.Circuit.SetActiveBus(bus)
+
+                nodes = dss.Bus.NumNodes()
+                pu    = dss.Bus.puVmagAngle()
+
+                real_or_mag = tuple(pu[0:2*nodes:2])
+
+                voltage = 0.0
+
+                if nodes == 1 or phases == 1:
+                    voltage = real_or_mag[0]
+                else:
+                    voltage = sum(real_or_mag) / len(real_or_mag)
+
+                if field == 'voltage':
+                    data[topic] = voltage
+                    continue
+
             elif kind == 'line':
                 dss.Circuit.SetActiveClass(b'line')
                 dss.Circuit.SetActiveElement(name)
