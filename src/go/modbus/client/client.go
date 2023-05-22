@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	mbutil "github.com/patsec/ot-sim/modbus/util"
@@ -16,6 +17,7 @@ import (
 
 	"actshad.dev/modbus"
 	"github.com/beevik/etree"
+	"github.com/goburrow/serial"
 )
 
 var validRegisterTypes = []string{"coil", "discrete", "input", "holding"}
@@ -34,8 +36,10 @@ type ModbusClient struct {
 	client modbus.Client
 
 	name     string
-	period   time.Duration
+	id       int
 	endpoint string
+	serial   *serial.Config
+	period   time.Duration
 
 	registers map[string]register
 }
@@ -43,6 +47,7 @@ type ModbusClient struct {
 func New(name string) *ModbusClient {
 	return &ModbusClient{
 		name:      name,
+		id:        1,
 		period:    5 * time.Second,
 		registers: make(map[string]register),
 	}
@@ -59,8 +64,69 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 			this.pullEndpoint = child.Text()
 		case "pub-endpoint":
 			this.pubEndpoint = child.Text()
+		case "id":
+			var err error
+
+			this.id, err = strconv.Atoi(child.Text())
+			if err != nil {
+				return fmt.Errorf("invalid unit ID '%s' provided: %w", child.Text(), err)
+			}
 		case "endpoint":
 			this.endpoint = child.Text()
+		case "serial":
+			this.serial = &serial.Config{
+				Address:  "/dev/ttyS0",
+				BaudRate: 115200,
+				DataBits: 8,
+				StopBits: 1,
+				Parity:   "N",
+				Timeout:  5 * time.Second,
+			}
+
+			for _, child := range child.ChildElements() {
+				switch child.Tag {
+				case "device":
+					this.serial.Address = child.Text()
+				case "baud-rate":
+					var err error
+
+					this.serial.BaudRate, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid baud rate '%s' provided: %w", child.Text(), err)
+					}
+				case "data-bits":
+					var err error
+
+					this.serial.DataBits, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid data bits '%s' provided: %w", child.Text(), err)
+					}
+				case "stop-bits":
+					var err error
+
+					this.serial.StopBits, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid stop bits '%s' provided: %w", child.Text(), err)
+					}
+				case "parity":
+					if strings.EqualFold(child.Text(), "none") {
+						this.serial.Parity = "N"
+					} else if strings.EqualFold(child.Text(), "even") {
+						this.serial.Parity = "E"
+					} else if strings.EqualFold(child.Text(), "odd") {
+						this.serial.Parity = "O"
+					} else {
+						return fmt.Errorf("invalid parity '%s' provided", child.Text())
+					}
+				case "timeout":
+					var err error
+
+					this.serial.Timeout, err = time.ParseDuration(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid timeout '%s' provided: %w", child.Text(), err)
+					}
+				}
+			}
 		case "period":
 			var err error
 
@@ -115,6 +181,10 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 }
 
 func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
+	if _, err := this.getEndpoint(); err != nil {
+		return err
+	}
+
 	// Use ZeroMQ PUB endpoint specified in `modbus` config block if provided.
 	if this.pubEndpoint != "" {
 		pubEndpoint = this.pubEndpoint
@@ -131,9 +201,22 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 	subscriber.AddUpdateHandler(this.handleMsgBusUpdate)
 	subscriber.Start("RUNTIME")
 
-	this.client = modbus.TCPClient(this.endpoint)
+	if this.endpoint != "" {
+		this.client = modbus.TCPClient(this.endpoint)
+	} else if this.serial != nil {
+		handler := modbus.NewRTUClientHandler(this.serial.Address)
+		handler.Config = *this.serial
+
+		this.client = modbus.NewClient(handler)
+	} else {
+		// This should never happen given the first set of if-statements in this
+		// function.
+		panic("missing endpoint or serial configuration")
+	}
 
 	go func() {
+		endpoint, _ := this.getEndpoint()
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -149,7 +232,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 					case "coil":
 						data, err := this.client.ReadCoils(uint16(reg.addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading coil %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] reading coil %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -159,7 +242,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 					case "discrete":
 						data, err := this.client.ReadDiscreteInputs(uint16(reg.addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading discrete input %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] reading discrete input %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -169,7 +252,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 					case "input":
 						data, err := this.client.ReadInputRegisters(uint16(reg.addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading input %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] reading input %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -179,7 +262,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 						)
 
 						if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
-							this.log("[ERROR] parsing input %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] parsing input %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -189,7 +272,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 					case "holding":
 						data, err := this.client.ReadHoldingRegisters(uint16(reg.addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading holding %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] reading holding %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -199,7 +282,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 						)
 
 						if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
-							this.log("[ERROR] parsing holding %d from %s: %v", reg.addr, this.endpoint, err)
+							this.log("[ERROR] parsing holding %d from %s: %v", reg.addr, endpoint, err)
 							continue
 						}
 
@@ -220,7 +303,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 						this.log("[ERROR] sending status message: %v", err)
 					}
 				} else {
-					this.log("[ERROR] no measurements read from %s", this.endpoint)
+					this.log("[ERROR] no measurements read from %s", endpoint)
 				}
 			}
 		}
@@ -248,6 +331,8 @@ func (this *ModbusClient) handleMsgBusUpdate(env msgbus.Envelope) {
 		return
 	}
 
+	endpoint, _ := this.getEndpoint()
+
 	for _, point := range update.Updates {
 		if register, ok := this.registers[point.Tag]; ok {
 			switch register.typ {
@@ -259,21 +344,37 @@ func (this *ModbusClient) handleMsgBusUpdate(env msgbus.Envelope) {
 				}
 
 				if _, err := this.client.WriteSingleCoil(uint16(register.addr), uint16(value)); err != nil {
-					this.log("[ERROR] writing to coil %d at %s: %v", register.addr, this.endpoint, err)
+					this.log("[ERROR] writing to coil %d at %s: %v", register.addr, endpoint, err)
 				}
 
-				this.log("writing coil %d at %s --> %t", register.addr, this.endpoint, uint16(value) != 0)
+				this.log("writing coil %d at %s --> %t", register.addr, endpoint, uint16(value) != 0)
 			case "holding":
 				scaled := point.Value * math.Pow(10, float64(register.scaling))
 
 				if _, err := this.client.WriteSingleRegister(uint16(register.addr), uint16(scaled)); err != nil {
-					this.log("[ERROR] writing to holding %d at %s: %v", register.addr, this.endpoint, err)
+					this.log("[ERROR] writing to holding %d at %s: %v", register.addr, endpoint, err)
 				}
 
-				this.log("writing holding %d at %s --> %d", register.addr, this.endpoint, uint16(scaled))
+				this.log("writing holding %d at %s --> %d", register.addr, endpoint, uint16(scaled))
 			}
 		}
 	}
+}
+
+func (this ModbusClient) getEndpoint() (string, error) {
+	if this.endpoint != "" && this.serial != nil {
+		return "", fmt.Errorf("cannot provide both endpoint and serial configuration options")
+	}
+
+	if this.endpoint != "" {
+		return this.endpoint, nil
+	}
+
+	if this.serial != nil {
+		return this.serial.Address, nil
+	}
+
+	return "", fmt.Errorf("must provide either endpoint or serial configuration option")
 }
 
 func (this ModbusClient) log(format string, a ...any) {

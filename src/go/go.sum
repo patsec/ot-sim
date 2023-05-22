@@ -1,5 +1,9 @@
 actshad.dev/mbserver v0.3.0 h1:zLF578MildaGr7uwlB4HmIRmMH2FYMrAPe4XbOeC2P4=
 actshad.dev/mbserver v0.3.0/go.mod h1:1ED8JMLzb/xwcVu/dv2hIHUnsDmwCtizK/+4pYszSgg=
+actshad.dev/mbserver v0.3.1-0.20230525035923-dce6c34645e8 h1:mBfSKXtKagy5F0gVf6XWGj3aMwNea6uczWdqCFuU/VA=
+actshad.dev/mbserver v0.3.1-0.20230525035923-dce6c34645e8/go.mod h1:1ED8JMLzb/xwcVu/dv2hIHUnsDmwCtizK/+4pYszSgg=
+actshad.dev/mbserver v0.3.1 h1:21LaD2xFRTjmMCAexhNc2yCEP21wdQta0WKK767T3PI=
+actshad.dev/mbserver v0.3.1/go.mod h1:1ED8JMLzb/xwcVu/dv2hIHUnsDmwCtizK/+4pYszSgg=
 actshad.dev/modbus v0.2.0/go.mod h1:8IHuLxLYjoX4NomWdAJkEOsAVJnncMAoppE7wRlIYME=
 actshad.dev/modbus v0.2.1 h1:0zq295oPHRKqFW2j8czb6+O3we0Rymjcaeq4853WV74=
 actshad.dev/modbus v0.2.1/go.mod h1:8IHuLxLYjoX4NomWdAJkEOsAVJnncMAoppE7wRlIYME=

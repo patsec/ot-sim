@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/patsec/ot-sim/msgbus"
 	"github.com/patsec/ot-sim/util"
 
 	"actshad.dev/mbserver"
 	"github.com/beevik/etree"
+	"github.com/goburrow/serial"
 )
 
 var validRegisterTypes = []string{"coil", "discrete", "input", "holding"}
@@ -28,8 +31,10 @@ type ModbusServer struct {
 	pusher  *msgbus.Pusher
 	metrics *msgbus.MetricsPusher
 
-	endpoint string
 	name     string
+	id       int
+	endpoint string
+	serial   *serial.Config
 
 	registers map[string]map[int]register
 	tags      map[string]float64
@@ -40,6 +45,7 @@ type ModbusServer struct {
 func New(name string) *ModbusServer {
 	return &ModbusServer{
 		name:      name,
+		id:        1,
 		registers: make(map[string]map[int]register),
 		tags:      make(map[string]float64),
 		metrics:   msgbus.NewMetricsPusher(),
@@ -57,8 +63,69 @@ func (this *ModbusServer) Configure(e *etree.Element) error {
 			this.pullEndpoint = child.Text()
 		case "pub-endpoint":
 			this.pubEndpoint = child.Text()
+		case "id":
+			var err error
+
+			this.id, err = strconv.Atoi(child.Text())
+			if err != nil {
+				return fmt.Errorf("invalid unit ID '%s' provided: %w", child.Text(), err)
+			}
 		case "endpoint":
 			this.endpoint = child.Text()
+		case "serial":
+			this.serial = &serial.Config{
+				Address:  "/dev/ttyS0",
+				BaudRate: 115200,
+				DataBits: 8,
+				StopBits: 1,
+				Parity:   "N",
+				Timeout:  0,
+			}
+
+			for _, child := range child.ChildElements() {
+				switch child.Tag {
+				case "device":
+					this.serial.Address = child.Text()
+				case "baud-rate":
+					var err error
+
+					this.serial.BaudRate, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid baud rate '%s' provided: %w", child.Text(), err)
+					}
+				case "data-bits":
+					var err error
+
+					this.serial.DataBits, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid data bits '%s' provided: %w", child.Text(), err)
+					}
+				case "stop-bits":
+					var err error
+
+					this.serial.StopBits, err = strconv.Atoi(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid stop bits '%s' provided: %w", child.Text(), err)
+					}
+				case "parity":
+					if strings.EqualFold(child.Text(), "none") {
+						this.serial.Parity = "N"
+					} else if strings.EqualFold(child.Text(), "even") {
+						this.serial.Parity = "E"
+					} else if strings.EqualFold(child.Text(), "odd") {
+						this.serial.Parity = "O"
+					} else {
+						return fmt.Errorf("invalid parity '%s' provided", child.Text())
+					}
+				case "timeout":
+					var err error
+
+					this.serial.Timeout, err = time.ParseDuration(child.Text())
+					if err != nil {
+						return fmt.Errorf("invalid timeout '%s' provided: %w", child.Text(), err)
+					}
+				}
+			}
 		case "register":
 			t := child.SelectAttr("type")
 			if t == nil {
@@ -150,7 +217,19 @@ func (this *ModbusServer) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 		subscriber.Stop()
 	}()
 
-	return server.ListenTCP(this.endpoint)
+	if this.endpoint != "" {
+		if err := server.ListenTCP(this.endpoint); err != nil {
+			return fmt.Errorf("listening for TCP connections on %s: %w", this.endpoint, err)
+		}
+	}
+
+	if this.serial != nil {
+		if err := server.ListenRTU(this.serial); err != nil {
+			return fmt.Errorf("listening for RTU connections on %s: %w", this.serial.Address, err)
+		}
+	}
+
+	return nil
 }
 
 func (this *ModbusServer) handleMsgBusStatus(env msgbus.Envelope) {

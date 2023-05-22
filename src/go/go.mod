@@ -3,7 +3,7 @@ module github.com/patsec/ot-sim
 go 1.18
 
 require (
-	actshad.dev/mbserver v0.3.0
+	actshad.dev/mbserver v0.3.1
 	actshad.dev/modbus v0.2.1
 	github.com/antonmedv/expr v1.12.5
 	github.com/beevik/etree v1.1.0
