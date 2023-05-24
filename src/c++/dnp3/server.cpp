@@ -20,16 +20,29 @@ Server::Server(const std::uint16_t cold) : coldRestartSecs(cold)
     manager.reset(new opendnp3::DNP3Manager(std::thread::hardware_concurrency(), opendnp3::ConsoleLogger::Create()));
 }
 
-bool Server::Init(const std::string& id, const std::string& endpoint, const opendnp3::ServerAcceptMode acceptMode) {
-    std::string ip = endpoint.substr(0, endpoint.find(":"));
-    std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
-
+bool Server::Init(const std::string& id, const opendnp3::IPEndpoint endpoint, const opendnp3::ServerAcceptMode acceptMode) {
     try {
         channel = manager->AddTCPServer(
             id,
             opendnp3::levels::NORMAL,
             acceptMode,
-            opendnp3::IPEndpoint(ip, port),
+            endpoint,
+            nullptr
+        );
+    } catch (std::exception& e) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Server::Init(const std::string& id, const opendnp3::SerialSettings serial, const opendnp3::ChannelRetry channelRetry) {
+    try {
+        channel = manager->AddSerial(
+            id,
+            opendnp3::levels::NORMAL,
+            channelRetry,
+            serial,
             nullptr
         );
     } catch (std::exception& e) {

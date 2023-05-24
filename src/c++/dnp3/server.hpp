@@ -19,7 +19,8 @@ public:
   Server(const std::uint16_t cold);
   ~Server() {};
 
-  bool Init(const std::string& id, const std::string& endpoint, const opendnp3::ServerAcceptMode acceptMode = opendnp3::ServerAcceptMode::CloseNew);
+  bool Init(const std::string& id, const opendnp3::IPEndpoint endpoint, const opendnp3::ServerAcceptMode acceptMode = opendnp3::ServerAcceptMode::CloseNew);
+  bool Init(const std::string& id, const opendnp3::SerialSettings serial, const opendnp3::ChannelRetry channelRetry = opendnp3::ChannelRetry::Default());
 
   std::shared_ptr<Outstation> AddOutstation(OutstationConfig config, OutstationRestartConfig restart, Pusher pusher);
 

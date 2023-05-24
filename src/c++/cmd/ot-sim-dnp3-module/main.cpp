@@ -96,21 +96,42 @@ int main(int argc, char** argv) {
       if (mode.compare("server") == 0) {
         std::cout << fmt::format("configuring DNP3 server {}", name) << std::endl;
 
-        std::string endpoint;
+        auto cold   = device.get<uint16_t>("cold-start-delay", 180);
+        auto server = otsim::dnp3::Server::Create(cold);
 
-        try {
-          endpoint = device.get<std::string>("endpoint");
-        } catch (pt::ptree_bad_path&) {
-          std::cerr << "ERROR: missing endpoint for DNP3 server" << std::endl;
+        if (device.get_child_optional("endpoint")) {
+          auto endpoint = device.get<std::string>("endpoint");
+
+          std::string ip = endpoint.substr(0, endpoint.find(":"));
+          std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
+
+          auto ip_endpoint = opendnp3::IPEndpoint(ip, port);
+
+          auto mode = device.get<std::string>("endpoint.<xmlattr>.accept-mode", "CloseNew");
+          auto acceptMode = opendnp3::ServerAcceptModeSpec::from_string(mode);
+
+          server->Init(name, ip_endpoint, acceptMode);
         }
 
-        auto mode = device.get<std::string>("endpoint.<xmlattr>.accept-mode", "CloseNew");
-        auto acceptMode = opendnp3::ServerAcceptModeSpec::from_string(mode);
+        if (device.get_child_optional("serial")) {
+          auto serial = device.get_child("serial");
 
-        auto cold = device.get<uint16_t>("cold-start-delay", 180);
+          opendnp3::SerialSettings settings;
 
-        auto server = otsim::dnp3::Server::Create(cold);
-        server->Init(name, endpoint, acceptMode);
+          try {
+            settings.deviceName = serial.get<std::string>("device");
+          } catch (pt::ptree_bad_path&) {
+            std::cerr << "ERROR: missing serial device setting for DNP3 server" << std::endl;
+            return 1;
+          }
+
+          settings.baud     = serial.get<int>("baud-rate", 115200);
+          settings.dataBits = serial.get<int>("data-bits", 8);
+          settings.stopBits = opendnp3::StopBitsSpec().from_string(serial.get<std::string>("stop-bits", "One"));
+          settings.parity   = opendnp3::ParitySpec().from_string(serial.get<std::string>("parity", "None"));
+
+          server->Init(name, settings);
+        }
 
         auto outstations = device.equal_range("outstation");
         for (auto iter = outstations.first; iter != outstations.second; ++iter) {
@@ -313,16 +334,38 @@ int main(int argc, char** argv) {
       } else if (mode.compare("client") == 0) {
         std::cout << fmt::format("configuring DNP3 client {}", name) << std::endl;
 
-        std::string endpoint;
+        auto client = otsim::dnp3::Client::Create();
 
-        try {
-          endpoint = device.get<std::string>("endpoint");
-        } catch (pt::ptree_bad_path&) {
-          std::cerr << "ERROR: missing endpoint for DNP3 client" << std::endl;
+        if (device.get_child_optional("endpoint")) {
+          auto endpoint = device.get<std::string>("endpoint");
+
+          std::string ip = endpoint.substr(0, endpoint.find(":"));
+          std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
+
+          auto ip_endpoint = opendnp3::IPEndpoint(ip, port);
+
+          client->Init(name, ip_endpoint);
         }
 
-        auto client = otsim::dnp3::Client::Create();
-        client->Init(name, endpoint);
+        if (device.get_child_optional("serial")) {
+          auto serial = device.get_child("serial");
+
+          opendnp3::SerialSettings settings;
+
+          try {
+            settings.deviceName = serial.get<std::string>("device");
+          } catch (pt::ptree_bad_path&) {
+            std::cerr << "ERROR: missing serial device setting for DNP3 client" << std::endl;
+            return 1;
+          }
+
+          settings.baud     = serial.get<int>("baud-rate", 115200);
+          settings.dataBits = serial.get<int>("data-bits", 8);
+          settings.stopBits = opendnp3::StopBitsSpec().from_string(serial.get<std::string>("stop-bits", "One"));
+          settings.parity   = opendnp3::ParitySpec().from_string(serial.get<std::string>("parity", "None"));
+
+          client->Init(name, settings);
+        }
 
         auto masters = device.equal_range("master");
         for (auto iter = masters.first; iter != masters.second; ++iter) {
