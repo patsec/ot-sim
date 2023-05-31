@@ -55,14 +55,19 @@ class OpenDSSFederate(HelicsFederate):
         HelicsFederate.__init__(self)
 
         case = os.path.join(current_directory, "data", "IEEE13", "IEEE13Nodeckt.dss")
-        dss.run_command(f'Redirect {case}')
 
-        dss.Solution.StepSize(1)
+        dss.run_command(f'Redirect {case}')
+        dss.run_command('set mode=daily') # daily profile configured for loads
+
+        # initial solve
+        dss.Solution.StepSize(0)
+        dss.Solution.Solve()
+
+        dss.Solution.StepSize(60) # load profile is 1m interval
 
 
     def action_post_request_time(self):
         time.sleep(1)
-        dss.Solution.Seconds(self.current_time)
         dss.Solution.Solve()
 
 
