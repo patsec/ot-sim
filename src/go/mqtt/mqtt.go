@@ -2,6 +2,7 @@
 package mqtt
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -11,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	otsim "github.com/patsec/ot-sim"
@@ -22,6 +24,13 @@ import (
 
 func init() {
 	otsim.AddModuleFactory("mqtt", new(Factory))
+}
+
+type data struct {
+	Epoch     int64
+	Timestamp string
+	Topic     string
+	Value     any
 }
 
 type Factory struct{}
@@ -48,13 +57,18 @@ type MQTTClient struct {
 	client MQTT.Client
 	cert   tls.Certificate
 	roots  *x509.CertPool
+
+	payloadTmpl   *template.Template
+	timestampTmpl string
 }
 
 func New(name string) *MQTTClient {
 	return &MQTTClient{
-		name:   name,
-		topics: make(map[string]string),
-		values: make(map[string]float64),
+		name:          name,
+		topics:        make(map[string]string),
+		values:        make(map[string]float64),
+		payloadTmpl:   template.Must(template.New("payload").Parse(`{{ .Value }}`)),
+		timestampTmpl: time.RFC3339,
 	}
 }
 
@@ -86,6 +100,15 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 
 			this.topics[tag] = topic
 			this.values[tag] = 0.0
+		case "payload-template":
+			var err error
+
+			this.payloadTmpl, err = template.New("payload").Parse(child.Text())
+			if err != nil {
+				return fmt.Errorf("parsing payload template: %w", err)
+			}
+
+			this.timestampTmpl = child.SelectAttrValue("timestamp", this.timestampTmpl)
 		case "certificate":
 			cert = child.Text()
 		case "key":
@@ -171,10 +194,28 @@ func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, _ string) error {
 				return
 			case <-ticker.C:
 				for tag, val := range this.values {
-					topic := this.topics[tag]
-					token := this.client.Publish(topic, 0, false, fmt.Sprint(val))
+					var (
+						tstamp = time.Now().UTC()
+						topic  = this.topics[tag]
 
-					this.log("[DEBUG] publishing %s --> %f to MQTT broker", topic, val)
+						buf bytes.Buffer
+					)
+
+					pdata := data{
+						Epoch:     tstamp.Unix(),
+						Timestamp: tstamp.Format(this.timestampTmpl),
+						Topic:     topic,
+						Value:     val,
+					}
+
+					if err := this.payloadTmpl.Execute(&buf, pdata); err != nil {
+						this.log("[ERROR] executing payload template: %v", err)
+						continue
+					}
+
+					token := this.client.Publish(topic, 0, false, buf.String())
+
+					this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, buf.String())
 
 					// TODO: should this be run in a separate goroutine?
 					if token.Wait() && token.Error() != nil {
