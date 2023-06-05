@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (kW < 4.0 || kW > 5.0) {
+  if (kW < 1.0 || kW > 5.0) {
     return 1;
   }
 
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (kW < 4.0 || kW > 5.0) {
+  if (kW < 1.0 || kW > 5.0) {
     return 1;
   }
 
