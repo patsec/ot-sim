@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -36,10 +35,11 @@ type Logic struct {
 	program map[int]*vm.Program
 	order   []string
 
-	env map[string]interface{}
+	env map[string]any
 
-	tagToVar map[string]string
-	varToTag map[string]string
+	variables []string
+	tagToVar  map[string]string
+	varToTag  map[string]string
 
 	processUpdates bool
 
@@ -51,7 +51,7 @@ func New(name string) *Logic {
 		name:     name,
 		period:   1 * time.Second,
 		program:  make(map[int]*vm.Program),
-		env:      make(map[string]interface{}),
+		env:      make(map[string]any),
 		tagToVar: make(map[string]string),
 		varToTag: make(map[string]string),
 	}
@@ -128,6 +128,8 @@ func (this *Logic) Configure(e *etree.Element) error {
 				this.varToTag[v.Tag] = tag
 				this.tagToVar[tag] = v.Tag
 
+				this.variables = append(this.variables, v.Tag)
+
 				val, err := strconv.ParseFloat(v.Text(), 64)
 				if err != nil {
 					val, err := strconv.ParseBool(v.Text())
@@ -196,32 +198,7 @@ func (this *Logic) Run(ctx context.Context, pubEndpoint, pullEndpoint string) er
 			case <-ticker.C:
 				this.envMu.Lock()
 
-				var updated []string
-
-				for i, o := range this.order {
-					if o == "" {
-						continue
-					}
-
-					result, err := expr.Run(this.program[i], this.env)
-					if err != nil {
-						this.log("[ERROR] running program code: %v", err)
-						continue
-					}
-
-					if strings.HasPrefix(o, "sprintf") {
-						this.log("PROGRAM OUTPUT (line %d): %s\n", i, result)
-						continue
-					}
-
-					// This assumes the logic doesn't change the variable type (e.g., from
-					// float64 to int). An extra update may be published if it does.
-					if result != this.env[o] {
-						updated = append(updated, o)
-					}
-
-					this.env[o] = result
-				}
+				updated := this.execute()
 
 				tags := make(map[string]msgbus.Point)
 
@@ -340,8 +317,84 @@ func (this *Logic) initEnv() {
 		return rand.Float64() >= (1.0 - likely)
 	}
 
+	this.env["sum"] = func(vars []any) float64 {
+		var sum float64
+
+		for _, e := range vars {
+			v, ok := e.(string)
+			if !ok {
+				continue
+			}
+
+			switch value := this.env[v].(type) {
+			case int:
+				sum += float64(value)
+			case float64:
+				sum += value
+			}
+		}
+
+		return sum
+	}
+
+	this.env["avg"] = func(vars []any) float64 {
+		var (
+			sum   float64
+			count int
+		)
+
+		for _, e := range vars {
+			v, ok := e.(string)
+			if !ok {
+				continue
+			}
+
+			switch value := this.env[v].(type) {
+			case int:
+				sum += float64(value)
+				count++
+			case float64:
+				sum += value
+				count++
+			}
+		}
+
+		return sum / float64(count)
+	}
+
 	this.env["sprintf"] = fmt.Sprintf
-	this.env["abs"] = math.Abs
+	this.env["variables"] = this.variables
+}
+
+func (this *Logic) execute() []string {
+	var updated []string
+
+	for i, o := range this.order {
+		if o == "" {
+			continue
+		}
+
+		result, err := expr.Run(this.program[i], this.env)
+		if err != nil {
+			this.log("[ERROR] running program code: %v", err)
+			continue
+		}
+
+		if strings.HasPrefix(o, "sprintf") {
+			this.log("PROGRAM OUTPUT (line %d): %s\n", i, result)
+			continue
+		}
+
+		// This assumes the logic doesn't change the variable type (e.g., from
+		// float64 to int). An extra update may be published if it does.
+		if result != this.env[o] {
+			updated = append(updated, o)
+		}
+
+		this.env[o] = result
+	}
+
+	return updated
 }
 
 func (this *Logic) handleMsgBusStatus(env msgbus.Envelope) {
