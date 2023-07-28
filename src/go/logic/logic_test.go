@@ -8,6 +8,10 @@ import (
 )
 
 var testLogic = `
+mod = 5
+count = count + 1
+foo = int(count) % mod
+bar = int(count) % mod
 active = filter(variables, {# matches "_active_power$"})
 active_sum = sum(active)
 active_avg = avg(active)
@@ -61,6 +65,7 @@ func TestLogic(t *testing.T) {
 	}
 
 	l.initEnv()
+	l.execute()
 	l.execute()
 
 	val, ok := l.env["active"]

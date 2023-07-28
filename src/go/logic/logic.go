@@ -385,10 +385,12 @@ func (this *Logic) execute() []string {
 			continue
 		}
 
-		// This assumes the logic doesn't change the variable type (e.g., from
-		// float64 to int). An extra update may be published if it does.
-		if result != this.env[o] {
-			updated = append(updated, o)
+		if _, ok := this.varToTag[o]; ok {
+			// This assumes the logic doesn't change the variable type (e.g., from
+			// float64 to int). An extra update may be published if it does.
+			if result != this.env[o] {
+				updated = append(updated, o)
+			}
 		}
 
 		this.env[o] = result

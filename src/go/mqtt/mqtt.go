@@ -179,7 +179,7 @@ func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, _ string) error {
 
 	if token := this.client.Connect(); token.Wait() && token.Error() != nil {
 		this.log("[ERROR] connecting to MQTT broker at %s: %v", this.endpoint, token.Error())
-		return fmt.Errorf("connectin to MQTT broker: %w", token.Error())
+		return fmt.Errorf("connecting to MQTT broker: %w", token.Error())
 	}
 
 	go func() {
