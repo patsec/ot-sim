@@ -129,6 +129,10 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 		return fmt.Errorf("parsing endpoint URL %s: %w", this.endpoint, err)
 	}
 
+	if this.uri.Scheme == "" {
+		return fmt.Errorf("endpoint URL is missing a scheme (must be tcp, ssl, or tls)")
+	}
+
 	if this.uri.Scheme == "ssl" || this.uri.Scheme == "tls" {
 		if cert == "" || key == "" || ca == "" {
 			return fmt.Errorf("must provide 'certificate', 'key', and 'ca' for MQTT module config when using ssl/tls")
