@@ -57,7 +57,7 @@ func (this *ModbusServer) writeCoil(ctx context.Context, f mbserver.Framer) ([]b
 
 	updates := []msgbus.Point{{Tag: reg.tag, Value: value}}
 
-	env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+	env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
 	if err != nil {
 		this.log("[ERROR] creating new update message: %v", err)
 		return nil, &mbserver.SlaveDeviceFailure
@@ -106,7 +106,7 @@ func (this *ModbusServer) writeCoils(ctx context.Context, f mbserver.Framer) ([]
 
 			updates := []msgbus.Point{{Tag: reg.tag, Value: value}}
 
-			env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+			env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
 			if err != nil {
 				this.log("[ERROR] creating new update message: %v", err)
 				return nil, &mbserver.SlaveDeviceFailure
@@ -160,7 +160,7 @@ func (this *ModbusServer) writeHolding(ctx context.Context, f mbserver.Framer) (
 
 	updates := []msgbus.Point{{Tag: reg.tag, Value: value}}
 
-	env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+	env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
 	if err != nil {
 		this.log("[ERROR] creating new update message: %v", err)
 		return nil, &mbserver.SlaveDeviceFailure
@@ -218,7 +218,7 @@ func (this *ModbusServer) writeHoldings(ctx context.Context, f mbserver.Framer) 
 
 		updates := []msgbus.Point{{Tag: reg.tag, Value: value}}
 
-		env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+		env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
 		if err != nil {
 			this.log("[ERROR] creating new update message: %v", err)
 			return nil, &mbserver.SlaveDeviceFailure

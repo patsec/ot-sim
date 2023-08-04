@@ -173,7 +173,10 @@ func (this *APIServer) handleWrite(w http.ResponseWriter, r *http.Request) {
 	this.Lock()
 	defer this.Unlock()
 
-	var update msgbus.Update
+	var (
+		status msgbus.Status
+		update msgbus.Update
+	)
 
 	if tag != "" && value != "" {
 		point := msgbus.Point{Tag: tag}
@@ -185,6 +188,7 @@ func (this *APIServer) handleWrite(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		status = msgbus.Status{Measurements: []msgbus.Point{point}}
 		update = msgbus.Update{Updates: []msgbus.Point{point}}
 	} else {
 		body, err := io.ReadAll(r.Body)
@@ -197,9 +201,22 @@ func (this *APIServer) handleWrite(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
+		status = msgbus.Status{Measurements: update.Updates}
 	}
 
-	env, err := msgbus.NewUpdateEnvelope("cpu-api", update)
+	env, err := msgbus.NewEnvelope("cpu-api", status)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := this.pusher.Push("RUNTIME", env); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	env, err = msgbus.NewEnvelope("cpu-api", update)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

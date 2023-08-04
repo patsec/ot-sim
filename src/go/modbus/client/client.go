@@ -210,7 +210,7 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 				}
 
 				if len(points) > 0 {
-					env, err := msgbus.NewStatusEnvelope(this.name, msgbus.Status{Measurements: points})
+					env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
 					if err != nil {
 						this.log("[ERROR] creating status message: %v", err)
 						continue

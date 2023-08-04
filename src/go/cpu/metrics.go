@@ -21,7 +21,7 @@ var (
 )
 
 func metricsHandler(topic, msg string) error {
-	env, err := msgbus.NewEnvelope([]byte(msg))
+	env, err := msgbus.ParseEnvelope([]byte(msg))
 	if err != nil {
 		return fmt.Errorf("creating new envelope: %w", err)
 	}

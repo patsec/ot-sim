@@ -93,7 +93,7 @@ func (this Subscriber) run(topic string) {
 			continue
 		}
 
-		env, err := NewEnvelope([]byte(msg[1]))
+		env, err := ParseEnvelope([]byte(msg[1]))
 		if err != nil {
 			fmt.Printf("[ERROR] creating envelope from message: %v\n", err)
 			continue

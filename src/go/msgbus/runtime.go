@@ -31,10 +31,18 @@ type Status struct {
 	Measurements []Point `json:"measurements"`
 }
 
+func (Status) Kind() EnvelopeKind {
+	return ENVELOPE_STATUS
+}
+
 type Update struct {
 	Updates   []Point `json:"updates"`
 	Recipient string  `json:"recipient"`
 	Confirm   string  `json:"confirm"`
+}
+
+func (Update) Kind() EnvelopeKind {
+	return ENVELOPE_UPDATE
 }
 
 type Confirmation struct {
@@ -42,57 +50,26 @@ type Confirmation struct {
 	Errors  ConfirmationErrors `json:"errors"`
 }
 
-func NewStatusEnvelope(sender string, status Status) (Envelope, error) {
-	var env Envelope
-
-	raw, err := json.Marshal(status)
-	if err != nil {
-		return env, fmt.Errorf("marshaling Status envelope contents: %w", err)
-	}
-
-	env = Envelope{
-		Version: "v1",
-		Kind:    ENVELOPE_STATUS,
-		Metadata: map[string]string{
-			"sender": sender,
-		},
-		Contents: raw,
-	}
-
-	return env, nil
+func (Confirmation) Kind() EnvelopeKind {
+	return ENVELOPE_CONFIRMATION
 }
 
-func NewUpdateEnvelope(sender string, update Update) (Envelope, error) {
-	var env Envelope
-
-	raw, err := json.Marshal(update)
-	if err != nil {
-		return env, fmt.Errorf("marshaling Update envelope contents: %w", err)
-	}
-
-	env = Envelope{
-		Version: "v1",
-		Kind:    ENVELOPE_UPDATE,
-		Metadata: map[string]string{
-			"sender": sender,
-		},
-		Contents: raw,
-	}
-
-	return env, nil
+type IEnvelope interface {
+	Status | Update | Confirmation
+	Kind() EnvelopeKind
 }
 
-func NewConfirmationEnvelope(sender string, conf Confirmation) (Envelope, error) {
+func NewEnvelope[T IEnvelope](sender string, contents T) (Envelope, error) {
 	var env Envelope
 
-	raw, err := json.Marshal(conf)
+	raw, err := json.Marshal(contents)
 	if err != nil {
-		return env, fmt.Errorf("marshaling Confirmation envelope contents: %w", err)
+		return env, fmt.Errorf("marshaling envelope contents: %w", err)
 	}
 
 	env = Envelope{
 		Version: "v1",
-		Kind:    ENVELOPE_CONFIRMATION,
+		Kind:    contents.Kind(),
 		Metadata: map[string]string{
 			"sender": sender,
 		},

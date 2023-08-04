@@ -260,7 +260,7 @@ func (this *Logic) Run(ctx context.Context, pubEndpoint, pullEndpoint string) er
 						points = append(points, tags[t])
 					}
 
-					env, err := msgbus.NewStatusEnvelope(this.name, msgbus.Status{Measurements: points})
+					env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
 					if err != nil {
 						this.log("[ERROR] creating new status message: %v", err)
 						continue
@@ -305,7 +305,7 @@ func (this *Logic) Run(ctx context.Context, pubEndpoint, pullEndpoint string) er
 							updates = append(updates, tags[t])
 						}
 
-						env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+						env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
 						if err != nil {
 							this.log("[ERROR] creating new update message: %v\n", err)
 							continue

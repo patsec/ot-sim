@@ -17,7 +17,7 @@ type Envelope struct {
 	Contents json.RawMessage  `json:"contents"`
 }
 
-func NewEnvelope(data []byte) (Envelope, error) {
+func ParseEnvelope(data []byte) (Envelope, error) {
 	var env Envelope
 
 	if err := json.Unmarshal(data, &env); err != nil {

@@ -150,9 +150,20 @@ func (this Telnet) writeHandlerFunc(stdin io.ReadCloser, stdout io.WriteCloser, 
 		return err
 	}
 
-	updates := []msgbus.Point{{Tag: tag, Value: val}}
+	points := []msgbus.Point{{Tag: tag, Value: val}}
 
-	env, err := msgbus.NewUpdateEnvelope(this.name, msgbus.Update{Updates: updates})
+	env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
+	if err != nil {
+		this.log("[ERROR] creating new status message: %v", err)
+		return err
+	}
+
+	if err := this.pusher.Push("RUNTIME", env); err != nil {
+		this.log("[ERROR] sending status message: %v", err)
+		return err
+	}
+
+	env, err = msgbus.NewEnvelope(this.name, msgbus.Update{Updates: points})
 	if err != nil {
 		this.log("[ERROR] creating new update message: %v", err)
 		return err
