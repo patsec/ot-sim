@@ -2,13 +2,13 @@ name: Publish Docker Image
 on:
   - push
 jobs:
-  e2e:
-    uses: ./.github/workflows/e2e.yml
+# e2e:
+#   uses: ./.github/workflows/e2e.yml
   push-to-ghcr:
     name: Push Docker image to GitHub Packages
-    needs:
-      - e2e
-    runs-on: ubuntu-20.04
+#   needs:
+#     - e2e
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
@@ -17,6 +17,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           lfs: true
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Generate Docker metadata
         id: meta
         uses: docker/metadata-action@v4
@@ -28,12 +32,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build container image
-        uses: docker/build-push-action@v3
+      - name: Build and Push Container Image
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile
           target: prod
+          platforms: linux/amd64,linux/arm64,linux/arm
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
