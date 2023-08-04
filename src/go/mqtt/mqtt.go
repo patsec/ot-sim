@@ -29,6 +29,7 @@ func init() {
 type data struct {
 	Epoch     int64
 	Timestamp string
+	Client    string
 	Topic     string
 	Value     any
 }
@@ -208,6 +209,7 @@ func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, _ string) error {
 					pdata := data{
 						Epoch:     tstamp.Unix(),
 						Timestamp: tstamp.Format(this.timestampTmpl),
+						Client:    this.id,
 						Topic:     topic,
 						Value:     val,
 					}
