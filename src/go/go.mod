@@ -7,6 +7,7 @@ require (
 	actshad.dev/modbus v0.2.1
 	github.com/antonmedv/expr v1.12.5
 	github.com/beevik/etree v1.1.0
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
@@ -27,7 +28,6 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/reiver/go-oi v1.0.0 // indirect
-	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect

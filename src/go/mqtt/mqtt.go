@@ -2,14 +2,10 @@
 package mqtt
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/url"
 	"strings"
 	"sync"
 	"text/template"
@@ -19,19 +15,38 @@ import (
 	"github.com/patsec/ot-sim/msgbus"
 
 	"github.com/beevik/etree"
+	"github.com/cenkalti/backoff"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
+/*
+<mqtt>
+	<!-- order of endpoint elements signifies priority -->
+	<endpoint>
+		<url>ssl://broker-1.example.com:8883</url>
+		<tls>
+			<ca>/etc/ot-sim/root.pem</ca>
+			<key>/etc/ot-sim/broker-1-client.key</key>
+			<certificate>/etc/ot-sim/broker-1-client.crt</certificate>
+		</tls>
+	</endpoint>
+	<endpoint>
+		<url>ssl://broker-2.example.com:8883</url>
+		<tls>
+			<ca>/etc/ot-sim/root.pem</ca>
+			<key>/etc/ot-sim/broker-2-client.key</key>
+			<certificate>/etc/ot-sim/broker-2-client.crt</certificate>
+		</tls>
+	</endpoint>
+	<endpoint>tcp://broker.example.com:1883</endpoint> <!-- alternative way to specify -->
+	<client-id>ot-sim-jitp-test</client-id>
+	<period>5s</period>
+	<tag>bus-692.voltage</tag>
+</mqtt>
+*/
+
 func init() {
 	otsim.AddModuleFactory("mqtt", new(Factory))
-}
-
-type data struct {
-	Epoch     int64
-	Timestamp string
-	Client    string
-	Topic     string
-	Value     any
 }
 
 type Factory struct{}
@@ -45,19 +60,19 @@ type MQTTClient struct {
 	sync.RWMutex
 
 	pubEndpoint string
-	endpoint    string
-	period      time.Duration
+
+	endpoints []endpoint
+	period    time.Duration
 
 	name string
 	id   string
-	uri  *url.URL
 
 	topics map[string]string
 	values map[string]float64
 
-	client MQTT.Client
-	cert   tls.Certificate
-	roots  *x509.CertPool
+	// index of endpoint currently in use
+	endpoint int
+	client   MQTT.Client
 
 	payloadTmpl   *template.Template
 	timestampTmpl string
@@ -78,14 +93,36 @@ func (this MQTTClient) Name() string {
 }
 
 func (this *MQTTClient) Configure(e *etree.Element) error {
-	var cert, key, ca string
-
 	for _, child := range e.ChildElements() {
 		switch child.Tag {
 		case "pub-endpoint":
 			this.pubEndpoint = child.Text()
 		case "endpoint":
-			this.endpoint = child.Text()
+			var endpoint endpoint
+
+			if len(child.ChildElements()) == 0 {
+				endpoint.url = child.Text()
+			} else {
+				for _, child := range child.ChildElements() {
+					switch child.Tag {
+					case "url":
+						endpoint.url = child.Text()
+					case "tls":
+						for _, child := range child.ChildElements() {
+							switch child.Tag {
+							case "ca":
+								endpoint.caPath = child.Text()
+							case "key":
+								endpoint.keyPath = child.Text()
+							case "certificate":
+								endpoint.certPath = child.Text()
+							}
+						}
+					}
+				}
+			}
+
+			this.endpoints = append(this.endpoints, endpoint)
 		case "client-id":
 			this.id = child.Text()
 		case "period":
@@ -110,12 +147,6 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 			}
 
 			this.timestampTmpl = child.SelectAttrValue("timestamp", this.timestampTmpl)
-		case "certificate":
-			cert = child.Text()
-		case "key":
-			key = child.Text()
-		case "ca":
-			ca = child.Text()
 		}
 	}
 
@@ -123,41 +154,20 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 		return fmt.Errorf("must provide 'client-id' for MQTT module config")
 	}
 
-	var err error
-
-	this.uri, err = url.Parse(this.endpoint)
-	if err != nil {
-		return fmt.Errorf("parsing endpoint URL %s: %w", this.endpoint, err)
-	}
-
-	if this.uri.Scheme == "" {
-		return fmt.Errorf("endpoint URL is missing a scheme (must be tcp, ssl, or tls)")
-	}
-
-	if this.uri.Scheme == "ssl" || this.uri.Scheme == "tls" {
-		if cert == "" || key == "" || ca == "" {
-			return fmt.Errorf("must provide 'certificate', 'key', and 'ca' for MQTT module config when using ssl/tls")
-		}
-
-		this.cert, err = tls.LoadX509KeyPair(cert, key)
-		if err != nil {
-			return fmt.Errorf("loading MQTT module certificate and key: %w", err)
-		}
-
-		caCert, err := ioutil.ReadFile(ca)
-		if err != nil {
-			return fmt.Errorf("reading MQTT module CA certificate: %w", err)
-		}
-
-		this.roots = x509.NewCertPool()
-
-		if ok := this.roots.AppendCertsFromPEM(caCert); !ok {
-			return fmt.Errorf("failed to parse MQTT module CA certificate")
-		}
-	}
-
 	if this.period == 0 {
 		this.period = 5 * time.Second
+	}
+
+	for idx, endpoint := range this.endpoints {
+		this.log("[DEBUG] endpoint pre validation: %+v", endpoint)
+
+		if err := endpoint.validate(); err != nil {
+			return fmt.Errorf("validating endpoint: %w", err)
+		}
+
+		this.log("[DEBUG] endpoint post validation: %+v", endpoint)
+
+		this.endpoints[idx] = endpoint
 	}
 
 	return nil
@@ -169,72 +179,111 @@ func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, _ string) error {
 		pubEndpoint = this.pubEndpoint
 	}
 
+	if len(this.endpoints) == 0 {
+		return fmt.Errorf("no MQTT broker endpoints provided")
+	}
+
 	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
 	subscriber.AddStatusHandler(this.handleMsgBusStatus)
 	subscriber.Start("RUNTIME")
 
-	opts := MQTT.NewClientOptions()
-	opts.AddBroker(this.endpoint).SetClientID(this.id).SetCleanSession(true)
+	this.connectAndRun(ctx)
 
-	if this.uri.Scheme == "ssl" || this.uri.Scheme == "tls" {
-		opts.SetTLSConfig(&tls.Config{ServerName: this.uri.Hostname(), RootCAs: this.roots, Certificates: []tls.Certificate{this.cert}})
+	return nil
+}
+
+func (this *MQTTClient) connectAndRun(ctx context.Context) {
+	cctx, cancel := context.WithCancel(ctx)
+	backoff := backoff.NewExponentialBackOff()
+
+	for {
+		if err := this.connect(ctx, cancel); err == nil {
+			break
+		}
+
+		time.Sleep(backoff.NextBackOff())
+	}
+
+	go this.run(cctx)
+}
+
+func (this *MQTTClient) connect(ctx context.Context, cancel context.CancelFunc) error {
+	// circle back around to beginning of endpoint list
+	if this.endpoint == len(this.endpoints) {
+		this.endpoint = 0
+	}
+
+	endpoint := this.endpoints[this.endpoint]
+	this.endpoint++
+
+	opts := MQTT.NewClientOptions()
+
+	opts.AddBroker(endpoint.url).SetClientID(this.id).SetCleanSession(true)
+	opts.SetKeepAlive(5 * time.Second).SetAutoReconnect(false).SetConnectRetry(false).SetConnectTimeout(10 * time.Second)
+
+	opts.SetConnectionLostHandler(this.lostConnectionHandler(ctx, cancel))
+
+	if endpoint.uri.Scheme == "ssl" || endpoint.uri.Scheme == "tls" {
+		opts.SetTLSConfig(&tls.Config{ServerName: endpoint.uri.Hostname(), RootCAs: endpoint.roots, Certificates: []tls.Certificate{endpoint.cert}})
 	}
 
 	this.client = MQTT.NewClient(opts)
 
 	if token := this.client.Connect(); token.Wait() && token.Error() != nil {
-		this.log("[ERROR] connecting to MQTT broker at %s: %v", this.endpoint, token.Error())
+		this.log("[ERROR] connecting to MQTT broker at %s: %v", endpoint.url, token.Error())
 		return fmt.Errorf("connecting to MQTT broker: %w", token.Error())
 	}
 
-	go func() {
-		ticker := time.NewTicker(this.period)
+	this.log("[DEBUG] connected to MQTT broker at %s", endpoint.url)
 
-		for {
-			select {
-			case <-ctx.Done():
-				subscriber.Stop()
-				ticker.Stop()
+	return nil
+}
 
-				return
-			case <-ticker.C:
-				for tag, val := range this.values {
-					var (
-						tstamp = time.Now().UTC()
-						topic  = this.topics[tag]
+func (this *MQTTClient) run(ctx context.Context) {
+	ticker := time.NewTicker(this.period)
 
-						buf bytes.Buffer
-					)
+	for {
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
 
-					pdata := data{
-						Epoch:     tstamp.Unix(),
-						Timestamp: tstamp.Format(this.timestampTmpl),
-						Client:    this.id,
-						Topic:     topic,
-						Value:     val,
-					}
+			this.log("[ERROR] stopping publish loop: %v", ctx.Err())
 
-					if err := this.payloadTmpl.Execute(&buf, pdata); err != nil {
-						this.log("[ERROR] executing payload template: %v", err)
-						continue
-					}
+			return
+		case <-ticker.C:
+			for tag, val := range this.values {
+				var (
+					tstamp = time.Now().UTC()
+					topic  = this.topics[tag]
+				)
 
-					token := this.client.Publish(topic, 0, false, buf.String())
+				pdata := data{
+					Epoch:     tstamp.Unix(),
+					Timestamp: tstamp.Format(this.timestampTmpl),
+					Client:    this.id,
+					Topic:     topic,
+					Value:     val,
+				}
 
-					this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, buf.String())
+				payload, err := pdata.execute(this.payloadTmpl)
+				if err != nil {
+					this.log("[ERROR] executing payload template: %v", err)
+					continue
+				}
 
-					// TODO: should this be run in a separate goroutine?
-					if token.Wait() && token.Error() != nil {
-						this.log("[ERROR] publishing topic %s to MQTT broker: %v", topic, token.Error())
-					} else {
-						this.log("[DEBUG] published %s --> %f to MQTT broker", topic, val)
-					}
+				token := this.client.Publish(topic, 0, false, payload)
+
+				this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, payload)
+
+				// TODO: should this be run in a separate goroutine?
+				if token.Wait() && token.Error() != nil {
+					this.log("[ERROR] publishing topic %s to MQTT broker: %v", topic, token.Error())
+				} else {
+					this.log("[DEBUG] published %s --> %f to MQTT broker", topic, val)
 				}
 			}
 		}
-	}()
-
-	return nil
+	}
 }
 
 func (this *MQTTClient) handleMsgBusStatus(env msgbus.Envelope) {
@@ -258,6 +307,16 @@ func (this *MQTTClient) handleMsgBusStatus(env msgbus.Envelope) {
 		if _, ok := this.values[point.Tag]; ok {
 			this.values[point.Tag] = point.Value
 		}
+	}
+}
+
+func (this *MQTTClient) lostConnectionHandler(ctx context.Context, cancel context.CancelFunc) MQTT.ConnectionLostHandler {
+	return func(client MQTT.Client, err error) {
+		this.log("[ERROR] connection to MQTT broker lost: %v", err)
+
+		cancel()
+
+		this.connectAndRun(ctx)
 	}
 }
 
