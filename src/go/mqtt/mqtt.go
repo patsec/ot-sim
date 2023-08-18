@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"strconv"
@@ -61,7 +62,8 @@ func (Factory) NewModule(e *etree.Element) (otsim.Module, error) {
 type MQTTClient struct {
 	sync.RWMutex
 
-	pubEndpoint string
+	pullEndpoint string
+	pubEndpoint  string
 
 	endpoints []endpoint
 	period    time.Duration
@@ -69,12 +71,14 @@ type MQTTClient struct {
 	name string
 	id   string
 
-	topics map[string]string
-	values map[string]float64
+	pubTopics map[string]string
+	subTopics map[string]string
+	values    map[string]float64
 
 	// index of endpoint currently in use
 	endpoint int
 	client   MQTT.Client
+	pusher   *msgbus.Pusher
 
 	payloadTmpl   *template.Template
 	timestampTmpl string
@@ -83,7 +87,8 @@ type MQTTClient struct {
 func New(name string) *MQTTClient {
 	return &MQTTClient{
 		name:          name,
-		topics:        make(map[string]string),
+		pubTopics:     make(map[string]string),
+		subTopics:     make(map[string]string),
 		values:        make(map[string]float64),
 		payloadTmpl:   template.Must(template.New("payload").Parse(`{{ .Value }}`)),
 		timestampTmpl: time.RFC3339,
@@ -97,6 +102,8 @@ func (this MQTTClient) Name() string {
 func (this *MQTTClient) Configure(e *etree.Element) error {
 	for _, child := range e.ChildElements() {
 		switch child.Tag {
+		case "pull-endpoint":
+			this.pullEndpoint = child.Text()
 		case "pub-endpoint":
 			this.pubEndpoint = child.Text()
 		case "endpoint":
@@ -138,10 +145,18 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 		case "tag":
 			var (
 				tag   = child.Text()
+				mode  = child.SelectAttrValue("mode", "publish")
 				topic = child.SelectAttrValue("topic", strings.ReplaceAll(tag, ".", "/"))
 			)
 
-			this.topics[tag] = topic
+			if strings.EqualFold(mode, "publish") {
+				this.pubTopics[tag] = topic
+			} else if strings.EqualFold(mode, "subscribe") {
+				this.subTopics[topic] = tag
+			} else {
+				return fmt.Errorf("tag mode must be 'publish' or 'subscribe'")
+			}
+
 			this.values[tag] = 0.0
 		case "payload-template":
 			var err error
@@ -174,17 +189,24 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 	return nil
 }
 
-func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, _ string) error {
-	// Use ZeroMQ PUB endpoint specified in `mqtt` config block if provided.
+func (this *MQTTClient) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
+	// Use ZeroMQ PULL and PUB endpoints specified in `mqtt` config block if
+	// provided.
 	if this.pubEndpoint != "" {
 		pubEndpoint = this.pubEndpoint
 	}
+
+	if this.pullEndpoint != "" {
+		pullEndpoint = this.pullEndpoint
+	}
+
+	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
+	this.pusher = msgbus.MustNewPusher(pullEndpoint)
 
 	if len(this.endpoints) == 0 {
 		return fmt.Errorf("no MQTT broker endpoints provided")
 	}
 
-	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
 	subscriber.AddStatusHandler(this.handleMsgBusStatus)
 	subscriber.Start("RUNTIME")
 
@@ -233,6 +255,17 @@ func (this *MQTTClient) connect(ctx context.Context, cancel context.CancelFunc) 
 		})
 	}
 
+	opts.OnConnect = func(c MQTT.Client) {
+		for topic := range this.subTopics {
+			this.log("[DEBUG] subscribing to broker for topic %s", topic)
+
+			token := c.Subscribe(topic, 0, this.newMessageReceivedHandler(this.pusher))
+			if token.Wait() && token.Error() != nil {
+				panic(fmt.Sprintf("unable to subscribe to broker for topic %s: %v", topic, token.Error()))
+			}
+		}
+	}
+
 	this.client = MQTT.NewClient(opts)
 
 	if token := this.client.Connect(); token.Wait() && token.Error() != nil {
@@ -275,10 +308,14 @@ func (this *MQTTClient) run(ctx context.Context) {
 func (this *MQTTClient) publish(tag string, value float64) {
 	var (
 		tstamp = time.Now().UTC()
-		topic  = this.topics[tag]
+		topic  = this.pubTopics[tag]
 
 		buf bytes.Buffer
 	)
+
+	if topic == "" {
+		return
+	}
 
 	pdata := data{
 		Epoch:     tstamp.Unix(),
@@ -339,6 +376,45 @@ func (this *MQTTClient) lostConnectionHandler(ctx context.Context, cancel contex
 		cancel()
 
 		this.connectAndRun(ctx)
+	}
+}
+
+func (this *MQTTClient) newMessageReceivedHandler(pusher *msgbus.Pusher) MQTT.MessageHandler {
+	return func(_ MQTT.Client, msg MQTT.Message) {
+		topic := msg.Topic()
+
+		tag := this.subTopics[topic]
+
+		if tag == "" { // shouldn't ever happen...
+			return
+		}
+
+		var (
+			buf   = bytes.NewReader(msg.Payload())
+			value float64
+		)
+
+		if err := binary.Read(buf, binary.BigEndian, &value); err != nil {
+			this.log("[ERROR] parsing payload for topic %s: %v", topic, err)
+			return
+		}
+
+		this.Lock()
+		defer this.Unlock()
+
+		this.values[tag] = value
+
+		updates := []msgbus.Point{{Tag: tag, Value: value}}
+
+		env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: updates})
+		if err != nil {
+			this.log("[ERROR] creating new update message: %v\n", err)
+			return
+		}
+
+		if err := pusher.Push("RUNTIME", env); err != nil {
+			this.log("[ERROR] sending update message: %v", err)
+		}
 	}
 }
 
