@@ -2,6 +2,7 @@
 package mqtt
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
@@ -154,10 +155,6 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 		return fmt.Errorf("must provide 'client-id' for MQTT module config")
 	}
 
-	if this.period == 0 {
-		this.period = 5 * time.Second
-	}
-
 	for idx, endpoint := range this.endpoints {
 		this.log("[DEBUG] endpoint pre validation: %+v", endpoint)
 
@@ -240,6 +237,10 @@ func (this *MQTTClient) connect(ctx context.Context, cancel context.CancelFunc) 
 }
 
 func (this *MQTTClient) run(ctx context.Context) {
+	if this.period == 0 {
+		return
+	}
+
 	ticker := time.NewTicker(this.period)
 
 	for {
@@ -251,38 +252,46 @@ func (this *MQTTClient) run(ctx context.Context) {
 
 			return
 		case <-ticker.C:
-			for tag, val := range this.values {
-				var (
-					tstamp = time.Now().UTC()
-					topic  = this.topics[tag]
-				)
+			this.RLock()
 
-				pdata := data{
-					Epoch:     tstamp.Unix(),
-					Timestamp: tstamp.Format(this.timestampTmpl),
-					Client:    this.id,
-					Topic:     topic,
-					Value:     val,
-				}
-
-				payload, err := pdata.execute(this.payloadTmpl)
-				if err != nil {
-					this.log("[ERROR] executing payload template: %v", err)
-					continue
-				}
-
-				token := this.client.Publish(topic, 0, false, payload)
-
-				this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, payload)
-
-				// TODO: should this be run in a separate goroutine?
-				if token.Wait() && token.Error() != nil {
-					this.log("[ERROR] publishing topic %s to MQTT broker: %v", topic, token.Error())
-				} else {
-					this.log("[DEBUG] published %s --> %f to MQTT broker", topic, val)
-				}
+			for tag, value := range this.values {
+				go this.publish(tag, value)
 			}
+
+			this.RUnlock()
 		}
+	}
+}
+
+func (this *MQTTClient) publish(tag string, value float64) {
+	var (
+		tstamp = time.Now().UTC()
+		topic  = this.topics[tag]
+
+		buf bytes.Buffer
+	)
+
+	pdata := data{
+		Epoch:     tstamp.Unix(),
+		Timestamp: tstamp.Format(this.timestampTmpl),
+		Client:    this.id,
+		Topic:     topic,
+		Value:     value,
+	}
+
+	if err := this.payloadTmpl.Execute(&buf, pdata); err != nil {
+		this.log("[ERROR] executing payload template: %v", err)
+		return
+	}
+
+	token := this.client.Publish(topic, 0, false, buf.String())
+
+	this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, buf.String())
+
+	if token.Wait() && token.Error() != nil {
+		this.log("[ERROR] publishing topic %s to MQTT broker: %v", topic, token.Error())
+	} else {
+		this.log("[DEBUG] published %s --> %f to MQTT broker", topic, value)
 	}
 }
 
@@ -306,6 +315,10 @@ func (this *MQTTClient) handleMsgBusStatus(env msgbus.Envelope) {
 	for _, point := range status.Measurements {
 		if _, ok := this.values[point.Tag]; ok {
 			this.values[point.Tag] = point.Value
+
+			if this.period == 0 {
+				go this.publish(point.Tag, point.Value)
+			}
 		}
 	}
 }
