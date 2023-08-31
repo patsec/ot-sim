@@ -48,54 +48,10 @@
       <address>0</address>
       <tag>line-650632.closed</tag>
     </register>
-    <register type="coil">
-      <address>1</address>
-      <tag>reset</tag>
-    </register>
     <register type="input">
       <address>30000</address>
-      <tag>bus-692.voltage</tag>
-      <scaling>2</scaling>
-    </register>
-    <register type="input">
-      <address>30001</address>
       <tag>line-650632.kW</tag>
       <scaling>2</scaling>
     </register>
-    <register type="input">
-      <address>30002</address>
-      <tag>counter</tag>
-    </register>
   </modbus>
-  <!--
-  <dnp3 name="dnp3-master" mode="client">
-    <endpoint>127.0.0.1:20001</endpoint>
-    <master>
-      <local-address>1</local-address>
-      <remote-address>1024</remote-address>
-      <input type="binary">
-        <address>0</address>
-        <tag>line-650632.closed</tag>
-        <svar>Group1Var1</svar>
-        <evar>Group2Var1</evar>
-        <class>Class1</class>
-      </input>
-      <output type="binary">
-        <address>10</address>
-        <tag>line-650632.closed</tag>
-        <svar>Group10Var2</svar>
-        <evar>Group11Var2</evar>
-        <class>Class1</class>
-        <sbo>false</sbo>
-      </output>
-      <input type="analog">
-        <address>0</address>
-        <tag>line-650632.kW</tag>
-        <svar>Group30Var6</svar>
-        <evar>Group32Var6</evar>
-        <class>Class1</class>
-      </input>
-    </master>
-  </dnp3>
-  -->
 </ot-sim>

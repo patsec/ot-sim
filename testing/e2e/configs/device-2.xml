@@ -17,11 +17,6 @@
     </register>
     <register type="input">
       <address>30000</address>
-      <tag>bus-692.voltage</tag>
-      <scaling>-2</scaling>
-    </register>
-    <register type="input">
-      <address>30001</address>
       <tag>line-650632.kW</tag>
       <scaling>-2</scaling>
     </register>
@@ -29,11 +24,6 @@
   <io name="helics-federate">
     <broker-endpoint>localhost</broker-endpoint>
     <federate-name>ot-sim-io</federate-name>
-    <subscription>
-      <key>OpenDSS/bus-692.voltage</key>
-      <type>double</type>
-      <tag>bus-692.voltage</tag>
-    </subscription>
     <subscription>
       <key>OpenDSS/line-650632.kW</key>
       <type>double</type>
@@ -54,13 +44,6 @@
       <type>boolean</type>
       <tag>switch-671692.closed</tag>
     </subscription>
-    <!--
-    <publication>
-      <key>line-650632.closed</key>
-      <type>boolean</type>
-      <tag>line-650632.closed</tag>
-    </publication>
-    -->
     <endpoint name="OpenDSS/updates">
       <tag key="line-650632.closed">line-650632.closed</tag>
     </endpoint>

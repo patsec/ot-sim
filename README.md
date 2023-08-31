@@ -97,7 +97,8 @@ cmake -S . -B build && sudo cmake --build build --target install && sudo ldconfi
 sudo make -C src/go install
 ```
 
-Install the OT-sim Python modules. This step will also install the Python HELICS code, on which some of the OT-sim Python modules depend.
+Install the OT-sim Python modules. This step will also install the Python HELICS
+code, on which some of the OT-sim Python modules depend.
 
 ```
 sudo python3 -m pip install src/python
@@ -123,23 +124,34 @@ wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v2.2.
   && chmod +x /usr/local/bin/overmind
 ```
 
-#### PyModbus
+#### mbpoll
 
 ```
-python3 -m pip install pymodbus prompt_toolkit pygments
+apt install -y mbpoll
 ```
 
 #### OpenDSS
 
 ```
-python3 -m pip install opendssdirect.py~=0.6.1
+python3 -m pip install opendssdirect.py~=0.8.4
 ```
+
+> NOTE: the version of `opendssdirect.py` to install may depend on which OS
+> version is being used.
+
+> NOTE: the example below uses OpenDSS to run a well-known IEEE 13 Bus power
+> system test case. Some of the test case files are stored in this repo using
+> git LFS, so in order to run the test case git LFS must be installed and `git
+> lfs pull` must be run from the root of this repo in order to populate the test
+> case files.
 
 ## Running an Example
 
-If you have a Procfile-compatible tool, such as [Overmind](#overmind) or [Hivemind](#hivemind), you can use it to run the Procfile in the root directory.
+If you have a Procfile-compatible tool, such as [Overmind](#overmind) or
+[Hivemind](#hivemind), you can use it to run the Procfile in the root directory.
 
-For a complete example, you will need something like the [pymodbus.console](#pymodbus) to interact with the Modbus module that is run as part of the example.
+For a complete example, you will need something like [mbpoll](#mbpoll) to
+interact with the Modbus module that is run as part of the example.
 
 From one terminal or `tmux` pane, run the following:
 
@@ -147,47 +159,47 @@ From one terminal or `tmux` pane, run the following:
 overmind start -D -f Procfile.single
 ```
 
-In a separate terminal or `tmux` pane, run the following:
+In a separate terminal or `tmux` pane, run the following to read from holding
+register `30000` to get the kW line flow value.
+
+`mbpoll` example:
 
 ```
-pymodbus.console tcp --host 127.0.0.1 --port 5502
+> mbpoll -0 -1 -t 3 -r 30000 -c 1 -p 5502 localhost
+
+-- Polling slave 1...
+[30000]:        192
 ```
 
-From within the PyModbus console, you can read from holding register `30000` to get the bus voltage value.
+Register `30000` is configured to be scaled by a factor of two, so given the
+above example the actual value in the experiment is 1.85kW.
 
-PyModbus example:
+You can trip the line feeding the bus by doing a coil write with a value of `0`
+to address `0`. When you read a second time, the holding register `30000` will
+update to `0`.
 
-```
-> client.read_input_registers address=30000 count=1
-{
-    "registers": [
-        98
-    ]
-}
-```
-
-Register `30000` is configured to be scaled by a factor of two, so given the above example the actual value in the experiment is 0.98.
-
-You can trip the line feeding the bus by doing a coil write with a value of `0` to address `0`. When you read a second time, the holding register `30000` will update to `0`.
-
-PyModbus example:
+`mbpoll` example:
 
 ```
-> client.write_coil address=0 value=0
-{
-    "address": 0,
-    "value": false
-}
+> mbpoll -0 -1 -t 0 -r 0 -p 5502 localhost 0
 
-> client.read_input_registers address=30000 count=1
-{
-    "registers": [
-        0
-    ]
-}
+Written 1 references.
+
+> mbpoll -0 -1 -t 3 -r 30000 -c 1 -p 5502 localhost
+
+-- Polling slave 1...
+[30000]:        0
 ```
 
 ### DNP3 Example with Docker
+
+> NOTE: The latest version of the Docker image built with the provided
+> Dockerfile is based on Debian Bookworm. Currently, `pydnp3` fails to build on
+> Debian Bookworm and it's highly unlikely that will ever be fixed. The
+> following instructions have been left here for legacy reasons. If users wish
+> to run the following DNP3 example, they will need to use a different DNP3
+> client or modify the Dockerfile. The last OS version known by the authors to
+> work with `pydnp3` is Ubuntu 20.04.
 
 First, build the Docker image.
 
@@ -195,15 +207,23 @@ First, build the Docker image.
 docker build -t ot-sim .
 ```
 
-Then start a container running all the modules, including the HELICS I/O module and the DNP3 module, in outstation mode.
+Then start a container running all the modules, including the HELICS I/O module
+and the DNP3 module, in outstation mode.
 
 ```
 docker run -it --rm --name ot-test ot-sim hivemind Procfile.single
 ```
 
-> You can also run a multi-device configuration, where one device acts as a DNP3 outstation to the Modbus client gateway by using `Procfile.multi` instead of `Procfile.single` above. In this configuration, when you send the DNP3 CROB command below, it is translated to a Modbus message and sent along to the second device to modify the HELICS I/O module.
+> You can also run a multi-device configuration, where one device acts as a DNP3
+> outstation to the Modbus client gateway by using `Procfile.multi` instead of
+> `Procfile.single` above. In this configuration, when you send the DNP3 CROB
+> command below, it is translated to a Modbus message and sent along to the
+> second device to modify the HELICS I/O module.
 
-Next, from another terminal or `tmux` pane exec into the container and execute the test DNP3 master, which will do a Class 0 scan, then send a CROB command to trip a line in the OpenDSS HELICS federate that is also running, then do another Class 0 scan.
+Next, from another terminal or `tmux` pane exec into the container and execute
+the test DNP3 master, which will do a Class 0 scan, then send a CROB command to
+trip a line in the OpenDSS HELICS federate that is also running, then do another
+Class 0 scan.
 
 ```
 docker exec -it ot-test sh -c "cd testing/dnp3 && python3 master.py"

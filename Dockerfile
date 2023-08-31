@@ -15,9 +15,6 @@ RUN make -C /usr/local/src/ot-sim/src/go install
 
 FROM python:3.11-bookworm as pybuild
 
-RUN apt update && apt install -y \
-  npm
-
 ADD .git /usr/local/src/ot-sim/.git
 
 ADD src/python /usr/local/src/ot-sim/src/python
@@ -77,13 +74,13 @@ RUN ldconfig
 
 WORKDIR /
 
-FROM docker.io/library/ubuntu:20.04 AS test
+FROM debian:bookworm AS test
 
 ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update && apt install -y \
-  bash-completion curl git tmux tree vim wget xz-utils \
+  bash-completion curl git mbpoll tmux tree vim wget xz-utils \
   build-essential cmake libczmq4 libsodium23 libxml2 libzmq5 python3-dev python3-pip
 
 RUN wget -O hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz \
@@ -96,26 +93,23 @@ RUN wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v
   && chmod +x /usr/local/bin/overmind \
   && rm overmind.gz
 
-RUN python3 -m pip install opendssdirect.py~=0.6.1
+WORKDIR /root
 
-RUN git clone --recursive https://github.com/kisensum/pydnp3 /tmp/pydnp3 \
-  && python3 -m pip install /tmp/pydnp3 \
-  && rm -rf /tmp/pydnp3
+ADD install-node-red.sh .
 
-RUN wget https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered -O installer.sh \
-  && bash ./installer.sh --confirm-root --confirm-install --skip-pi --no-init \
-  && rm installer.sh
-
-WORKDIR /root/.node-red
-RUN npm install \
-  node-red-dashboard \
-  node-red-contrib-modbus \
-  @node-red-contrib-themes/theme-collection \
-  zeromq@5.3.1
+# needed by nod-red install script
+ARG TARGETARCH
+RUN /root/install-node-red.sh \
+  && rm /root/install-node-red.sh
 
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
 
-COPY --from=build /usr/local /usr/local
+COPY --from=gobuild /usr/local /usr/local
+COPY --from=pybuild /usr/local /usr/local
+COPY --from=build   /usr/local /usr/local
+
+RUN python3 -m pip install --break-system-packages opendssdirect.py~=0.8.4
+
 RUN ldconfig
 
 ADD . /usr/local/src/ot-sim

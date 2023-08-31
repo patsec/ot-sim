@@ -42,11 +42,6 @@
     </register>
     <register type="input">
       <address>30000</address>
-      <tag>bus-692.voltage</tag>
-      <scaling>2</scaling>
-    </register>
-    <register type="input">
-      <address>30001</address>
       <tag>line-650632.kW</tag>
       <scaling>2</scaling>
     </register>

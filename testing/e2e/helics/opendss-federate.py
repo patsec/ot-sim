@@ -16,30 +16,11 @@ class OpenDSSFederate(HelicsFederate):
     HelicsFederate.end_time   = 3600
 
     HelicsFederate.publications = [
-        Publication("load-671.voltage",        DataType.double),
-        Publication("load-671.current",        DataType.double),
-        Publication("load-671.active_power",   DataType.double),
-        Publication("load-671.reactive_power", DataType.double),
-        Publication("load-645.voltage",        DataType.double),
-        Publication("load-645.current",        DataType.double),
-        Publication("load-645.active_power",   DataType.double),
-        Publication("load-645.reactive_power", DataType.double),
-        Publication("load-646.voltage",        DataType.double),
-        Publication("load-646.current",        DataType.double),
-        Publication("load-646.active_power",   DataType.double),
-        Publication("load-646.reactive_power", DataType.double),
-        Publication("load-692.voltage",        DataType.double),
-        Publication("load-692.current",        DataType.double),
-        Publication("load-692.active_power",   DataType.double),
-        Publication("load-692.reactive_power", DataType.double),
         Publication("line-650632.kW",          DataType.double),
         Publication("line-650632.kVAR",        DataType.double),
         Publication("line-650632.kVA",         DataType.complex),
         Publication("line-650632.closed",      DataType.boolean),
-        Publication("bus-692.voltage",         DataType.double),
-        Publication("bus-RG60.voltage",        DataType.double),
         Publication("switch-671692.closed",    DataType.boolean),
-        Publication("regulator-Reg1.vreg",     DataType.double),
     ]
 
 #   HelicsFederate.subscriptions = [
