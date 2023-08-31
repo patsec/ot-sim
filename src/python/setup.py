@@ -22,7 +22,7 @@ SCRIPTS = [
 
 if platform.machine() == 'x86_64':
     # HELICS won't build on ARM...
-    REQUIRES.append('helics~=3.2.1')
+    REQUIRES.append('helics~=3.4.0')
     SCRIPTS.append('ot-sim-io-module = otsim.io.io:main')
 
 ENTRIES = {

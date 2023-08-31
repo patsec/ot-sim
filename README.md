@@ -83,7 +83,7 @@ sudo apt update && sudo apt install \
 
 #### Install Golang
 ```
-wget -O go.tgz https://golang.org/dl/go1.18.linux-amd64.tar.gz \
+wget -O go.tgz https://golang.org/dl/go1.20.linux-amd64.tar.gz \
   && sudo tar -C /usr/local -xzf go.tgz && rm go.tgz \
   && sudo ln -s /usr/local/go/bin/* /usr/local/bin
 ```

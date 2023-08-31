@@ -18,8 +18,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git wget build-essential cmake libboost-dev libczmq-dev libxml2-dev libzmq5-dev pkg-config python3-dev python3-pip
-          sudo python3 -m pip install opendssdirect.py~=0.6.1
-          wget -O /tmp/go.tgz https://golang.org/dl/go1.18.linux-amd64.tar.gz \
+          sudo python3 -m pip install opendssdirect.py~=0.8.4
+          wget -O /tmp/go.tgz https://golang.org/dl/go1.20.linux-amd64.tar.gz \
             && sudo tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz \
             && sudo ln -s /usr/local/go/bin/* /usr/local/bin
           echo "/go/bin" >> $GITHUB_PATH
