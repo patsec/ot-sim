@@ -10,15 +10,20 @@ import (
 type MsgBusHandler func(string, string) error
 
 func MonitorMsgBusChannel(ctx context.Context, endpoint, topic string, handlers []MsgBusHandler, errors chan error) {
-	socket, err := zmq.NewSocket(zmq.SUB)
+	sendErr := func(err error) {
+		if errors != nil {
+			errors <- err
+		}
+	}
 
+	socket, err := zmq.NewSocket(zmq.SUB)
 	if err != nil {
-		errors <- fmt.Errorf("creating new SUB socket: %w", err)
+		sendErr(fmt.Errorf("creating new SUB socket: %w", err))
 		return
 	}
 
 	if err := socket.Connect(endpoint); err != nil {
-		errors <- fmt.Errorf("connecting to publisher: %w", err)
+		sendErr(fmt.Errorf("connecting to publisher: %w", err))
 		return
 	}
 
@@ -32,7 +37,7 @@ func MonitorMsgBusChannel(ctx context.Context, endpoint, topic string, handlers 
 		default:
 			msg, err := socket.RecvMessage(0)
 			if err != nil {
-				errors <- fmt.Errorf("receiving message from publisher: %w", err)
+				sendErr(fmt.Errorf("receiving message from publisher: %w", err))
 				return
 			}
 
@@ -43,7 +48,7 @@ func MonitorMsgBusChannel(ctx context.Context, endpoint, topic string, handlers 
 
 			for _, handler := range handlers {
 				if err := handler(topic, msg[1]); err != nil {
-					errors <- fmt.Errorf("running handler: %w", err)
+					sendErr(fmt.Errorf("running handler: %w", err))
 					return
 				}
 			}

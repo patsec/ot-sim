@@ -21,6 +21,8 @@ type Subscriber struct {
 	statusHandlers      []StatusHandler
 	updateHandlers      []UpdateHandler
 	healthCheckHandlers []HealthCheckHandler
+
+	confirmationHandlers map[string]chan Confirmation
 }
 
 func MustNewSubscriber(endpoint string) *Subscriber {
@@ -51,7 +53,7 @@ func NewSubscriber(endpoint string) (*Subscriber, error) {
 		return nil, fmt.Errorf("setting ZMQ SUB socket linger: %w", err)
 	}
 
-	return &Subscriber{ctx: ctx, socket: socket}, nil
+	return &Subscriber{ctx: ctx, socket: socket, confirmationHandlers: make(map[string]chan Confirmation)}, nil
 }
 
 func (this *Subscriber) AddStatusHandler(handler StatusHandler) {
@@ -66,12 +68,19 @@ func (this *Subscriber) AddHealthCheckHandler(handler HealthCheckHandler) {
 	this.healthCheckHandlers = append(this.healthCheckHandlers, handler)
 }
 
-func (this Subscriber) Start(topic string) {
+func (this *Subscriber) RegisterConfirmationHandler(confirmation string) chan Confirmation {
+	conf := make(chan Confirmation)
+
+	this.confirmationHandlers[confirmation] = conf
+	return conf
+}
+
+func (this *Subscriber) Start(topic string) {
 	this.running = true
 	go this.run(topic)
 }
 
-func (this Subscriber) Stop() {
+func (this *Subscriber) Stop() {
 	this.running = false
 
 	this.socket.Close()
@@ -112,6 +121,20 @@ func (this Subscriber) run(topic string) {
 			for _, handler := range this.healthCheckHandlers {
 				handler(env)
 			}
+		case EnvelopeKind(ENVELOPE_CONFIRMATION):
+			confirmation, err := env.Conformation()
+			if err != nil {
+				continue
+			}
+
+			conf, ok := this.confirmationHandlers[confirmation.Confirm]
+			if !ok {
+				continue
+			}
+
+			conf <- confirmation
+
+			delete(this.confirmationHandlers, confirmation.Confirm)
 		}
 	}
 }

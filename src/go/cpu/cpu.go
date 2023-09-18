@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	otsim "github.com/patsec/ot-sim"
+	"github.com/patsec/ot-sim/msgbus"
 	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
@@ -39,6 +40,8 @@ type CPU struct {
 	lokiEndpoint    string
 
 	modules map[string]string
+
+	pusher *msgbus.Pusher
 
 	logFile io.Writer
 }
@@ -129,7 +132,7 @@ func (this *CPU) Configure(e *etree.Element) error {
 	return nil
 }
 
-func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
+func (this *CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
 	config := util.MustConfigFile(ctx)
 
 	for name, path := range this.modules {
@@ -154,6 +157,8 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 	if this.pullEndpoint != "" {
 		pullEndpoint = this.pullEndpoint
 	}
+
+	this.pusher = msgbus.MustNewPusher(pullEndpoint)
 
 	if this.apiEndpoint != "" {
 		api := NewAPIServer(pullEndpoint, pubEndpoint)
@@ -200,6 +205,7 @@ func (this CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "LOG", logHandlers, logErrors)
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "HEALTH", healthHandlers, healthErrors)
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, metricsErrors)
+	go MonitorMsgBusChannel(ctx, pubEndpoint, "INTERNAL", []MsgBusHandler{this.internalHandler}, nil)
 
 	return nil
 }

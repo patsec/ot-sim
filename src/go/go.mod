@@ -9,12 +9,14 @@ require (
 	github.com/beevik/etree v1.1.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.2
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/pebbe/zmq4 v1.2.7
 	github.com/prometheus/client_golang v1.12.2
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -30,6 +32,6 @@ require (
 	github.com/reiver/go-oi v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )

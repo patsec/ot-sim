@@ -63,6 +63,9 @@ func (this *APIServer) Start(endpoint, cert, key, ca string) error {
 	api.HandleFunc("/query/{tag}", this.handleQuery).Methods("GET")
 	api.HandleFunc("/write", this.handleWrite).Methods("POST")
 	api.HandleFunc("/write/{tag}/{value}", this.handleWrite).Methods("POST")
+	api.HandleFunc("/modules", this.handleModules).Methods("GET")
+	api.HandleFunc("/modules/{name}", this.handleEnableModule).Methods("POST")
+	api.HandleFunc("/modules/{name}", this.handleDisableModule).Methods("DELETE")
 
 	server := http.Server{Addr: endpoint, Handler: router}
 
@@ -228,6 +231,72 @@ func (this *APIServer) handleWrite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /modules
+func (this *APIServer) handleModules(w http.ResponseWriter, r *http.Request) {
+	results := make(map[string]string)
+
+	for _, mod := range modules {
+		if mod.canceler == nil {
+			results[mod.name] = "disabled"
+		} else {
+			results[mod.name] = "enabled"
+		}
+	}
+
+	body, err := json.Marshal(results)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(body)
+}
+
+// POST /modules/{name}
+func (this *APIServer) handleEnableModule(w http.ResponseWriter, r *http.Request) {
+	var (
+		vars = mux.Vars(r)
+		name = vars["name"]
+	)
+
+	if mod, ok := modules[name]; ok {
+		if mod.canceler != nil {
+			http.Error(w, "module already enabled", http.StatusBadRequest)
+		} else {
+			if err := StartModule(mod.ctx, mod.name, mod.path, mod.args...); err != nil {
+				log.Printf("[CPU] [ERROR] failed to enable module %s: %v\n", name, err)
+
+				http.Error(w, "failed to enable module", http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusNoContent)
+		}
+	} else {
+		http.Error(w, "module not found", http.StatusBadRequest)
+	}
+}
+
+// DELETE /modules/{name}
+func (this *APIServer) handleDisableModule(w http.ResponseWriter, r *http.Request) {
+	var (
+		vars = mux.Vars(r)
+		name = vars["name"]
+	)
+
+	if mod, ok := modules[name]; ok {
+		if mod.canceler == nil {
+			http.Error(w, "module already disabled", http.StatusBadRequest)
+		} else {
+			close(mod.canceler)
+
+			w.WriteHeader(http.StatusNoContent)
+		}
+	} else {
+		http.Error(w, "module not found", http.StatusBadRequest)
+	}
 }
 
 func (this *APIServer) wsReader(ws *websocket.Conn) {

@@ -34,7 +34,8 @@ type Telnet struct {
 	banner   string
 	tags     map[string]float64
 
-	pusher *msgbus.Pusher
+	pusher   *msgbus.Pusher
+	internal *msgbus.Subscriber
 }
 
 func New(name string) *Telnet {
@@ -64,6 +65,10 @@ func (this *Telnet) Configure(e *etree.Element) error {
 
 func (this *Telnet) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
 	this.pusher = msgbus.MustNewPusher(pullEndpoint)
+	this.internal = msgbus.MustNewSubscriber(pubEndpoint)
+
+	this.internal.Start("INTERNAL")
+
 	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
 
 	subscriber.AddStatusHandler(this.handleMsgBusStatus)
@@ -80,6 +85,9 @@ func (this *Telnet) Run(ctx context.Context, pubEndpoint, pullEndpoint string) e
 	shellHandler.Register("date", telsh.ProducerFunc(dateProducerFunc))
 	shellHandler.Register("query", telsh.ProducerFunc(this.queryProducerFunc))
 	shellHandler.Register("write", telsh.ProducerFunc(this.writeProducerFunc))
+	shellHandler.Register("modules", telsh.ProducerFunc(this.modulesProducerFunc))
+	shellHandler.Register("disable", telsh.ProducerFunc(this.disableModuleProducerFunc))
+	shellHandler.Register("enable", telsh.ProducerFunc(this.enableModuleProducerFunc))
 
 	if err := telnet.ListenAndServe(this.endpoint, shellHandler); nil != err {
 		panic(err)

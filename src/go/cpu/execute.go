@@ -19,7 +19,18 @@ import (
 	"github.com/patsec/ot-sim/util"
 )
 
-var hostname string
+type module struct {
+	ctx      context.Context
+	name     string
+	path     string
+	args     []string
+	canceler chan struct{}
+}
+
+var (
+	hostname string
+	modules  = make(map[string]*module)
+)
 
 func init() {
 	var err error
@@ -36,6 +47,9 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 	if err != nil {
 		return fmt.Errorf("module executable does not exist at %s", path)
 	}
+
+	mod := &module{ctx: ctx, name: name, path: path, args: args}
+	modules[name] = mod
 
 	otsim.Waiter.Add(1)
 
@@ -164,6 +178,8 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 				wait <- err
 			}()
 
+			mod.canceler = make(chan struct{})
+
 			select {
 			case err := <-wait:
 				if err, ok := err.(*exec.ExitError); ok {
@@ -175,6 +191,22 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 
 				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", name, err)
 				continue
+			case <-mod.canceler:
+				log.Printf("[CPU] disabling %s module\n", name)
+				cmd.Process.Signal(syscall.SIGTERM)
+
+				mod.canceler = nil
+
+				select {
+				case <-wait: // SIGTERM *should* cause cmd to exit
+					log.Printf("[CPU] %s module has been disabled\n", name)
+					return
+				case <-time.After(10 * time.Second):
+					log.Printf("[CPU] forcefully disabling %s module\n", name)
+					cmd.Process.Kill()
+
+					return
+				}
 			case <-ctx.Done():
 				log.Printf("[CPU] stopping %s module\n", name)
 				cmd.Process.Signal(syscall.SIGTERM)

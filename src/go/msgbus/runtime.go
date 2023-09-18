@@ -6,7 +6,8 @@ import (
 )
 
 type (
-	ConfirmationErrors map[string]string
+	ConfirmationResults map[string]any
+	ConfirmationErrors  map[string]string
 )
 
 const (
@@ -46,8 +47,9 @@ func (Update) Kind() EnvelopeKind {
 }
 
 type Confirmation struct {
-	Confirm string             `json:"confirm"`
-	Errors  ConfirmationErrors `json:"errors"`
+	Confirm string              `json:"confirm"`
+	Results ConfirmationResults `json:"results"`
+	Errors  ConfirmationErrors  `json:"errors"`
 }
 
 func (Confirmation) Kind() EnvelopeKind {
@@ -55,7 +57,7 @@ func (Confirmation) Kind() EnvelopeKind {
 }
 
 type IEnvelope interface {
-	Status | Update | Confirmation
+	Status | Update | ModuleControl | Confirmation
 	Kind() EnvelopeKind
 }
 
