@@ -15,7 +15,6 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
-          - linux/arm
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
