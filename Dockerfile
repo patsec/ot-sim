@@ -65,6 +65,7 @@ RUN /root/install-node-red.sh \
   && rm /root/install-node-red.sh
 
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
@@ -103,6 +104,7 @@ RUN /root/install-node-red.sh \
   && rm /root/install-node-red.sh
 
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
