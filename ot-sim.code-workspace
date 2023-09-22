@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "src/c"
+    },
+    {
+      "path": "src/c++"
+    },
+    {
+      "path": "src/go"
+    },
+    {
+      "path": "src/python"
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "golang.go",
+      "ms-python.python",
+      "ms-vscode.cpptools"
+    ]
+  }
+}

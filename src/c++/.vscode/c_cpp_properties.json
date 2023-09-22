@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/deps",
+                "${workspaceFolder}/deps/fmt/include",
+                "${workspaceFolder}/deps/json/single_include",
+                "${workspaceFolder}/deps/opendnp3/cpp/lib/include",
+                "/usr/include/**",
+                "/usr/local/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

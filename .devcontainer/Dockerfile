@@ -7,16 +7,21 @@ RUN apt update && apt install -y \
   bash-completion build-essential cmake curl git git-lfs mbpoll sudo tmux tree vim wget xz-utils \
   cmake libboost-dev libczmq-dev libxml2-dev libzmq3-dev pkg-config python3-dev python3-pip
 
-RUN useradd -l -u 33333 -G sudo -md /home/gitpod -s /bin/bash -p gitpod gitpod
+ARG USERNAME=vscode
+ARG USER_UID=1000
 
-ADD https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh /home/gitpod/.bash/git-prompt.sh
-RUN chown gitpod:gitpod /home/gitpod/.bash/git-prompt.sh \
-  && chmod +x /home/gitpod/.bash/git-prompt.sh \
-  && echo "\nsource ~/.bash/git-prompt.sh" >> /home/gitpod/.bashrc \
-  && echo "export GIT_PS1_SHOWCOLORHINTS=true" >> /home/gitpod/.bashrc \
-  && echo "export PROMPT_COMMAND='__git_ps1 \"\W\" \" » \"'" >> /home/gitpod/.bashrc
+RUN useradd -l -u $USER_UID -md /home/$USERNAME -s /bin/bash -p $USERNAME $USERNAME \
+  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
 
-ENV GOLANG_VERSION=1.21.1
+ADD https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh /home/$USERNAME/.bash/git-prompt.sh
+RUN chown $USERNAME:$USERNAME /home/$USERNAME/.bash/git-prompt.sh \
+  && chmod +x /home/$USERNAME/.bash/git-prompt.sh \
+  && echo "\nsource ~/.bash/git-prompt.sh" >> /home/$USERNAME/.bashrc \
+  && echo "export GIT_PS1_SHOWCOLORHINTS=true" >> /home/$USERNAME/.bashrc \
+  && echo "export PROMPT_COMMAND='__git_ps1 \"\W\" \" » \"'" >> /home/$USERNAME/.bashrc
+
+ARG GOLANG_VERSION=1.21.1
 
 RUN wget -O go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
   && tar -C /usr/local -xzf go.tgz && rm go.tgz \
@@ -63,21 +68,4 @@ RUN /root/install-node-red.sh \
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
 RUN cd /root/.node-red/nodes/ot-sim && npm install
 
-ADD .git /workspaces/ot-sim/.git
-
-ADD CMakeLists.txt /workspaces/ot-sim/CMakeLists.txt
-ADD src/c          /workspaces/ot-sim/src/c
-ADD src/c++        /workspaces/ot-sim/src/c++
-RUN cmake -S /workspaces/ot-sim -B /workspaces/ot-sim/build \
-  && cmake --build /workspaces/ot-sim/build -j $(nproc) --target install \
-  && ldconfig
-
-ADD src/go /workspaces/ot-sim/src/go
-RUN make -C /workspaces/ot-sim/src/go install
-
-ADD src/python /workspaces/ot-sim/src/python
-RUN python3 -m pip install --break-system-packages /workspaces/ot-sim/src/python
-
 RUN python3 -m pip install --break-system-packages opendssdirect.py~=0.8.4
-
-USER gitpod

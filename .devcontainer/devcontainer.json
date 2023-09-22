@@ -1,0 +1,39 @@
+{
+  "name": "ot-sim",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "GOLANG_VERSION": "1.21.1"
+    }
+  },
+
+  "runArgs": [
+    "--security-opt", "seccomp=unconfined" // needed for debug support
+  ],
+
+  "mounts": [],
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+
+      "extensions": [
+        "golang.go",
+        "ms-python.python",
+        "ms-vscode.cpptools",
+        "ms-vsliveshare.vsliveshare-pack"
+      ]
+    }
+  },
+
+  "remoteUser": "vscode"
+}
