@@ -1,0 +1,205 @@
+[
+    {
+        "id": "172c64bad7a4e035",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "42fb9f9b2e9aae42",
+        "type": "ot-sim in",
+        "z": "172c64bad7a4e035",
+        "tag": "line-650632.kW",
+        "updates": false,
+        "x": 140,
+        "y": 320,
+        "wires": [
+            [
+                "2ea9878d91da5797"
+            ]
+        ]
+    },
+    {
+        "id": "2ea9878d91da5797",
+        "type": "ui_gauge",
+        "z": "172c64bad7a4e035",
+        "name": "",
+        "group": "cd530edaea3a5672",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Line 650632 Power",
+        "label": "kW",
+        "format": "{{value | number:3}}",
+        "min": "0",
+        "max": "5",
+        "colors": [
+            "#ca0000",
+            "#ffff00",
+            "#00ff00"
+        ],
+        "seg1": "0.5",
+        "seg2": "2.0",
+        "diff": false,
+        "className": "",
+        "x": 610,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "1b2b2a5122909a56",
+        "type": "ot-sim out",
+        "z": "172c64bad7a4e035",
+        "tag": "line-650632.closed",
+        "x": 870,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "0abc55bd5a667739",
+        "type": "ui_button",
+        "z": "172c64bad7a4e035",
+        "name": "",
+        "group": "cd530edaea3a5672",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Trip",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "className": "",
+        "icon": "",
+        "payload": "0",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 570,
+        "y": 400,
+        "wires": [
+            [
+                "1b2b2a5122909a56"
+            ]
+        ]
+    },
+    {
+        "id": "3bea0bd21f09d964",
+        "type": "ui_button",
+        "z": "172c64bad7a4e035",
+        "name": "",
+        "group": "cd530edaea3a5672",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Close",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "1",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 570,
+        "y": 540,
+        "wires": [
+            [
+                "1b2b2a5122909a56"
+            ]
+        ]
+    },
+    {
+        "id": "9c5eaebffe2ff15e",
+        "type": "ot-sim in",
+        "z": "172c64bad7a4e035",
+        "tag": "line-650632.closed",
+        "updates": false,
+        "x": 130,
+        "y": 480,
+        "wires": [
+            [
+                "5350b0834d821a9d",
+                "104a4cdbed5f1039"
+            ]
+        ]
+    },
+    {
+        "id": "5350b0834d821a9d",
+        "type": "change",
+        "z": "172c64bad7a4e035",
+        "name": "Trip Enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enabled",
+                "pt": "msg",
+                "to": "msg.payload = 1",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 440,
+        "wires": [
+            [
+                "0abc55bd5a667739"
+            ]
+        ]
+    },
+    {
+        "id": "104a4cdbed5f1039",
+        "type": "change",
+        "z": "172c64bad7a4e035",
+        "name": "Close Enabled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enabled",
+                "pt": "msg",
+                "to": "msg.payload = 0",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 360,
+        "y": 520,
+        "wires": [
+            [
+                "3bea0bd21f09d964"
+            ]
+        ]
+    },
+    {
+        "id": "cd530edaea3a5672",
+        "type": "ui_group",
+        "name": "Default",
+        "tab": "893465dd7a980296",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "893465dd7a980296",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]

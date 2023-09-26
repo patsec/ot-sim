@@ -16,7 +16,7 @@
     <executable>node-red</executable>
     <settings-path>/etc/node-red.js</settings-path>
     <theme>dark</theme>
-    <flow-path></flow-path>
+    <flow-path>config/single-device/node-red-hmi.json</flow-path>
     <!--
     <authentiation>
       <editor username="admin" password="admin"></editor>
