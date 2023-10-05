@@ -75,6 +75,8 @@ RUN ldconfig
 
 WORKDIR /
 
+CMD ["ot-sim-cpu-module", "/etc/ot-sim/config.xml"]
+
 FROM debian:bookworm AS test
 
 ENV TZ=Etc/UTC
