@@ -41,5 +41,5 @@ jobs:
         working-directory: testing/e2e
         run: |
           hivemind &> /tmp/test.log &
-          sleep 5 # give devices time to propagate data
+          sleep 15 # give devices time to propagate data
           ot-sim-e2e-dnp3-master || (cat /tmp/test.log ; exit 1)
