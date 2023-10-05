@@ -18,11 +18,15 @@ class GroundTruth:
     self.index_base = 'ot-sim'
     self.labels     = {}
 
+    self.opensearch = False
+
     elastic = el.find('elastic')
 
     if elastic:
       self.elastic    = elastic.findtext('endpoint',        default=self.elastic)
       self.index_base = elastic.findtext('index-base-name', default=self.index_base)
+
+      self.opensearch = elastic.get('opensearch', default='false').lower() in ['true', 'yes', 'enabled', '1']
 
       for field in elastic.findall('label'):
         name = field.get('name')
@@ -85,7 +89,7 @@ class GroundTruth:
             'source':     {'type': 'keyword'}, # don't analyze
             'field':      {'type': 'text'},    # analize
             'value':      {'type': 'double'},
-            'labels':     {'type': 'flattened'},
+            'labels':     {'type': 'flat_object' if self.opensearch else 'flattened'},
           }
         }
       }
