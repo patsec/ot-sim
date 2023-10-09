@@ -20,6 +20,8 @@ type endpoint struct {
 	uri   *url.URL
 	cert  tls.Certificate
 	roots *x509.CertPool
+
+	insecure bool
 }
 
 func (this *endpoint) validate() error {

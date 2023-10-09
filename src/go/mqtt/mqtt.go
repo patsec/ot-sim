@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -109,6 +110,9 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 					case "url":
 						endpoint.url = child.Text()
 					case "tls":
+						insecure := child.SelectAttrValue("insecure", "false")
+						endpoint.insecure, _ = strconv.ParseBool(insecure)
+
 						for _, child := range child.ChildElements() {
 							switch child.Tag {
 							case "ca":
@@ -221,7 +225,12 @@ func (this *MQTTClient) connect(ctx context.Context, cancel context.CancelFunc) 
 	opts.SetConnectionLostHandler(this.lostConnectionHandler(ctx, cancel))
 
 	if endpoint.uri.Scheme == "ssl" || endpoint.uri.Scheme == "tls" {
-		opts.SetTLSConfig(&tls.Config{ServerName: endpoint.uri.Hostname(), RootCAs: endpoint.roots, Certificates: []tls.Certificate{endpoint.cert}})
+		opts.SetTLSConfig(&tls.Config{
+			ServerName:         endpoint.uri.Hostname(),
+			RootCAs:            endpoint.roots,
+			Certificates:       []tls.Certificate{endpoint.cert},
+			InsecureSkipVerify: endpoint.insecure,
+		})
 	}
 
 	this.client = MQTT.NewClient(opts)
