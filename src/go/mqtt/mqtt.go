@@ -146,7 +146,7 @@ func (this *MQTTClient) Configure(e *etree.Element) error {
 		case "payload-template":
 			var err error
 
-			this.payloadTmpl, err = template.New("payload").Parse(child.Text())
+			this.payloadTmpl, err = template.New("payload").Parse(strings.TrimSpace(child.Text()))
 			if err != nil {
 				return fmt.Errorf("parsing payload template: %w", err)
 			}
