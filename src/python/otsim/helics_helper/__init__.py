@@ -121,6 +121,11 @@ class HelicsFederate(object):
         if 'step_time' in kwargs:
             self.step_time = kwargs['step_time']
 
+        if 'module_name' in kwargs:
+            self.module_name = kwargs['module_name']
+        else:
+            self.module_name = self.federate_name
+
         self._setup_federate()
 
     def _setup_federate(self):
@@ -195,6 +200,12 @@ class HelicsFederate(object):
                     self._federate, e.name, e.type
                 )
 
+    def log(self, msg, helper=False):
+        if helper:
+            print(f'[{self.module_name}::helics_helper] {msg}', flush=True)
+        else:
+            print(f'[{self.module_name}] {msg}', flush=True)
+
     def enter_execution_mode(self):
         logger.debug("Starting entering executing mode")
         h.helicsFederateEnterExecutingMode(self._federate)
@@ -217,9 +228,9 @@ class HelicsFederate(object):
 
         for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
             while granted_time < t:
-                logger.debug("Requesting time {}".format(t))
+                self.log(f'requesting time {t}', helper=True)
                 granted_time = h.helicsFederateRequestTime(self._federate, t)
-                logger.debug("Granted time {}".format(granted_time))
+                self.log(f'granted time {granted_time}', helper=True)
                 self.current_time = granted_time
 
             self.action_pre_request_time()
@@ -231,6 +242,8 @@ class HelicsFederate(object):
             self._publish()
 
             if len(self.endpoints) > 0:
+                self.log('calling user-defined action_endpoints_send', helper=True)
+
                 # User defined action
                 self.action_endpoints_send(self.messages.send, self.current_time)
 
@@ -250,9 +263,9 @@ class HelicsFederate(object):
             self.action_post_request_time()
 
         while granted_time < self.end_time:
-            logger.debug("Requesting time {}".format(self.end_time))
+            self.log(f'requesting time {self.end_time}', helper=True)
             granted_time = h.helicsFederateRequestTime(self._federate, self.end_time)
-            logger.debug("Granted time {}".format(granted_time))
+            self.log(f'granted time {granted_time}', helper=True)
             self.current_time = granted_time
 
         self.cleanup()
@@ -279,6 +292,8 @@ class HelicsFederate(object):
         for e, endp in self._endpoints.items():
             if e.name in self.messages.send.keys():
                 for _message in self.messages.send[e.name]:
+                    self.log(f'sending raw event {_message.data} to {_message.destination} at time {_message.time}', helper=True)
+
                     h.helicsEndpointSendEventRaw(
                         endp, _message.destination, _message.data, _message.time
                     )

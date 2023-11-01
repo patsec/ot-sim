@@ -113,7 +113,7 @@ class IO(HelicsFederate):
       # updates, just sending them.
       HelicsFederate.endpoints.append(Endpoint("updates"))
 
-    HelicsFederate.__init__(self)
+    HelicsFederate.__init__(self, module_name=self.name)
 
     pub_endpoint  = el.findtext('pub-endpoint',  default=pub)
     pull_endpoint = el.findtext('pull-endpoint', default=pull)
@@ -201,23 +201,35 @@ class IO(HelicsFederate):
   def action_endpoints_send(self: IO, endpoints: typing.Dict, ts: int):
     '''send any update messages that have come in to HELICS'''
 
+    self.log('checking for queued messages to send to remote endpoints')
+
     with self.mutex:
       # key is endpoint name, value is list of dictionaries representing updates
       data = defaultdict(list)
 
       for tag in self.updated:
+        self.log(f'tag {tag} has been updated')
+
         if tag in self.eps:
+          self.log(f'remote endpoint(s) found for tag {tag}')
+
           for ep in self.eps[tag]:
             endpoint = ep['endpoint']
             key      = ep['topic']
             value    = self.updated[tag]
 
-            print(f'[{self.name}] updating federate topic {key} to {value}')
+            self.log(f'updating federate topic {key} to {value} in remote endpoint {endpoint}')
 
             data[endpoint].append({'tag': key, 'value': value})
+        else:
+          self.log(f'tag {tag} not configured for any remote endpoints')
 
       for endpoint, data in data.items():
-        endpoints['updates'].append(Message(destination=endpoint, time=ts, data=json.dumps(data)))
+        data = json.dumps(data)
+
+        self.log(f'sending {data} to endpoint {endpoint}')
+
+        endpoints['updates'].append(Message(destination=endpoint, time=ts, data=data))
 
       self.updated.clear()
 
