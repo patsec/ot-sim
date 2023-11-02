@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json, logging, signal, sys, threading, typing
+import json, signal, sys, threading, typing
 
 import otsim.msgbus.envelope as envelope
 import xml.etree.ElementTree as ET
@@ -55,10 +55,13 @@ class IO(HelicsFederate):
     self.name = el.get('name', default='ot-sim-io')
 
     broker    = el.findtext('broker-endpoint',    default='127.0.0.1')
-    name      = el.findtext('federate-name',      default=self.name)
     log_level = el.findtext('federate-log-level', default='SUMMARY')
 
     HelicsFederate.federate_info_core_init_string = f'--federates=1 --broker={broker} --loglevel={log_level}'
+    HelicsFederate.federate_info_log_level        = log_level
+
+    name = el.findtext('federate-name', default=self.name)
+
     HelicsFederate.federate_name = name
 
     start = el.findtext('start-time', default=1)
@@ -66,6 +69,10 @@ class IO(HelicsFederate):
 
     HelicsFederate.start_time = int(start)
     HelicsFederate.end_time   = int(end)
+
+    real_time = el.findtext('real-time', default='true')
+
+    HelicsFederate.federate_info_real_time = real_time.lower() in ['true', 'yes', '1']
 
     for s in el.findall('subscription'):
       key = s.findtext('key')
@@ -184,7 +191,7 @@ class IO(HelicsFederate):
           pub   = self.pubs[k]
           value = self.updated[tag]
 
-          print(f'[{self.name}] updating federate topic {k} to {value}')
+          self.log(f'updating federate topic {k} to {value}')
 
           if pub.type == DataType.boolean:
             data[k] = bool(value)
@@ -239,8 +246,6 @@ class IO(HelicsFederate):
 
 
 def main():
-  logging.basicConfig(level=logging.ERROR)
-
   if len(sys.argv) < 2:
     print('no config file provided')
     sys.exit(1)

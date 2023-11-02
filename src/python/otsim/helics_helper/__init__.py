@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-import enum, logging, uuid
+import enum, uuid
 
 from collections import OrderedDict, defaultdict
-from typing import NamedTuple, List, Dict
+from typing      import NamedTuple, List, Dict
 
 import helics as h
-
-logger = logging.getLogger("helics_helper")
-
-logger.info("Initializing helics version: {}".format(h.helicsGetVersion()))
 
 
 class HelicsException(h.HelicsException):
@@ -16,17 +12,17 @@ class HelicsException(h.HelicsException):
 
 
 class DataType(enum.Enum):
-    string = h.helics_data_type_string
-    double = h.helics_data_type_double
-    int = h.helics_data_type_int
-    complex = h.helics_data_type_complex
-    vector = h.helics_data_type_vector
+    string         = h.helics_data_type_string
+    double         = h.helics_data_type_double
+    int            = h.helics_data_type_int
+    complex        = h.helics_data_type_complex
+    vector         = h.helics_data_type_vector
     complex_vector = h.helics_data_type_complex_vector
-    named_point = h.helics_data_type_named_point
-    boolean = h.helics_data_type_boolean
-    time = h.helics_data_type_time
-    raw = h.helics_data_type_raw
-    any = h.helics_data_type_any
+    named_point    = h.helics_data_type_named_point
+    boolean        = h.helics_data_type_boolean
+    time           = h.helics_data_type_time
+    raw            = h.helics_data_type_raw
+    any            = h.helics_data_type_any
 
 
 class Subscription(NamedTuple):
@@ -60,12 +56,12 @@ class Values(NamedTuple):
 
 
 class Message(NamedTuple):
-    data: str
-    time: float = 0
-    source: str = ""
-    destination: str = ""
-    original_destination: str = ""
-    original_source: str = ""
+    data:                 str
+    time:                 float = 0
+    source:               str   = ""
+    destination:          str   = ""
+    original_source:      str   = ""
+    original_destination: str   = ""
 
 
 class Messages(NamedTuple):
@@ -74,32 +70,33 @@ class Messages(NamedTuple):
 
 
 class HelicsFederate(object):
-    publications: List[Publication] = []
+    publications:  List[Publication]  = []
     subscriptions: List[Subscription] = []
-    endpoints: List[Endpoint] = []
+    endpoints:     List[Endpoint]     = []
 
-    federate_info_core_name: str = ""
+    federate_info_core_name:        str = ""
     federate_info_core_init_string: str = "--federates=1"
-    federate_info_core_type: str = "zmq"
+    federate_info_core_type:        str = "zmq"
 
     federate_info_time_delta: float = 0.01
-    federate_info_logging_level: int = 1
+    federate_info_real_time:  bool  = True
+    federate_info_log_level:  str   = "none"
 
     federate_name: str = ""
 
     start_time: int = -1
-    end_time: int = -1
-    step_time: int = 1
+    end_time:   int = -1
+    step_time:  int =  1
 
     def __init__(self, **kwargs):
         self.current_time = -1
 
-        self.values = Values()
+        self.values   = Values()
         self.messages = Messages()
 
-        self._publications = OrderedDict()
+        self._publications  = OrderedDict()
         self._subscriptions = OrderedDict()
-        self._endpoints = OrderedDict()
+        self._endpoints     = OrderedDict()
 
         # Allow federate name to be set at runtime.
         if 'name' in kwargs:
@@ -126,9 +123,16 @@ class HelicsFederate(object):
         else:
             self.module_name = self.federate_name
 
+        self.log(f'initializing HELICS version: {h.helicsGetVersion()}', helper=True)
+
         self._setup_federate()
 
     def _setup_federate(self):
+        if self.federate_name == "":
+            self.federate_name = str(uuid.uuid4())
+
+        self.log(f'setting up federate {self.federate_name}', helper=True)
+
         self._setup_federate_info()
 
         self._federate = h.helicsCreateCombinationFederate(
@@ -145,18 +149,28 @@ class HelicsFederate(object):
         if self.federate_info_core_name == "":
             self.federate_info_core_name = str(uuid.uuid4())
 
-        if self.federate_name == "":
-            self.federate_name = str(uuid.uuid4())
+        self.log(f'setting federate core name to {self.federate_info_core_name}', helper=True)
 
         h.helicsFederateInfoSetCoreName(
-            self._federate_info, self.federate_info_core_name
+            self._federate_info,
+            self.federate_info_core_name
         )
 
-        h.helicsFederateInfoSetCoreTypeFromString(self._federate_info, "zmq")
+        self.log(f'setting federate core type to {self.federate_info_core_type}', helper=True)
+
+        h.helicsFederateInfoSetCoreTypeFromString(
+            self._federate_info,
+            self.federate_info_core_type
+        )
+
+        self.log(f'setting federate core init string to {self.federate_info_core_init_string}', helper=True)
 
         h.helicsFederateInfoSetCoreInitString(
-            self._federate_info, self.federate_info_core_init_string
+            self._federate_info,
+            self.federate_info_core_init_string
         )
+
+        self.log(f'setting federate time delta to {self.federate_info_time_delta}', helper=True)
 
         h.helicsFederateInfoSetTimeProperty(
             self._federate_info,
@@ -164,13 +178,53 @@ class HelicsFederate(object):
             self.federate_info_time_delta,
         )
 
+        self.log(f'setting federate real time to {self.federate_info_real_time}', helper=True)
+
+        h.helicsFederateInfoSetFlagOption(
+            self._federate_info,
+            h.helics_flag_realtime,
+            self.federate_info_real_time
+        )
+
+        log_level: int = 0
+
+        if self.federate_info_log_level.lower() == 'none':
+            log_level = h.helics_log_level_no_print
+        elif self.federate_info_log_level.lower() == 'no_print':
+            log_level = h.helics_log_level_no_print
+        elif self.federate_info_log_level.lower() == 'error':
+            log_level = h.helics_log_level_error
+        elif self.federate_info_log_level.lower() == 'profiling':
+            log_level = h.helics_log_level_profiling
+        elif self.federate_info_log_level.lower() == 'warning':
+            log_level = h.helics_log_level_warning
+        elif self.federate_info_log_level.lower() == 'summary':
+            log_level = h.helics_log_level_summary
+        elif self.federate_info_log_level.lower() == 'connections':
+            log_level = h.helics_log_level_connections
+        elif self.federate_info_log_level.lower() == 'interfaces':
+            log_level = h.helics_log_level_interfaces
+        elif self.federate_info_log_level.lower() == 'timing':
+            log_level = h.helics_log_level_timing
+        elif self.federate_info_log_level.lower() == 'data':
+            log_level = h.helics_log_level_data
+        elif self.federate_info_log_level.lower() == 'debug':
+            log_level = h.helics_log_level_debug
+        elif self.federate_info_log_level.lower() == 'trace':
+            log_level = h.helics_log_level_trace
+
+        self.log(f'setting federate log level to {log_level}', helper=True)
+
         h.helicsFederateInfoSetIntegerProperty(
-            self._federate_info, h.helics_property_int_log_level, 1
+            self._federate_info,
+            h.helics_property_int_log_level,
+            log_level
         )
 
     def _setup_publications(self):
         for p in self.publications:
-            logger.debug("Setting up publication {}".format(p))
+            self.log(f'setting up publication {p}', helper=True)
+
             if isinstance(p, GlobalPublication):
                 self._publications[p] = h.helicsFederateRegisterGlobalPublication(
                     self._federate, p.name, p.type.value, ""
@@ -183,14 +237,16 @@ class HelicsFederate(object):
 
     def _setup_subscriptions(self):
         for s in self.subscriptions:
-            logger.debug("Setting up subscription {}".format(s))
+            self.log(f'setting up subscription {s}', helper=True)
+
             self._subscriptions[s] = h.helicsFederateRegisterSubscription(
                 self._federate, s.name, ""
             )
 
     def _setup_endpoints(self):
         for e in self.endpoints:
-            logger.debug("Setting up endpoint {}".format(e))
+            self.log(f'setting up endpoint {e}', helper=True)
+
             if isinstance(e, GlobalEndpoint):
                 self._endpoints[e] = h.helicsFederateRegisterGlobalEndpoint(
                     self._federate, e.name, e.type
@@ -207,9 +263,11 @@ class HelicsFederate(object):
             print(f'[{self.module_name}] {msg}', flush=True)
 
     def enter_execution_mode(self):
-        logger.debug("Starting entering executing mode")
+        self.log('entering execution mode', helper=True)
+
         h.helicsFederateEnterExecutingMode(self._federate)
-        logger.debug("Finished entering executing mode")
+
+        self.log('entered execution mode', helper=True)
 
     def run(self):
         # Ensure publish/subscribe topics exist in the relevant dictionaries
@@ -229,13 +287,18 @@ class HelicsFederate(object):
         for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
             while granted_time < t:
                 self.log(f'requesting time {t}', helper=True)
+
                 granted_time = h.helicsFederateRequestTime(self._federate, t)
+
                 self.log(f'granted time {granted_time}', helper=True)
+
                 self.current_time = granted_time
 
             self.action_pre_request_time()
 
             if len(self.publications) > 0:
+                self.log('calling user-defined action_publications', helper=True)
+
                 # User defined action
                 self.action_publications(self.values.send, self.current_time)
 
@@ -251,12 +314,16 @@ class HelicsFederate(object):
             self._endpoints_recv()
 
             if len(self.endpoints) > 0:
+                self.log('calling user-defined action_endpoints_recv', helper=True)
+
                 # User defined action
                 self.action_endpoints_recv(self.messages.recv, self.current_time)
 
             self._subscribe()
 
             if len(self.subscriptions) > 0:
+                self.log('calling user-defined action_subscriptions', helper=True)
+
                 # User defined action
                 self.action_subscriptions(self.values.recv, self.current_time)
 
@@ -264,8 +331,11 @@ class HelicsFederate(object):
 
         while granted_time < self.end_time:
             self.log(f'requesting time {self.end_time}', helper=True)
+
             granted_time = h.helicsFederateRequestTime(self._federate, self.end_time)
+
             self.log(f'granted time {granted_time}', helper=True)
+
             self.current_time = granted_time
 
         self.cleanup()
@@ -306,6 +376,7 @@ class HelicsFederate(object):
         for e, endp in self._endpoints.items():
             if h.helicsEndpointHasMessage(endp) != 0:
                 msg = h.helicsEndpointGetMessage(endp)
+
                 message = Message(
                     data=msg.data,
                     original_destination=msg.original_dest,
@@ -314,9 +385,10 @@ class HelicsFederate(object):
                     source=msg.source,
                     time=msg.time,
                 )
+
                 self.messages.recv[e.name].append(message)
             else:
-                logger.debug("Endpoint {} has no message".format(e))
+                self.log(f'endpoint {e} has no message', helper=True)
 
     def _publish(self):
         for p, pub in self._publications.items():
@@ -324,10 +396,9 @@ class HelicsFederate(object):
 
             if d == None: continue
 
-            logger.debug(
-                "Publishing value {} of type {} to topic {} at time {}".format(
-                    repr(d), p.type, p.name, self.current_time
-                )
+            self.log(
+                f'publishing value {repr(d)} of type {p.type} to topic {p.name} at time {self.current_time}',
+                helper=True
             )
 
             if p.type == DataType.string:
@@ -378,23 +449,26 @@ class HelicsFederate(object):
 
             self.values.recv[s.name] = d
 
-            logger.debug(
-                "Subscribed and got value {} of type {} for topic {} at time {}".format(
-                    self.values.recv[s.name], s.type, s.name, self.current_time
-                )
+            self.log(
+                f'got subscribed value {self.values.recv[s.name]} of type {s.type} for topic {s.name} at time {self.current_time}',
+                helper=True
             )
 
     def cleanup(self):
-        logger.debug("Starting cleanup")
+        self.log('starting cleanup', helper=True)
 
         h.helicsFederateFinalize(self._federate)
-        logger.debug("Finished finalize")
+
+        self.log('finished federate Finalize', helper=True)
 
         h.helicsFederateInfoFree(self._federate)
-        logger.debug("Finished infofree")
+
+        self.log('finished federate InfoFree', helper=True)
 
         h.helicsFederateFree(self._federate_info)
-        logger.debug("Finished free")
+
+        self.log('finished federate Free', helper=True)
 
         h.helicsCloseLibrary()
-        logger.debug("Finished cleanup")
+
+        self.log('finished cleanup', helper=True)
