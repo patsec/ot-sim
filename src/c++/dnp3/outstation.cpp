@@ -320,6 +320,7 @@ opendnp3::CommandStatus Outstation::Operate(const opendnp3::ControlRelayOutputBl
       case opendnp3::OperationType::LATCH_OFF:
         val = false;
         break;
+      case opendnp3::OperationType::PULSE_OFF:
       case opendnp3::OperationType::PULSE_ON:
         switch(arCommand.tcc) {
           case opendnp3::TripCloseCode::TRIP:
