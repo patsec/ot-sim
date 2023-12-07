@@ -1,4 +1,4 @@
-FROM golang:1.20-bookworm AS gobuild
+FROM golang:1.21.1-bookworm AS gobuild
 
 ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
