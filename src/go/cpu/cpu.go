@@ -7,11 +7,9 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
-	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
@@ -39,8 +37,6 @@ type CPU struct {
 	elasticIndex    string
 	lokiEndpoint    string
 
-	modules map[string]string
-
 	pusher *msgbus.Pusher
 
 	logFile io.Writer
@@ -49,7 +45,6 @@ type CPU struct {
 func New(name string) *CPU {
 	return &CPU{
 		name:    name,
-		modules: make(map[string]string),
 		logFile: os.Stdout,
 	}
 }
@@ -122,10 +117,13 @@ func (this *CPU) Configure(e *etree.Element) error {
 				}
 			}
 		case "module":
-			path := child.Text()
-			name := child.SelectAttrValue("name", path)
+			mod := &module{
+				name:    child.SelectAttrValue("name", child.Text()),
+				path:    child.Text(),
+				workDir: child.SelectAttrValue("workingDir", ""),
+			}
 
-			this.modules[name] = path
+			modules[mod.name] = mod
 		}
 	}
 
@@ -133,18 +131,13 @@ func (this *CPU) Configure(e *etree.Element) error {
 }
 
 func (this *CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) error {
-	config := util.MustConfigFile(ctx)
-
-	for name, path := range this.modules {
-		path = strings.ReplaceAll(path, "{{config_file}}", config)
-		parts := strings.Split(path, " ")
-
+	for _, module := range modules {
 		ctx = ctxSetElasticEndpoint(ctx, this.elasticEndpoint)
 		ctx = ctxSetElasticIndex(ctx, this.elasticIndex)
 		ctx = ctxSetLokiEndpoint(ctx, this.lokiEndpoint)
 
-		if err := StartModule(ctx, name, parts[0], parts[1:]...); err != nil {
-			return fmt.Errorf("failed to start module %s: %w", name, err)
+		if err := StartModule(ctx, module); err != nil {
+			return fmt.Errorf("failed to start module %s: %w", module.name, err)
 		}
 	}
 

@@ -24,7 +24,29 @@ type module struct {
 	name     string
 	path     string
 	args     []string
+	workDir  string
 	canceler chan struct{}
+
+	initialized bool
+}
+
+func (this *module) init(ctx context.Context) {
+	if this.initialized {
+		return
+	}
+
+	var (
+		config = util.MustConfigFile(ctx)
+		path   = strings.ReplaceAll(this.path, "{{config_file}}", config)
+		parts  = strings.Split(path, " ")
+	)
+
+	this.ctx = ctx
+
+	this.path = parts[0]
+	this.args = parts[1:]
+
+	this.initialized = true
 }
 
 var (
@@ -42,14 +64,15 @@ func init() {
 
 // StartModule starts the process for another module and monitors it to make
 // sure it doesn't die, restarting it if it does.
-func StartModule(ctx context.Context, name, path string, args ...string) error {
-	exePath, err := exec.LookPath(path)
+func StartModule(ctx context.Context, mod *module) error {
+	mod.init(ctx)
+
+	exePath, err := exec.LookPath(mod.path)
 	if err != nil {
-		return fmt.Errorf("module executable does not exist at %s", path)
+		return fmt.Errorf("module executable does not exist at %s", mod.path)
 	}
 
-	mod := &module{ctx: ctx, name: name, path: path, args: args}
-	modules[name] = mod
+	modules[mod.name] = mod
 
 	otsim.Waiter.Add(1)
 
@@ -80,16 +103,21 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 			// being canceled below in order to gracefully terminate the child
 			// process. Using `exec.CommandContext` forcefully kills the child process
 			// when the context is canceled.
-			cmd := exec.Command(exePath, args...)
+			cmd := exec.Command(exePath, mod.args...)
 			cmd.Env = os.Environ()
+
+			if mod.workDir != "" {
+				cmd.Dir = mod.workDir
+				log.Printf("[CPU] working directory for module %s set to %s\n", mod.name, cmd.Dir)
+			}
 
 			stdout, _ := cmd.StdoutPipe()
 			stderr, _ := cmd.StderrPipe()
 
-			log.Printf("[CPU] starting %s module\n", name)
+			log.Printf("[CPU] starting %s module\n", mod.name)
 
 			if err := cmd.Start(); err != nil {
-				log.Printf("[CPU] [ERROR] starting %s module: %v\n", name, err)
+				log.Printf("[CPU] [ERROR] starting %s module: %v\n", mod.name, err)
 				return
 			}
 
@@ -107,7 +135,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 
 						if len(values) >= 10 {
 							if elasticClient != nil {
-								bulk := buildElasticBulk(name, "log", values)
+								bulk := buildElasticBulk(mod.name, "log", values)
 
 								resp, err := elasticClient.Post(elasticURL, "application/x-ndjson", bytes.NewBuffer(bulk))
 								if err == nil {
@@ -116,7 +144,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 							}
 
 							if lokiClient != nil {
-								stream := buildLokiStream(name, "log", values)
+								stream := buildLokiStream(mod.name, "log", values)
 
 								resp, err := lokiClient.Post(lokiURL, "application/json", bytes.NewBuffer(stream))
 								if err == nil {
@@ -146,7 +174,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 
 						if len(values) >= 10 {
 							if elasticClient != nil {
-								bulk := buildElasticBulk(name, "error", values)
+								bulk := buildElasticBulk(mod.name, "error", values)
 
 								resp, err := elasticClient.Post(elasticURL, "application/x-ndjson", bytes.NewBuffer(bulk))
 								if err == nil {
@@ -155,7 +183,7 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 							}
 
 							if lokiClient != nil {
-								stream := buildLokiStream(name, "error", values)
+								stream := buildLokiStream(mod.name, "error", values)
 
 								resp, err := lokiClient.Post(lokiURL, "application/json", bytes.NewBuffer(stream))
 								if err == nil {
@@ -184,39 +212,39 @@ func StartModule(ctx context.Context, name, path string, args ...string) error {
 			case err := <-wait:
 				if err, ok := err.(*exec.ExitError); ok {
 					if err.ExitCode() == util.ExitNoRestart {
-						log.Printf("[CPU] [ERROR] %s module died and requested no restart\n", name)
+						log.Printf("[CPU] [ERROR] %s module died and requested no restart\n", mod.name)
 						return
 					}
 				}
 
-				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", name, err)
+				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", mod.name, err)
 				continue
 			case <-mod.canceler:
-				log.Printf("[CPU] disabling %s module\n", name)
+				log.Printf("[CPU] disabling %s module\n", mod.name)
 				cmd.Process.Signal(syscall.SIGTERM)
 
 				mod.canceler = nil
 
 				select {
 				case <-wait: // SIGTERM *should* cause cmd to exit
-					log.Printf("[CPU] %s module has been disabled\n", name)
+					log.Printf("[CPU] %s module has been disabled\n", mod.name)
 					return
 				case <-time.After(10 * time.Second):
-					log.Printf("[CPU] forcefully disabling %s module\n", name)
+					log.Printf("[CPU] forcefully disabling %s module\n", mod.name)
 					cmd.Process.Kill()
 
 					return
 				}
 			case <-ctx.Done():
-				log.Printf("[CPU] stopping %s module\n", name)
+				log.Printf("[CPU] stopping %s module\n", mod.name)
 				cmd.Process.Signal(syscall.SIGTERM)
 
 				select {
 				case <-wait: // SIGTERM *should* cause cmd to exit
-					log.Printf("[CPU] %s module has stopped\n", name)
+					log.Printf("[CPU] %s module has stopped\n", mod.name)
 					return
 				case <-time.After(10 * time.Second):
-					log.Printf("[CPU] forcefully killing %s module\n", name)
+					log.Printf("[CPU] forcefully killing %s module\n", mod.name)
 					cmd.Process.Kill()
 
 					return

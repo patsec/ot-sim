@@ -265,7 +265,7 @@ func (this *APIServer) handleEnableModule(w http.ResponseWriter, r *http.Request
 		if mod.canceler != nil {
 			http.Error(w, "module already enabled", http.StatusBadRequest)
 		} else {
-			if err := StartModule(mod.ctx, mod.name, mod.path, mod.args...); err != nil {
+			if err := StartModule(mod.ctx, mod); err != nil {
 				log.Printf("[CPU] [ERROR] failed to enable module %s: %v\n", name, err)
 
 				http.Error(w, "failed to enable module", http.StatusInternalServerError)

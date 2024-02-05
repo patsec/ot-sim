@@ -47,7 +47,7 @@ func (this CPU) internalHandler(topic, msg string) error {
 		for _, name := range control.Enable {
 			if mod, ok := modules[name]; ok {
 				if mod.canceler == nil {
-					if err := StartModule(mod.ctx, mod.name, mod.path, mod.args...); err == nil {
+					if err := StartModule(mod.ctx, mod); err == nil {
 						results[mod.name] = "enabled"
 					} else {
 						log.Printf("[CPU] [ERROR] failed to enable module %s: %v\n", name, err)
