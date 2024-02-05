@@ -46,9 +46,10 @@ func New(name string) *NodeRED {
 		executable:   "node-red",
 		settingsPath: "/etc/node-red.js",
 		settings: map[string]string{
-			"theme": "dark",
-			"host":  "0.0.0.0",
-			"port":  "1880",
+			"theme":    "dark",
+			"host":     "0.0.0.0",
+			"port":     "1880",
+			"user-dir": "/root",
 		},
 	}
 }
@@ -66,6 +67,8 @@ func (this *NodeRED) Configure(e *etree.Element) error {
 			this.pullEndpoint = child.Text()
 		case "executable":
 			this.executable = child.Text()
+		case "user-dir":
+			this.settings["user-dir"] = child.Text()
 		case "settings-path":
 			this.settingsPath = child.Text()
 		case "theme":
