@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
@@ -121,6 +122,7 @@ func (this *CPU) Configure(e *etree.Element) error {
 				name:    child.SelectAttrValue("name", child.Text()),
 				path:    child.Text(),
 				workDir: child.SelectAttrValue("workingDir", ""),
+				env:     strings.Split(child.SelectAttrValue("env", ""), ":"),
 			}
 
 			modules[mod.name] = mod

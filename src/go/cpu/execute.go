@@ -25,6 +25,7 @@ type module struct {
 	path     string
 	args     []string
 	workDir  string
+	env      []string
 	canceler chan struct{}
 
 	initialized bool
@@ -104,7 +105,7 @@ func StartModule(ctx context.Context, mod *module) error {
 			// process. Using `exec.CommandContext` forcefully kills the child process
 			// when the context is canceled.
 			cmd := exec.Command(exePath, mod.args...)
-			cmd.Env = os.Environ()
+			cmd.Env = append(os.Environ(), mod.env...)
 
 			if mod.workDir != "" {
 				cmd.Dir = mod.workDir
