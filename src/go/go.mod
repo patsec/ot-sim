@@ -1,6 +1,6 @@
 module github.com/patsec/ot-sim
 
-go 1.21
+go 1.22
 
 require (
 	actshad.dev/mbserver v0.3.1
