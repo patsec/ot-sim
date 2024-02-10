@@ -1,6 +1,6 @@
 module github.com/patsec/ot-sim
 
-go 1.18
+go 1.22
 
 require (
 	actshad.dev/mbserver v0.3.1
@@ -16,7 +16,6 @@ require (
 	github.com/prometheus/client_golang v1.12.2
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -25,6 +24,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/goburrow/serial v0.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect

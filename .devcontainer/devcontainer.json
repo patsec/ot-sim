@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": "..",
     "args": {
-      "GOLANG_VERSION": "1.21.1"
+      "GOLANG_VERSION": "1.22.0"
     }
   },
 

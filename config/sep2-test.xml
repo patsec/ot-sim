@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="2030.5">ot-sim-sep2-module {{config_file}}</module>
+  </cpu>
+  <sep2>
+    <endpoint>:9234</endpoint>
+    <device>1</device>
+  </sep2>
+</ot-sim>
