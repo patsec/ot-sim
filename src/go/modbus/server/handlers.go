@@ -140,9 +140,10 @@ func (this *ModbusServer) writeHolding(ctx context.Context, f mbserver.Framer) (
 	}
 
 	var (
-		data = f.GetData()
-		addr = int(binary.BigEndian.Uint16(data[0:2]))
-		val  = binary.BigEndian.Uint16(data[2:4])
+		data  = f.GetData()
+		addr  = int(binary.BigEndian.Uint16(data[0:2]))
+		val   = binary.BigEndian.Uint16(data[2:4])
+		value float64
 	)
 
 	reg, ok := this.registers["holding"][addr]
@@ -150,7 +151,11 @@ func (this *ModbusServer) writeHolding(ctx context.Context, f mbserver.Framer) (
 		return nil, &mbserver.IllegalDataAddress
 	}
 
-	value := float64(val) * math.Pow(10, float64(reg.scaling))
+	if reg.unsigned {
+		value = float64(val) * math.Pow(10, float64(reg.scaling))
+	} else {
+		value = float64(int16(val)) * math.Pow(10, float64(reg.scaling))
+	}
 
 	this.tagsMu.Lock()
 	this.tags[reg.tag] = value
@@ -190,25 +195,36 @@ func (this *ModbusServer) writeHoldings(ctx context.Context, f mbserver.Framer) 
 	idx := 5 // beginning of data to be written starts at offset 5
 
 	for i := start; i < start+count; i++ {
-		end := idx + 2 // each holding register is 2 bytes long
-		byt := data[idx:end]
-
-		var (
-			val int16
-			buf = bytes.NewReader(byt)
-		)
-
-		if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
-			this.log("[ERROR] reading value: %v", err)
-			return nil, &mbserver.SlaveDeviceFailure
-		}
-
 		reg, ok := this.registers["holding"][i]
 		if !ok {
 			return nil, &mbserver.IllegalDataAddress
 		}
 
-		value := float64(val) * math.Pow(10, float64(reg.scaling))
+		end := idx + 2 // each holding register is 2 bytes long
+		byt := data[idx:end]
+		buf := bytes.NewReader(byt)
+
+		var value float64
+
+		if reg.unsigned {
+			var val uint16
+
+			if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
+				this.log("[ERROR] reading value: %v", err)
+				return nil, &mbserver.SlaveDeviceFailure
+			}
+
+			value = float64(val) * math.Pow(10, float64(reg.scaling))
+		} else {
+			var val int16
+
+			if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
+				this.log("[ERROR] reading value: %v", err)
+				return nil, &mbserver.SlaveDeviceFailure
+			}
+
+			value = float64(val) * math.Pow(10, float64(reg.scaling))
+		}
 
 		this.tagsMu.Lock()
 		this.tags[reg.tag] = value

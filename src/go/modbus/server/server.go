@@ -20,8 +20,9 @@ import (
 var validRegisterTypes = []string{"coil", "discrete", "input", "holding"}
 
 type register struct {
-	tag     string
-	scaling int
+	tag      string
+	scaling  int
+	unsigned bool
 }
 
 type ModbusServer struct {
@@ -127,12 +128,12 @@ func (this *ModbusServer) Configure(e *etree.Element) error {
 				}
 			}
 		case "register":
-			t := child.SelectAttr("type")
-			if t == nil {
+			a := child.SelectAttr("type")
+			if a == nil {
 				continue
 			}
 
-			typ := t.Value
+			typ := a.Value
 
 			if !util.SliceContains(validRegisterTypes, typ) {
 				return fmt.Errorf("invalid register type '%s' provided for %s", typ, this.name)
@@ -156,7 +157,7 @@ func (this *ModbusServer) Configure(e *etree.Element) error {
 			}
 
 			e = child.SelectElement("tag")
-			if t == nil {
+			if e == nil {
 				continue
 			}
 
@@ -165,6 +166,11 @@ func (this *ModbusServer) Configure(e *etree.Element) error {
 			e = child.SelectElement("scaling")
 			if e != nil {
 				reg.scaling, _ = strconv.Atoi(e.Text())
+			}
+
+			a = child.SelectAttr("unsigned")
+			if a != nil {
+				reg.unsigned, _ = strconv.ParseBool(a.Value)
 			}
 
 			registers[addr] = reg

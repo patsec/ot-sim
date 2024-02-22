@@ -1,7 +1,9 @@
 package logic
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -364,6 +366,126 @@ func (this *Logic) initEnv() {
 
 	this.env["sprintf"] = fmt.Sprintf
 	this.env["variables"] = this.variables
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually int16 values.
+	this.env["bigEndianInt16sToUint32"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     uint32
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, int16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually uint16 values.
+	this.env["bigEndianUint16sToUint32"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     uint32
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, uint16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually int16 values.
+	this.env["bigEndianInt16sToUint64"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     uint64
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, int16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually uint16 values.
+	this.env["bigEndianUint16sToUint64"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     uint64
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, uint16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually int16 values.
+	this.env["bigEndianInt16sToFloat32"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     float32
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, int16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
+
+	// Remember... everything is a float64 in ot-sim. That's why the values are
+	// passed in as a float64 slice even though they're actually uint16 values.
+	this.env["bigEndianUint16sToFloat32"] = func(values ...float64) float64 {
+		var (
+			byteSlice []byte
+			value     float32
+		)
+
+		for _, val := range values {
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, uint16(val))
+			byteSlice = append(byteSlice, buf.Bytes()...)
+		}
+
+		buf := bytes.NewReader(byteSlice)
+		binary.Read(buf, binary.BigEndian, &value)
+
+		return float64(value)
+	}
 }
 
 func (this *Logic) execute() []string {

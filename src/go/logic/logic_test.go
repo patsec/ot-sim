@@ -114,3 +114,73 @@ func TestLogic(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+var comboLogic = `
+combined = bigEndianInt16sToUint32(a, b)
+`
+
+var comboVariables = map[string]float64{
+	"a":        60846,
+	"b":        50865,
+	"combined": 0,
+}
+
+func TestComboLogic(t *testing.T) {
+	l := New("combotest")
+
+	lines := strings.Split(comboLogic, "\n")
+
+	l.order = make([]string, len(lines))
+
+	for i, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		sides := strings.SplitN(line, "=", 2)
+
+		var (
+			left  = strings.TrimSpace(sides[0])
+			right = strings.TrimSpace(sides[1])
+		)
+
+		code, err := expr.Compile(right)
+		if err != nil {
+			t.Logf("compiling program code '%s': %v", right, err)
+			t.FailNow()
+		}
+
+		l.program[i] = code
+		l.order[i] = left
+
+		if _, ok := l.env[left]; !ok {
+			// Initialize variable in environment used by program, but only if
+			// it wasn't already initialized by a variable definition.
+			l.env[left] = 0.0
+		}
+	}
+
+	for k, v := range comboVariables {
+		l.variables = append(l.variables, k)
+		l.env[k] = v
+	}
+
+	l.initEnv()
+	l.execute()
+	l.execute()
+
+	val, ok := l.env["combined"]
+	if !ok {
+		t.FailNow()
+	}
+
+	combined, ok := val.(float64)
+	if !ok {
+		t.FailNow()
+	}
+
+	if combined != 3987654321 {
+		t.Log(combined)
+		t.FailNow()
+	}
+}
