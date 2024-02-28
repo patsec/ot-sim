@@ -64,7 +64,7 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 			this.pullEndpoint = child.Text()
 		case "pub-endpoint":
 			this.pubEndpoint = child.Text()
-		case "id":
+		case "unit-id":
 			var err error
 
 			this.id, err = strconv.Atoi(child.Text())
@@ -201,18 +201,22 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 	subscriber.AddUpdateHandler(this.handleMsgBusUpdate)
 	subscriber.Start("RUNTIME")
 
-	if this.endpoint != "" {
-		this.client = modbus.TCPClient(this.endpoint)
-	} else if this.serial != nil {
-		handler := modbus.NewRTUClientHandler(this.serial.Address)
-		handler.Config = *this.serial
+	var handler modbus.ClientHandler
 
-		this.client = modbus.NewClient(handler)
+	if this.endpoint != "" {
+		handler = modbus.NewTCPClientHandler(this.endpoint)
+		handler.(*modbus.TCPClientHandler).SlaveId = byte(this.id)
+	} else if this.serial != nil {
+		handler = modbus.NewRTUClientHandler(this.serial.Address)
+		handler.(*modbus.RTUClientHandler).Config = *this.serial
+		handler.(*modbus.RTUClientHandler).SlaveId = byte(this.id)
 	} else {
 		// This should never happen given the first set of if-statements in this
 		// function.
 		panic("missing endpoint or serial configuration")
 	}
+
+	this.client = modbus.NewClient(handler)
 
 	go func() {
 		endpoint, _ := this.getEndpoint()
