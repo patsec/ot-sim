@@ -2,6 +2,7 @@
 #include <csignal>
 #include <iostream>
 #include <mutex>
+#include <thread>
 
 #include <boost/foreach.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -11,6 +12,7 @@
 #include "opendnp3/gen/ServerAcceptMode.h"
 
 #include "dnp3/client.hpp"
+#include "dnp3/common.hpp"
 #include "dnp3/server.hpp"
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
@@ -24,6 +26,61 @@ void signalHandler(int) {
   cv.notify_one();
 }
 
+class ChannelListener : public opendnp3::IChannelListener {
+public:
+  static std::shared_ptr<ChannelListener> Create(std::string name, otsim::dnp3::Pusher pusher) {
+    return std::make_shared<ChannelListener>(name, pusher);
+  }
+
+  ChannelListener(std::string name, otsim::dnp3::Pusher pusher) : name(name), pusher(pusher), currentState(opendnp3::ChannelState::CLOSED) {
+    thread = std::thread(std::bind(&ChannelListener::Run, this));
+  }
+
+  ~ChannelListener() {};
+
+  void OnStateChange(opendnp3::ChannelState state) {
+    auto lock = std::unique_lock<std::mutex>(mu);
+
+    currentState = state;
+    publish();
+  }
+
+  void Run() {
+    auto lock = std::unique_lock<std::mutex>(mu);
+
+    publish();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
+
+private:
+  void publish() {
+    std::string tag   = fmt::format("{}.connected", name);
+    bool        value = false;
+
+    if (currentState == opendnp3::ChannelState::OPEN) {
+      value = true;
+    }
+
+    std::cout << fmt::format("[{}] setting connected status to {}", name, value) << std::endl;
+
+    otsim::msgbus::Points points;
+    points.push_back(otsim::msgbus::Point{tag, value ? 1.0 : 0.0});
+
+    otsim::msgbus::Status contents = {.measurements = points};
+    auto env = otsim::msgbus::NewEnvelope(name, contents);
+
+    pusher->Push("RUNTIME", env);
+  }
+
+  std::string         name;
+  otsim::dnp3::Pusher pusher;
+
+  opendnp3::ChannelState currentState;
+
+  std::thread thread;
+  std::mutex  mu;
+};
+
 int main(int argc, char** argv) {
   if (argc < 2) {
     std::cerr << "ERROR: missing path to XML config file" << std::endl;
@@ -35,6 +92,9 @@ int main(int argc, char** argv) {
 
   // Keep clients in scope so their threads don't terminate immediately.
   std::vector<std::shared_ptr<otsim::dnp3::Client>> clients;
+
+  // Keep client channel listeners in scope so their threads don't terminate immediately.
+  std::vector<std::shared_ptr<ChannelListener>> listeners;
 
   // Keep subscribers in scope so their threads don't terminate immediately.
   std::vector<std::shared_ptr<otsim::msgbus::Subscriber>> subscribers;
@@ -334,7 +394,8 @@ int main(int argc, char** argv) {
       } else if (mode.compare("client") == 0) {
         std::cout << fmt::format("configuring DNP3 client {}", name) << std::endl;
 
-        auto client = otsim::dnp3::Client::Create();
+        auto client   = otsim::dnp3::Client::Create();
+        auto listener = ChannelListener::Create(name, pusher);
 
         if (device.get_child_optional("endpoint")) {
           auto endpoint = device.get<std::string>("endpoint");
@@ -344,7 +405,7 @@ int main(int argc, char** argv) {
 
           auto ip_endpoint = opendnp3::IPEndpoint(ip, port);
 
-          client->Init(name, ip_endpoint);
+          client->Init(name, ip_endpoint, listener);
         }
 
         if (device.get_child_optional("serial")) {
@@ -364,7 +425,7 @@ int main(int argc, char** argv) {
           settings.stopBits = opendnp3::StopBitsSpec().from_string(serial.get<std::string>("stop-bits", "One"));
           settings.parity   = opendnp3::ParitySpec().from_string(serial.get<std::string>("parity", "None"));
 
-          client->Init(name, settings);
+          client->Init(name, settings, listener);
         }
 
         auto masters = device.equal_range("master");
@@ -485,6 +546,8 @@ int main(int argc, char** argv) {
 
         client->Start();
         clients.push_back(client);
+
+        listeners.push_back(listener);
       } else {
         std::cerr << "ERROR: invalid mode provided for DNP3 config" << std::endl;
         return 1;

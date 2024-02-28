@@ -293,17 +293,20 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 				}
 
 				if len(points) > 0 {
-					env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
-					if err != nil {
-						this.log("[ERROR] creating status message: %v", err)
-						continue
-					}
-
-					if err := this.pusher.Push("RUNTIME", env); err != nil {
-						this.log("[ERROR] sending status message: %v", err)
-					}
+					points = append(points, msgbus.Point{Tag: fmt.Sprintf("%s.connected", this.name), Value: 1.0})
 				} else {
+					points = append(points, msgbus.Point{Tag: fmt.Sprintf("%s.connected", this.name), Value: 0.0})
 					this.log("[ERROR] no measurements read from %s", endpoint)
+				}
+
+				env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
+				if err != nil {
+					this.log("[ERROR] creating status message: %v", err)
+					continue
+				}
+
+				if err := this.pusher.Push("RUNTIME", env); err != nil {
+					this.log("[ERROR] sending status message: %v", err)
 				}
 			}
 		}

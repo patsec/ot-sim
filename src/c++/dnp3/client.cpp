@@ -13,7 +13,7 @@ Client::Client() {
     manager.reset(new opendnp3::DNP3Manager(std::thread::hardware_concurrency(), opendnp3::ConsoleLogger::Create()));
 }
 
-bool Client::Init(const std::string& id, const opendnp3::IPEndpoint endpoint, const opendnp3::ChannelRetry channelRetry) {
+bool Client::Init(const std::string& id, const opendnp3::IPEndpoint endpoint, std::shared_ptr<opendnp3::IChannelListener> listener, const opendnp3::ChannelRetry channelRetry) {
     try {
         channel = manager->AddTCPClient(
             id,
@@ -21,7 +21,7 @@ bool Client::Init(const std::string& id, const opendnp3::IPEndpoint endpoint, co
             channelRetry,
             std::vector<opendnp3::IPEndpoint>{endpoint},
             "0.0.0.0",
-            nullptr
+            listener
         );
     } catch (std::exception& e) {
         std::cout << "Failed to add TCPClient due to the error: " << std::string(e.what());
@@ -31,14 +31,14 @@ bool Client::Init(const std::string& id, const opendnp3::IPEndpoint endpoint, co
     return true;
 }
 
-bool Client::Init(const std::string& id, const opendnp3::SerialSettings serial, const opendnp3::ChannelRetry channelRetry) {
+bool Client::Init(const std::string& id, const opendnp3::SerialSettings serial, std::shared_ptr<opendnp3::IChannelListener> listener, const opendnp3::ChannelRetry channelRetry) {
     try {
         channel = manager->AddSerial(
             id,
             opendnp3::levels::NORMAL,
             channelRetry,
             serial,
-            nullptr
+            listener
         );
     } catch (std::exception& e) {
         std::cout << "Failed to add TCPClient due to the error: " << std::string(e.what());

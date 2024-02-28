@@ -19,8 +19,8 @@ public:
   Client();
   ~Client() {};
 
-  bool Init(const std::string& id, const opendnp3::IPEndpoint endpoint, const opendnp3::ChannelRetry channelRetry = opendnp3::ChannelRetry::Default());
-  bool Init(const std::string& id, const opendnp3::SerialSettings serial, const opendnp3::ChannelRetry channelRetry = opendnp3::ChannelRetry::Default());
+  bool Init(const std::string& id, const opendnp3::IPEndpoint endpoint, std::shared_ptr<opendnp3::IChannelListener> = nullptr, const opendnp3::ChannelRetry channelRetry = opendnp3::ChannelRetry::Default());
+  bool Init(const std::string& id, const opendnp3::SerialSettings serial, std::shared_ptr<opendnp3::IChannelListener> = nullptr, const opendnp3::ChannelRetry channelRetry = opendnp3::ChannelRetry::Default());
 
   std::shared_ptr<Master> AddMaster(std::string id, std::uint16_t local, std::uint16_t remote, std::int64_t timeout, Pusher pusher);
 
