@@ -40,16 +40,20 @@ public:
 
   void OnStateChange(opendnp3::ChannelState state) {
     auto lock = std::unique_lock<std::mutex>(mu);
-
     currentState = state;
+
     publish();
   }
 
   void Run() {
-    auto lock = std::unique_lock<std::mutex>(mu);
+    while (true) {
+      {
+        auto lock = std::unique_lock<std::mutex>(mu);
+        publish();
+      }
 
-    publish();
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+      std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
   }
 
 private:
