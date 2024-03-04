@@ -55,6 +55,12 @@ RUN apt update && apt install -y \
   bash-completion curl git tmux tree vim wget xz-utils \
   libczmq4 libsodium23 libxml2 libzmq5 python3-pip
 
+RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg \
+  | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null \
+  && curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list \
+  | tee /etc/apt/sources.list.d/tailscale.list \
+  && apt update && apt install -y tailscale
+
 WORKDIR /root
 
 ADD install-node-red.sh .
@@ -85,6 +91,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt update && apt install -y \
   bash-completion curl git mbpoll tmux tree vim wget xz-utils \
   build-essential cmake libczmq4 libsodium23 libxml2 libzmq5 python3-dev python3-pip
+
+RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg \
+  | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null \
+  && curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list \
+  | tee /etc/apt/sources.list.d/tailscale.list \
+  && apt update && apt install -y tailscale
 
 RUN wget -O hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz \
   && gunzip --stdout hivemind.gz > /usr/local/bin/hivemind \
