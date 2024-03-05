@@ -1,32 +1,20 @@
 package client
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"time"
 
 	mbutil "github.com/patsec/ot-sim/modbus/util"
 	"github.com/patsec/ot-sim/msgbus"
-	"github.com/patsec/ot-sim/util"
 
 	"actshad.dev/modbus"
 	"github.com/beevik/etree"
 	"github.com/goburrow/serial"
 )
-
-var validRegisterTypes = []string{"coil", "discrete", "input", "holding"}
-
-type register struct {
-	typ     string
-	addr    int
-	scaling int
-}
 
 type ModbusClient struct {
 	pullEndpoint string
@@ -41,7 +29,7 @@ type ModbusClient struct {
 	serial   *serial.Config
 	period   time.Duration
 
-	registers map[string]register
+	registers map[string]*mbutil.Register
 }
 
 func New(name string) *ModbusClient {
@@ -49,7 +37,7 @@ func New(name string) *ModbusClient {
 		name:      name,
 		id:        1,
 		period:    5 * time.Second,
-		registers: make(map[string]register),
+		registers: make(map[string]*mbutil.Register),
 	}
 }
 
@@ -136,19 +124,19 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 			}
 		case "register":
 			var (
-				reg register
+				reg = new(mbutil.Register)
 				err error
 			)
 
-			t := child.SelectAttr("type")
-			if t == nil {
+			a := child.SelectAttr("type")
+			if a == nil {
 				return fmt.Errorf("type attribute missing from register for %s", this.name)
 			}
 
-			reg.typ = t.Value
+			reg.Type = a.Value
 
-			if !util.SliceContains(validRegisterTypes, reg.typ) {
-				return fmt.Errorf("invalid register type '%s' provided for %s", reg.typ, this.name)
+			if reg.Type == "input" || reg.Type == "holding" {
+				reg.DataType = child.SelectAttrValue("data-type", "uint16")
 			}
 
 			e := child.SelectElement("address")
@@ -156,7 +144,7 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 				return fmt.Errorf("address element missing from register for %s", this.name)
 			}
 
-			reg.addr, err = strconv.Atoi(e.Text())
+			reg.Addr, err = strconv.Atoi(e.Text())
 			if err != nil {
 				return fmt.Errorf("unable to convert register address '%s' for %s", e.Text(), this.name)
 			}
@@ -166,14 +154,22 @@ func (this *ModbusClient) Configure(e *etree.Element) error {
 				return fmt.Errorf("tag element missing from register for %s", this.name)
 			}
 
-			tag := e.Text()
+			reg.Tag = e.Text()
 
 			e = child.SelectElement("scaling")
 			if e != nil {
-				reg.scaling, _ = strconv.Atoi(e.Text())
+				if reg.DataType == "float" {
+					this.log("[WARN] scaling value ignored for registers using 'float' data types")
+				} else {
+					reg.Scaling, _ = strconv.Atoi(e.Text())
+				}
 			}
 
-			this.registers[tag] = reg
+			if err := reg.Init(); err != nil {
+				return fmt.Errorf("validating register for %s: %w", this.name, err)
+			}
+
+			this.registers[reg.Tag] = reg
 		}
 	}
 
@@ -232,68 +228,45 @@ func (this *ModbusClient) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 				// consecutive can be read at once.
 
 				for tag, reg := range this.registers {
-					switch reg.typ {
+					var (
+						data []byte
+						err  error
+					)
+
+					switch reg.Type {
 					case "coil":
-						data, err := this.client.ReadCoils(uint16(reg.addr), 1)
+						data, err = this.client.ReadCoils(uint16(reg.Addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading coil %d from %s: %v", reg.addr, endpoint, err)
+							this.log("[ERROR] reading coil %d from %s: %v", reg.Addr, endpoint, err)
 							continue
 						}
-
-						coils := mbutil.BytesToBits(data)
-
-						points = append(points, msgbus.Point{Tag: tag, Value: float64(coils[0])})
 					case "discrete":
-						data, err := this.client.ReadDiscreteInputs(uint16(reg.addr), 1)
+						data, err = this.client.ReadDiscreteInputs(uint16(reg.Addr), 1)
 						if err != nil {
-							this.log("[ERROR] reading discrete input %d from %s: %v", reg.addr, endpoint, err)
+							this.log("[ERROR] reading discrete input %d from %s: %v", reg.Addr, endpoint, err)
 							continue
 						}
-
-						discretes := mbutil.BytesToBits(data)
-
-						points = append(points, msgbus.Point{Tag: tag, Value: float64(discretes[0])})
 					case "input":
-						data, err := this.client.ReadInputRegisters(uint16(reg.addr), 1)
+						data, err = this.client.ReadInputRegisters(uint16(reg.Addr), uint16(reg.Count))
 						if err != nil {
-							this.log("[ERROR] reading input %d from %s: %v", reg.addr, endpoint, err)
+							this.log("[ERROR] reading input %d from %s: %v", reg.Addr, endpoint, err)
 							continue
 						}
-
-						var (
-							buf = bytes.NewReader(data)
-							val int16
-						)
-
-						if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
-							this.log("[ERROR] parsing input %d from %s: %v", reg.addr, endpoint, err)
-							continue
-						}
-
-						scaled := float64(val) * math.Pow(10, -float64(reg.scaling))
-
-						points = append(points, msgbus.Point{Tag: tag, Value: scaled})
 					case "holding":
-						data, err := this.client.ReadHoldingRegisters(uint16(reg.addr), 1)
+						data, err = this.client.ReadHoldingRegisters(uint16(reg.Addr), uint16(reg.Count))
 						if err != nil {
-							this.log("[ERROR] reading holding %d from %s: %v", reg.addr, endpoint, err)
+							this.log("[ERROR] reading holding %d from %s: %v", reg.Addr, endpoint, err)
 							continue
 						}
-
-						var (
-							buf = bytes.NewReader(data)
-							val int16
-						)
-
-						if err := binary.Read(buf, binary.BigEndian, &val); err != nil {
-							this.log("[ERROR] parsing holding %d from %s: %v", reg.addr, endpoint, err)
-							continue
-						}
-
-						scaled := float64(val) * math.Pow(10, -float64(reg.scaling))
-
-						points = append(points, msgbus.Point{Tag: tag, Value: scaled})
 					}
+
+					value, err := reg.Value(data)
+					if err != nil {
+						this.log("[ERROR] getting register value: %v", err)
+						continue
+					}
+
+					points = append(points, msgbus.Point{Tag: tag, Value: value})
 				}
 
 				if len(points) > 0 {
@@ -342,7 +315,7 @@ func (this *ModbusClient) handleMsgBusUpdate(env msgbus.Envelope) {
 
 	for _, point := range update.Updates {
 		if register, ok := this.registers[point.Tag]; ok {
-			switch register.typ {
+			switch register.Type {
 			case "coil":
 				value := point.Value
 
@@ -350,19 +323,23 @@ func (this *ModbusClient) handleMsgBusUpdate(env msgbus.Envelope) {
 					value = 65280 // 0xFF00, per Modbus spec
 				}
 
-				if _, err := this.client.WriteSingleCoil(uint16(register.addr), uint16(value)); err != nil {
-					this.log("[ERROR] writing to coil %d at %s: %v", register.addr, endpoint, err)
+				if _, err := this.client.WriteSingleCoil(uint16(register.Addr), uint16(value)); err != nil {
+					this.log("[ERROR] writing to coil %d at %s: %v", register.Addr, endpoint, err)
 				}
 
-				this.log("writing coil %d at %s --> %t", register.addr, endpoint, uint16(value) != 0)
+				this.log("writing coil %d at %s --> %t", register.Addr, endpoint, uint16(value) != 0)
 			case "holding":
-				scaled := point.Value * math.Pow(10, float64(register.scaling))
-
-				if _, err := this.client.WriteSingleRegister(uint16(register.addr), uint16(scaled)); err != nil {
-					this.log("[ERROR] writing to holding %d at %s: %v", register.addr, endpoint, err)
+				data, err := register.Bytes(point.Value)
+				if err != nil {
+					this.log("[ERROR] converting register value to bytes: %v", err)
+					continue
 				}
 
-				this.log("writing holding %d at %s --> %d", register.addr, endpoint, uint16(scaled))
+				if _, err := this.client.WriteMultipleRegisters(uint16(register.Addr), uint16(register.Count), data); err != nil {
+					this.log("[ERROR] writing to holding %d at %s: %v", register.Addr, endpoint, err)
+				}
+
+				this.log("writing holding %d at %s --> %d", register.Addr, endpoint, int(register.Scaled(point.Value)))
 			}
 		}
 	}

@@ -9,20 +9,13 @@ import (
 	"sync"
 	"time"
 
+	mbutil "github.com/patsec/ot-sim/modbus/util"
 	"github.com/patsec/ot-sim/msgbus"
-	"github.com/patsec/ot-sim/util"
 
 	"actshad.dev/mbserver"
 	"github.com/beevik/etree"
 	"github.com/goburrow/serial"
 )
-
-var validRegisterTypes = []string{"coil", "discrete", "input", "holding"}
-
-type register struct {
-	tag     string
-	scaling int
-}
 
 type ModbusServer struct {
 	pullEndpoint string
@@ -36,7 +29,7 @@ type ModbusServer struct {
 	endpoint string
 	serial   *serial.Config
 
-	registers map[string]map[int]register
+	registers map[string]map[int]*mbutil.Register
 	tags      map[string]float64
 
 	tagsMu sync.RWMutex
@@ -46,7 +39,7 @@ func New(name string) *ModbusServer {
 	return &ModbusServer{
 		name:      name,
 		id:        1,
-		registers: make(map[string]map[int]register),
+		registers: make(map[string]map[int]*mbutil.Register),
 		tags:      make(map[string]float64),
 		metrics:   msgbus.NewMetricsPusher(),
 	}
@@ -127,50 +120,61 @@ func (this *ModbusServer) Configure(e *etree.Element) error {
 				}
 			}
 		case "register":
-			t := child.SelectAttr("type")
-			if t == nil {
-				continue
+			var (
+				reg = new(mbutil.Register)
+				err error
+			)
+
+			a := child.SelectAttr("type")
+			if a == nil {
+				return fmt.Errorf("type attribute missing from register for %s", this.name)
 			}
 
-			typ := t.Value
+			reg.Type = a.Value
 
-			if !util.SliceContains(validRegisterTypes, typ) {
-				return fmt.Errorf("invalid register type '%s' provided for %s", typ, this.name)
+			if reg.Type == "input" || reg.Type == "holding" {
+				reg.DataType = child.SelectAttrValue("data-type", "uint16")
 			}
-
-			registers, ok := this.registers[typ]
-			if !ok {
-				registers = make(map[int]register)
-			}
-
-			var reg register
 
 			e := child.SelectElement("address")
 			if e == nil {
-				continue
+				return fmt.Errorf("address element missing from register for %s", this.name)
 			}
 
-			addr, err := strconv.Atoi(e.Text())
+			reg.Addr, err = strconv.Atoi(e.Text())
 			if err != nil {
-				continue
+				return fmt.Errorf("unable to convert register address '%s' for %s", e.Text(), this.name)
 			}
 
 			e = child.SelectElement("tag")
-			if t == nil {
-				continue
+			if e == nil {
+				return fmt.Errorf("tag element missing from register for %s", this.name)
 			}
 
-			reg.tag = e.Text()
+			reg.Tag = e.Text()
 
 			e = child.SelectElement("scaling")
 			if e != nil {
-				reg.scaling, _ = strconv.Atoi(e.Text())
+				if reg.DataType == "float" {
+					this.log("[WARN] scaling value ignored for registers using 'float' data types")
+				} else {
+					reg.Scaling, _ = strconv.Atoi(e.Text())
+				}
 			}
 
-			registers[addr] = reg
-			this.tags[reg.tag] = 0
+			if err := reg.Init(); err != nil {
+				return fmt.Errorf("validating register for %s: %w", this.name, err)
+			}
 
-			this.registers[typ] = registers
+			registers, ok := this.registers[reg.Type]
+			if !ok {
+				registers = make(map[int]*mbutil.Register)
+			}
+
+			registers[reg.Addr] = reg
+			this.tags[reg.Tag] = 0
+
+			this.registers[reg.Type] = registers
 		}
 	}
 
@@ -201,14 +205,14 @@ func (this *ModbusServer) Run(ctx context.Context, pubEndpoint, pullEndpoint str
 
 	server := mbserver.NewServer()
 
-	server.RegisterContextFunctionHandler(1, this.readCoils())
-	server.RegisterContextFunctionHandler(2, this.readDiscretes())
-	server.RegisterContextFunctionHandler(3, this.readHoldings())
-	server.RegisterContextFunctionHandler(4, this.readInputs())
-	server.RegisterContextFunctionHandler(5, this.writeCoil)
-	server.RegisterContextFunctionHandler(6, this.writeHolding)
-	server.RegisterContextFunctionHandler(15, this.writeCoils)
-	server.RegisterContextFunctionHandler(16, this.writeHoldings)
+	server.RegisterContextFunctionHandler(1, this.readCoilRegisters)
+	server.RegisterContextFunctionHandler(2, this.readDiscreteRegisters)
+	server.RegisterContextFunctionHandler(3, this.readHoldingRegisters)
+	server.RegisterContextFunctionHandler(4, this.readInputRegisters)
+	server.RegisterContextFunctionHandler(5, this.writeCoilRegister)
+	server.RegisterContextFunctionHandler(6, this.writeHoldingRegister)
+	server.RegisterContextFunctionHandler(15, this.writeCoilRegisters)
+	server.RegisterContextFunctionHandler(16, this.writeHoldingRegisters)
 
 	go func() {
 		<-ctx.Done()

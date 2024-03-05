@@ -26,3 +26,30 @@ func BytesToBits(data []byte) []int {
 
 	return result
 }
+
+func BitsToBytes(bits []int) []byte {
+	var (
+		count = len(bits)
+		size  = count / 8
+	)
+
+	if (count % 8) != 0 {
+		size++
+	}
+
+	var (
+		data = make([]byte, size)
+		idx  = 0
+	)
+
+	for _, b := range bits {
+		if b != 0 {
+			shift := uint(idx) % 8
+			data[idx/8] |= byte(1 << shift)
+		}
+
+		idx++
+	}
+
+	return data
+}

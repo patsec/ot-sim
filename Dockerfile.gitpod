@@ -16,7 +16,7 @@ RUN chown gitpod:gitpod /home/gitpod/.bash/git-prompt.sh \
   && echo "export GIT_PS1_SHOWCOLORHINTS=true" >> /home/gitpod/.bashrc \
   && echo "export PROMPT_COMMAND='__git_ps1 \"\W\" \" » \"'" >> /home/gitpod/.bashrc
 
-ENV GOLANG_VERSION=1.21.1
+ENV GOLANG_VERSION=1.22.1
 
 RUN wget -O go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
   && tar -C /usr/local -xzf go.tgz && rm go.tgz \
