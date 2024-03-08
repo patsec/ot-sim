@@ -317,20 +317,44 @@ func (this *Logic) initEnv() {
 		return rand.Float64() >= (1.0 - likely)
 	}
 
+	this.env["values"] = func(vars []any) []float64 {
+		var values []float64
+
+		for _, e := range vars {
+			switch v := e.(type) {
+			case string:
+				switch v := this.env[v].(type) {
+				case int:
+					values = append(values, float64(v))
+				case float64:
+					values = append(values, v)
+				}
+			case int:
+				values = append(values, float64(v))
+			case float64:
+				values = append(values, v)
+			}
+		}
+
+		return values
+	}
+
 	this.env["sum"] = func(vars []any) float64 {
 		var sum float64
 
 		for _, e := range vars {
-			v, ok := e.(string)
-			if !ok {
-				continue
-			}
-
-			switch value := this.env[v].(type) {
+			switch v := e.(type) {
+			case string:
+				switch v := this.env[v].(type) {
+				case int:
+					sum += float64(v)
+				case float64:
+					sum += v
+				}
 			case int:
-				sum += float64(value)
+				sum += float64(v)
 			case float64:
-				sum += value
+				sum += v
 			}
 		}
 
@@ -344,17 +368,21 @@ func (this *Logic) initEnv() {
 		)
 
 		for _, e := range vars {
-			v, ok := e.(string)
-			if !ok {
-				continue
-			}
-
-			switch value := this.env[v].(type) {
+			switch v := e.(type) {
+			case string:
+				switch v := this.env[v].(type) {
+				case int:
+					sum += float64(v)
+					count++
+				case float64:
+					sum += v
+					count++
+				}
 			case int:
-				sum += float64(value)
+				sum += float64(v)
 				count++
 			case float64:
-				sum += value
+				sum += v
 				count++
 			}
 		}
