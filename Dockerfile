@@ -44,6 +44,10 @@ ADD CMakeLists.txt /usr/local/src/ot-sim/CMakeLists.txt
 ADD src/c          /usr/local/src/ot-sim/src/c
 ADD src/c++        /usr/local/src/ot-sim/src/c++
 RUN cmake -S /usr/local/src/ot-sim -B /usr/local/src/ot-sim/build \
+  && cmake -S /usr/local/src/ot-sim/src/c/deps/json-c -B /usr/local/src/ot-sim/src/c/deps/json-c/build \
+  && cmake --build /usr/local/src/ot-sim/src/c/deps/json-c/build -j $(nproc) --target install
+  && cmake -S /usr/local/src/ot-sim/src/c/deps/libiec61850 -B /usr/local/src/ot-sim/src/c/deps/libiec61850/build \
+  && cmake --build /usr/local/src/ot-sim/src/c/deps/libiec61850/build -j $(nproc) --target install
   && cmake --build /usr/local/src/ot-sim/build -j $(nproc) --target install
 
 FROM debian:bookworm AS prod

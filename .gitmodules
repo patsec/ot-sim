@@ -13,3 +13,9 @@
 [submodule "src/c++/deps/opendnp3"]
 	path = src/c++/deps/opendnp3
 	url = https://github.com/dnp3/opendnp3.git
+[submodule "src/c/deps/json-c"]
+	path = src/c/deps/json-c
+	url = https://github.com/json-c/json-c.git
+[submodule "src/c/deps/libiec61850"]
+	path = src/c/deps/libiec61850
+	url = https://github.com/mz-automation/libiec61850.git
