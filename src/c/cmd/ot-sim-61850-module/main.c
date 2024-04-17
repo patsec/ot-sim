@@ -11,6 +11,8 @@
 
 #include <libiec61850/iec61850_server.h>
 
+#include "ied.h"
+
 // ---- BEGIN PUB/SUB STUFF
 // ---- PUTTING THIS HERE SINCE HAVING IT IN A SEPARATE HEADER/SOURCE FILE
 // ---- CAUSES "MULTIPLE DEFINITION" ERRORS WITH HELICS CONSTANTS
@@ -420,16 +422,16 @@ int main(int argc, char **argv) {
   signal(SIGINT, trap);
   running = 1;
 
-  IedServerConfig config = IedServerConfig_create();
+  IedServer server = IedServer_create(&iedModel);
 
-  DataObject iedModel_GenericIO_GGIO1_SPCSO1 = {
-    DataObjectModelType,
-    "SPCSO1",
-    (ModelNode*) &iedModel_GenericIO_GGIO1,
-    (ModelNode*) &iedModel_GenericIO_GGIO1_SPCSO2,
-    (ModelNode*) &iedModel_GenericIO_GGIO1_SPCSO1_origin,
-    0
-};
+  /* MMS server will be instructed to start listening to client connections. */
+  IedServer_start(server, 102);
+
+  if (!IedServer_isRunning(server)) {
+    printf("Starting IEC 61850 server failed - exiting now.\n");
+    IedServer_destroy(server);
+    exit(-1);
+  }
 
   while (running) {
     // Use poller here so we can break out of this thread quickly if program is
