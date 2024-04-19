@@ -17,9 +17,9 @@ IedModel iedModel = {
 };
 
 LogicalDevice iedModel_WTG = {
-    LogicalDeviceModelType,
-    "WTG",
-    (ModelNode*) &iedModel,
-    NULL,
-    (ModelNode*) &iedModel_WTG_LLN0
+  LogicalDeviceModelType,
+  "WTG",
+  (ModelNode*) &iedModel,
+  NULL,
+  (ModelNode*) &iedModel_WTG_LLN0
 };
