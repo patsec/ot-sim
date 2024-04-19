@@ -12,6 +12,7 @@
 #include <libiec61850/iec61850_server.h>
 
 #include "ied.h"
+#include "wtur.h"
 
 // ---- BEGIN PUB/SUB STUFF
 // ---- PUTTING THIS HERE SINCE HAVING IT IN A SEPARATE HEADER/SOURCE FILE
@@ -433,7 +434,25 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
+  float t = 0.f;
+
   while (running) {
+    uint64_t timestamp = Hal_getTimeInMs();
+    Timestamp iecTimestamp;
+    Quality q;
+
+    Timestamp_clearFlags(&iecTimestamp);
+    Timestamp_setTimeInMilliseconds(&iecTimestamp, timestamp);
+    Timestamp_setLeapSecondKnown(&iecTimestamp, true);
+
+    t += 0.1f;
+    float an1 = sinf(t);
+
+    IedServer_lockDataModel(server);
+    IedServer_updateTimestampAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_cntVal_t, &iecTimestamp);
+    IedServer_updateFloatAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_cntVal_pulsQty, an1);
+    IedServer_unlockDataModel(server);
+
     // Use poller here so we can break out of this thread quickly if program is
     // canceled.
     zsock_t *sock = (zsock_t*) zpoller_wait(poller, 5000);

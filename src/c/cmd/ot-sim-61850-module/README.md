@@ -50,3 +50,17 @@ Inherits from "Wind Power Plant Common" - pg 19
     * t - Timestamp
   * Health - ENS (iec61850-7-3{ed2.1}en.pdf - pg 36)
   * Mod - ENC (iec61850-7-3{ed2.1}en.pdf - pg 70)
+
+## TODO
+
+* [ ] map data attributes to OT-sim tags
+
+Check data attribute type to know if conversion of OT-sim tag floating point
+value needs to occur.
+
+Attributes to map:
+  * Beh_stVal
+  * TotWh_cntVal_actVal (set TotWh_cntVal_pulsQty to 1000 to represent kWh)
+  * TurSt_st_stVal
+  * W_mag_f (and W_mag_i - rounded integer)
+  * TurOp_st_stVal

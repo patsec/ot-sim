@@ -6,16 +6,6 @@
 
 extern LogicalNode   iedModel_WTG_LLN0;
 extern DataObject    iedModel_WTG_LLN0_Mod;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_ctlVal;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_operTm;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_origin;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_origin_orCat;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_origin_orIdent;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_ctlNum;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_T;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_Test;
-extern DataAttribute iedModel_WTG_LLN0_Mod_Oper_Check;
 extern DataAttribute iedModel_WTG_LLN0_Mod_stVal;
 extern DataAttribute iedModel_WTG_LLN0_Mod_q;
 extern DataAttribute iedModel_WTG_LLN0_Mod_t;
