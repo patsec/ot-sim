@@ -53,14 +53,25 @@ Inherits from "Wind Power Plant Common" - pg 19
 
 ## TODO
 
-* [ ] map data attributes to OT-sim tags
+* [ ] map WTUR data attributes to OT-sim tags
 
 Check data attribute type to know if conversion of OT-sim tag floating point
 value needs to occur.
 
-Attributes to map:
-  * Beh_stVal
+WTUR data attributes to map:
+  * Beh_stVal (always enabled?)
   * TotWh_cntVal_actVal (set TotWh_cntVal_pulsQty to 1000 to represent kWh)
   * TurSt_st_stVal
   * W_mag_f (and W_mag_i - rounded integer)
-  * TurOp_st_stVal
+  * TurOp_st_stVal (this is a control)
+
+Attributes that will be controllable must be under an `Oper` data attribute (is
+this a protocol spec thing or a libiec61850 implementation thing?). See
+`server_example_control` example. I tried removing `Oper` DA and putting all sub
+attributes under `Oper` DA under `SPCSO1` and the example client no longer
+worked.
+
+## Notes
+
+If an attribute has a FC, then it needs to be named in the hierarchy. Otherwise
+the attributes can be placed on the parent directly.

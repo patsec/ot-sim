@@ -74,62 +74,6 @@ DataAttribute iedModel_WTG_LPHD1_PhyNam_vendor = {
   DataAttributeModelType,
   "vendor",
   (ModelNode*) &iedModel_WTG_LPHD1_PhyNam,
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam_hwRev,
-  NULL,
-  0,
-  IEC61850_FC_DC,
-  IEC61850_VISIBLE_STRING_255,
-  0,
-  NULL,
-  0
-};
-
-DataAttribute iedModel_WTG_LPHD1_PhyNam_hwRev = {
-  DataAttributeModelType,
-  "hwRev",
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam,
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam_swRev,
-  NULL,
-  0,
-  IEC61850_FC_DC,
-  IEC61850_VISIBLE_STRING_255,
-  0,
-  NULL,
-  0
-};
-
-DataAttribute iedModel_WTG_LPHD1_PhyNam_swRev = {
-  DataAttributeModelType,
-  "swRev",
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam,
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam_serNum,
-  NULL,
-  0,
-  IEC61850_FC_DC,
-  IEC61850_VISIBLE_STRING_255,
-  0,
-  NULL,
-  0
-};
-
-DataAttribute iedModel_WTG_LPHD1_PhyNam_serNum = {
-  DataAttributeModelType,
-  "serNum",
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam,
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam_model,
-  NULL,
-  0,
-  IEC61850_FC_DC,
-  IEC61850_VISIBLE_STRING_255,
-  0,
-  NULL,
-  0
-};
-
-DataAttribute iedModel_WTG_LPHD1_PhyNam_model = {
-  DataAttributeModelType,
-  "model",
-  (ModelNode*) &iedModel_WTG_LPHD1_PhyNam,
   NULL,
   NULL,
   0,

@@ -434,6 +434,8 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
+  iedModel_WTG_WTUR1_Beh_stVal.mmsValue = MmsValue_newIntegerFromInt32(1);
+
   float t = 0.f;
 
   while (running) {
@@ -449,8 +451,8 @@ int main(int argc, char **argv) {
     float an1 = sinf(t);
 
     IedServer_lockDataModel(server);
-    IedServer_updateTimestampAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_cntVal_t, &iecTimestamp);
-    IedServer_updateFloatAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_cntVal_pulsQty, an1);
+    IedServer_updateTimestampAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_t, &iecTimestamp);
+    IedServer_updateFloatAttributeValue(server, &iedModel_WTG_WTUR1_TotWh_actVal, an1);
     IedServer_unlockDataModel(server);
 
     // Use poller here so we can break out of this thread quickly if program is
