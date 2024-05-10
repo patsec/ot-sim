@@ -77,15 +77,18 @@ module.exports = function(RED) {
         version: 'v1',
         kind: 'Update',
         metadata: {
-          sender: 'Node-Red'
+          sender: 'Node-RED'
         },
         contents: {
           updates: [
             {
-              tag: node.tag,
-              value: value
+              tag:   node.tag,
+              value: value,
+              ts:    0.0
             }
-          ]
+          ],
+          recipient: '',
+          confirm:   ''
         }
       }
 
