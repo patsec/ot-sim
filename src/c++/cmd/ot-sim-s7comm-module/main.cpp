@@ -126,9 +126,6 @@ int main(int argc, char** argv){
                     otsim::Snap7::Srv_StartTo(Server, ip_endpoint);
                 }
 
-                //half of the code goes here
-
-
                 //start the server and add it to the vector of servers
                 otsim::Snap7::Srv_Start(Server);
                 servers.push_back(Server);
@@ -142,9 +139,11 @@ int main(int argc, char** argv){
                 otsim::Snap7::S7Object Client;
                 Client = otsim::Snap7::Cli_Create();
 
-                //half of the code goes here
+                //set connection type
 
-                
+                //set connection parameters
+
+                //connect
 
                 clients.push_back(client);
 
