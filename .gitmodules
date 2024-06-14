@@ -13,3 +13,6 @@
 [submodule "src/c++/deps/opendnp3"]
 	path = src/c++/deps/opendnp3
 	url = https://github.com/dnp3/opendnp3.git
+[submodule "src/go/sunspec/models"]
+	path = src/go/sunspec/models
+	url = https://github.com/sunspec/models.git
