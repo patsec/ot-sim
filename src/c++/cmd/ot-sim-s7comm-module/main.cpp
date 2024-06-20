@@ -129,10 +129,6 @@ int main(int argc, char** argv){
                 //start the server and add it to the vector of servers
                 otsim::Snap7::Srv_Start(Server);
                 servers.push_back(Server);
-
-                //once we are done, destory the server
-                otsim::Snap7::Srv_Destroy(Server);
-                
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object
@@ -147,7 +143,7 @@ int main(int argc, char** argv){
                 */
                 try {
                     auto connectionType = device.get<uint16_t>("connection-type", 3);
-                    Cli_SetConnectionType(Client, connectionType);
+                    otsim::Snap7::Cli_SetConnectionType(Client, connectionType);
                 } catch (pt::ptree_bad_path&) {
                     std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
                 }
@@ -157,35 +153,25 @@ int main(int argc, char** argv){
                 local TSAP and remote TSAP are stored as 16 bit unsigned integers. address is stored as a pointer
                 to an ANSI string; "192.168.1.12" for example. 
                 */
-                try {
-                    auto ip_address = device.get<uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
-                } catch (pt::ptree_bad_path&) {
-                    std::cerr << "ERROR: missing mode for IP ADRESS for client s7comm device" << std::endl;
-                }
+                auto ip_address = device.get<uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
 
-                try {
-                    auto local_tsap = device.get<uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
-                } catch (pt::ptree_bad_path&) {
-                    std::cerr << "ERROR: missing mode for LOCAL TSAP for client s7comm device" << std::endl;
-                }
+                auto local_tsap = device.get<uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
 
-                try {
-                    auto remote_tsap = device.get<uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00
-                } catch (pt::ptree_bad_path&) {
-                    std::cerr << "ERROR: missing mode for REMOTE TSAP for client s7comm device" << std::endl;
-                }
+                auto remote_tsap = device.get<uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
+                otsim::Snap7::Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
 
-                //declare where the client will connect
+                /*
+                declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
+                */
+                auto rack = device.get<uint16_t>("rack", 0);
+                auto slot = device.get<uint16_t>("slot", 2);
+                otsim::Snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
 
                 //connect
+                otsim::Snap7::Cli_Connect(Client);
 
-                clients.push_back(client);
-
-                //once we are done, destroy the client
-                otsim::Snap7::Cli_Destroy(Client);
-
+                clients.push_back(Client);
             } else {
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
                 return 1;
@@ -207,11 +193,11 @@ int main(int argc, char** argv){
     }
 
     for (auto &client : clients) {
-        client->Stop();
+        otsim::Snap7::Cli_Destroy(client);
     }
 
     for (auto &server : servers) {
-        server->Stop();
+        otsim::Snap7::Srv_Destroy(server);
     }
 
     return 0;
