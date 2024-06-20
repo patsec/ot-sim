@@ -145,9 +145,39 @@ int main(int argc, char** argv){
                 equal to 3. values 3-10 represent s7 basic. 2 represents OP. 1 represenets PG.
                 s7 basic is likely the main/only connection type for more clients.
                 */
-                auto connectionType = device.get<uint16_t>("connection-type", 3);
+                try {
+                    auto connectionType = device.get<uint16_t>("connection-type", 3);
+                    Cli_SetConnectionType(Client, connectionType);
+                } catch (pt::ptree_bad_path&) {
+                    std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
+                }
 
-                //set connection parameters
+                /*
+                set the connection parameters. this includes the address, local TSAP and remote TSAP.
+                local TSAP and remote TSAP are stored as 16 bit unsigned integers. address is stored as a pointer
+                to an ANSI string; "192.168.1.12" for example. 
+                */
+                try {
+                    auto ip_address = device.get<uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
+                } catch (pt::ptree_bad_path&) {
+                    std::cerr << "ERROR: missing mode for IP ADRESS for client s7comm device" << std::endl;
+                }
+
+                try {
+                    auto local_tsap = device.get<uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
+                } catch (pt::ptree_bad_path&) {
+                    std::cerr << "ERROR: missing mode for LOCAL TSAP for client s7comm device" << std::endl;
+                }
+
+                try {
+                    auto remote_tsap = device.get<uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00
+                } catch (pt::ptree_bad_path&) {
+                    std::cerr << "ERROR: missing mode for REMOTE TSAP for client s7comm device" << std::endl;
+                }
+
+                Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
+
+                //declare where the client will connect
 
                 //connect
 
