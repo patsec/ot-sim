@@ -197,6 +197,7 @@ int main(int argc, char** argv){
     }
 
     for (auto &server : servers) {
+        otsim::Snap7::Srv_Stop(server);
         otsim::Snap7::Srv_Destroy(server);
     }
 
