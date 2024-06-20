@@ -139,7 +139,13 @@ int main(int argc, char** argv){
                 otsim::Snap7::S7Object Client;
                 Client = otsim::Snap7::Cli_Create();
 
-                //set connection type
+                /*
+                set the connection type for the device based on what is provided in the xml.
+                if nothing is provided in the xml, set the connection type of the client to be
+                equal to 3. values 3-10 represent s7 basic. 2 represents OP. 1 represenets PG.
+                s7 basic is likely the main/only connection type for more clients.
+                */
+                auto connectionType = device.get<uint16_t>("connection-type", 3);
 
                 //set connection parameters
 
