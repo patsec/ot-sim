@@ -126,6 +126,19 @@ int main(int argc, char** argv){
                     otsim::Snap7::Srv_StartTo(Server, ip_endpoint);
                 }
 
+
+                //loop through the inputs, getting the tag for each
+                auto inputs = device.equal_range("input");
+                for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                    
+                }
+
+                //loop through the outputs, getting the tag for each
+                auto outputs = device.equal_range("output");
+                for(auto iter=outputs.first; iter !=outputs.second; iter++){
+                    
+                }
+
                 //start the server and add it to the vector of servers
                 otsim::Snap7::Srv_Start(Server);
                 servers.push_back(Server);
@@ -167,6 +180,19 @@ int main(int argc, char** argv){
                 auto rack = device.get<uint16_t>("rack", 0);
                 auto slot = device.get<uint16_t>("slot", 2);
                 otsim::Snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
+
+
+                //loop through the inputs, getting the tag for each
+                auto inputs = device.equal_range("input");
+                for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                    
+                }
+
+                //loop through the outputs, getting the tag for each
+                auto outputs = device.equal_range("output");
+                for(auto iter=outputs.first; iter !=outputs.second; iter++){
+                    
+                }
 
                 //connect
                 otsim::Snap7::Cli_Connect(Client);
