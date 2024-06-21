@@ -20,6 +20,8 @@ void signalHandler(int) {
     cv.notify_one();
 }
 
+//PROBABLY ADD A LISTENER CLASS HERE TO CONTINUALLY PUBLISH MESSAGES TO THE MSGBUS <------------- similar to DNP3 module
+
 int main(int argc, char** argv){
     //argv will contain the path to the XML config file, if argc is less than 2, it means no path was included and the module cannot run
     if (argc < 2) {
