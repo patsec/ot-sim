@@ -20,7 +20,62 @@ void signalHandler(int) {
     cv.notify_one();
 }
 
-//PROBABLY ADD A LISTENER CLASS HERE TO CONTINUALLY PUBLISH MESSAGES TO THE MSGBUS <------------- similar to DNP3 module
+/*
+LISTENER CLASS TO CONTINUALLY PUBLISH MESSAGES TO THE MSGBUS <------------- similar to DNP3 module
+The main difference between this channel listener and the dnp3 channel listener is that this one does not deal with threading
+because snap7 does not implement channels or channel states, which dnp3 bases its threading on.
+There is still a thread that is used to run the channel listener, but it does not have any mutex implementation, so it should just work
+normally.
+This class should accomplish all pushing and interface through zeromq via the msgbus pusher class
+*/
+class ChannelListener{
+public:
+    static std::shared_ptr<ChannelListener> Create(std::string name, otsim::msgbus::Pusher pusher) {
+        return std::make_shared<ChannelListener>(name, pusher);
+    }
+
+    ChannelListener(std::string name, otsim::dnp3::Pusher pusher) : name(name), pusher(pusher) {
+        thread = std::thread(std::bind(&ChannelListener::Run, this));
+    }
+
+    ~ChannelListener() {};
+
+    //primary loop, which continually publishes on 5 second intervals
+    void Run() {
+        while (true) {
+            {
+                publish();
+            }
+
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
+    }
+
+private:
+    /*
+    Every module in ot-sim should push EVERYTHING, but should only subscribe to certain tags.
+    For that reason, this publish function does not implement any tag-checking/ descrimination; instead,
+    it pushes all envelopes to the msgbus, where other modules can determine whether or not they are relevant
+    */
+    void publish() {
+        std::string tag   = fmt::format("{}.connected", name);
+
+        std::cout << fmt::format("[{}] setting connected", name) << std::endl;
+
+        otsim::msgbus::Points points;
+        points.push_back(otsim::msgbus::Point{tag});
+
+        otsim::msgbus::Status contents = {.measurements = points};
+        auto env = otsim::msgbus::NewEnvelope(name, contents);
+
+        pusher->Push("RUNTIME", env);
+    }
+
+    std::string             name;
+    otsim::msgbus::Pusher   pusher;
+
+    std::thread thread;
+};
 
 int main(int argc, char** argv){
     //argv will contain the path to the XML config file, if argc is less than 2, it means no path was included and the module cannot run
@@ -34,6 +89,9 @@ int main(int argc, char** argv){
 
     //keep clients in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<otsim::Snap7::S7Object>> clients;
+
+    // Keep client channel listeners in scope so their threads don't terminate immediately.
+    std::vector<std::shared_ptr<ChannelListener>> listeners;
 
     //keep subscribers in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<otsim::msgbus::Subscriber>> subscribers;
@@ -150,6 +208,9 @@ int main(int argc, char** argv){
                 otsim::Snap7::S7Object Client;
                 Client = otsim::Snap7::Cli_Create();
 
+                //create a channel listener object
+                auto listener = ChannelListener::Create(name, pusher);
+
                 /*
                 set the connection type for the device based on what is provided in the xml.
                 if nothing is provided in the xml, set the connection type of the client to be
@@ -200,6 +261,8 @@ int main(int argc, char** argv){
                 otsim::Snap7::Cli_Connect(Client);
 
                 clients.push_back(Client);
+
+                listeners.push_back(listener);
             } else {
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
                 return 1;
