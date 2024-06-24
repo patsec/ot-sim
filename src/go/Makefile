@@ -14,13 +14,19 @@ MSGBUS_SOURCES := $(shell find msgbus \( -name '*.go' \))
 clean:
 	$(RM) bin/*
 
-all: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+all: bin/ot-sim-cpu-module bin/ot-sim-intercom-module bin/ot-sim-logic-module bin/ot-sim-modbus-module bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 
 CPU_SOURCES := $(shell find cpu \( -name '*.go' \))
 
 bin/ot-sim-cpu-module: $(CPU_SOURCES) $(MSGBUS_SOURCES)
 	mkdir -p bin
 	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-cpu-module cmd/ot-sim-cpu-module/main.go
+
+INTERCOM_SOURCES := $(shell find intercom \( -name '*.go' \))
+
+bin/ot-sim-intercom-module: $(INTERCOM_SOURCES) $(MSGBUS_SOURCES)
+	mkdir -p bin
+	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-intercom-module cmd/ot-sim-intercom-module/main.go
 
 LOGIC_SOURCES := $(shell find logic \( -name '*.go' \))
 
@@ -59,8 +65,9 @@ bin/ot-sim-telnet-module: $(TELNET_SOURCES) $(MSGBUS_SOURCES)
 	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-telnet-module cmd/ot-sim-telnet-module/main.go
 
 .PHONY: install
-install: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+install: bin/ot-sim-cpu-module bin/ot-sim-intercom-module bin/ot-sim-logic-module bin/ot-sim-modbus-module bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 	cp bin/ot-sim-cpu-module       $(prefix)/bin/ot-sim-cpu-module
+	cp bin/ot-sim-intercom-module  $(prefix)/bin/ot-sim-intercom-module
 	cp bin/ot-sim-logic-module     $(prefix)/bin/ot-sim-logic-module
 	cp bin/ot-sim-modbus-module    $(prefix)/bin/ot-sim-modbus-module
 	cp bin/ot-sim-mqtt-module      $(prefix)/bin/ot-sim-mqtt-module
