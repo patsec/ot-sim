@@ -186,6 +186,13 @@ int main(int argc, char** argv){
                     otsim::Snap7::Srv_StartTo(Server, ip_endpoint);
                 }
 
+                /*
+                We need to create a handler here for the server for subscribing purposes.
+                A handler can either be a status handler or an update handler, both are types of envelopes.
+                Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
+                contains the struct status or update).
+                */
+                sub->AddHandler(    );
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
@@ -244,6 +251,7 @@ int main(int argc, char** argv){
                 auto slot = device.get<uint16_t>("slot", 2);
                 otsim::Snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
 
+                //sub->AddHandler line will go here <------------------------
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
@@ -267,6 +275,11 @@ int main(int argc, char** argv){
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
                 return 1;
             }
+
+
+            //push back the subscriber created for this s7comm device
+            sub->Start("RUNTIME");
+            subscrubers.push_back(sub);
 
         } //end of S7COMM loop
     } //end of BOOST_FOREACH loop
