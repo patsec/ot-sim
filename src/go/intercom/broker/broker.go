@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/patsec/ot-sim/msgbus"
 
@@ -27,11 +28,24 @@ type IntercomBroker struct {
 	name     string
 	endpoint string
 
+	pubStatus bool
+	pubUpdate bool
+	subStatus bool
+	subUpdate bool
+
 	server *mochi.Server
 }
 
 func New(name string) *IntercomBroker {
-	return &IntercomBroker{name: name}
+	return &IntercomBroker{
+		name: name,
+
+		// default to pub/sub all messages
+		pubStatus: true,
+		pubUpdate: true,
+		subStatus: true,
+		subUpdate: true,
+	}
 }
 
 func (this IntercomBroker) Name() string {
@@ -47,6 +61,28 @@ func (this *IntercomBroker) Configure(e *etree.Element) error {
 			this.pullEndpoint = child.Text()
 		case "endpoint":
 			this.endpoint = child.Text()
+		case "publish":
+			for _, child := range child.ChildElements() {
+				val, _ := strconv.ParseBool(child.Text())
+
+				switch child.Tag {
+				case "status":
+					this.pubStatus = val
+				case "update":
+					this.pubUpdate = val
+				}
+			}
+		case "subscribe":
+			for _, child := range child.ChildElements() {
+				val, _ := strconv.ParseBool(child.Text())
+
+				switch child.Tag {
+				case "status":
+					this.subStatus = val
+				case "update":
+					this.subUpdate = val
+				}
+			}
 		}
 	}
 
@@ -69,12 +105,15 @@ func (this *IntercomBroker) Run(ctx context.Context, pubEndpoint, pullEndpoint s
 	}
 
 	msgBusHook := &PublishToMsgBus{
-		name:   this.name,
-		pusher: msgbus.MustNewPusher(pullEndpoint),
-		log:    this.log,
+		name:      this.name,
+		pusher:    msgbus.MustNewPusher(pullEndpoint),
+		log:       this.log,
+		subStatus: this.subStatus,
+		subUpdate: this.subUpdate,
 	}
 
 	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
+	subscriber.AddStatusHandler(this.handleMsgBusEnvelope)
 	subscriber.AddUpdateHandler(this.handleMsgBusEnvelope)
 	subscriber.Start("RUNTIME")
 
@@ -109,6 +148,10 @@ func (this *IntercomBroker) handleMsgBusEnvelope(env msgbus.Envelope) {
 
 	switch env.Kind {
 	case msgbus.ENVELOPE_STATUS:
+		if !this.pubStatus {
+			return
+		}
+
 		status, err := env.Status()
 		if err != nil {
 			if !errors.Is(err, msgbus.ErrKindNotStatus) {
@@ -130,6 +173,10 @@ func (this *IntercomBroker) handleMsgBusEnvelope(env msgbus.Envelope) {
 
 		this.server.Publish(topic, payload, false, 0)
 	case msgbus.ENVELOPE_UPDATE:
+		if !this.pubUpdate {
+			return
+		}
+
 		update, err := env.Update()
 		if err != nil {
 			if !errors.Is(err, msgbus.ErrKindNotUpdate) {

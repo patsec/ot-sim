@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/patsec/ot-sim/msgbus"
@@ -19,6 +20,14 @@ import (
 <intercom mode="client">
 	<endpoint>broker.example.com:1883</endpoint>
 	<client-id>ot-sim-jitp-test</client-id>
+	<publish>
+		<status>true</status>
+		<update>true</update>
+	</publish>
+	<subscribe>
+		<status>true</status>
+		<update>true</update>
+	</subscribe>
 </mqtt>
 */
 
@@ -30,6 +39,11 @@ type IntercomClient struct {
 	name     string
 	endpoint string
 
+	pubStatus bool
+	pubUpdate bool
+	subStatus bool
+	subUpdate bool
+
 	client *autopaho.ConnectionManager
 	pusher *msgbus.Pusher
 }
@@ -38,6 +52,12 @@ func New(name string) *IntercomClient {
 	return &IntercomClient{
 		id:   name,
 		name: name,
+
+		// default to pub/sub all messages
+		pubStatus: true,
+		pubUpdate: true,
+		subStatus: true,
+		subUpdate: true,
 	}
 }
 
@@ -54,6 +74,28 @@ func (this *IntercomClient) Configure(e *etree.Element) error {
 			this.endpoint = child.Text()
 		case "client-id":
 			this.id = child.Text()
+		case "publish":
+			for _, child := range child.ChildElements() {
+				val, _ := strconv.ParseBool(child.Text())
+
+				switch child.Tag {
+				case "status":
+					this.pubStatus = val
+				case "update":
+					this.pubUpdate = val
+				}
+			}
+		case "subscribe":
+			for _, child := range child.ChildElements() {
+				val, _ := strconv.ParseBool(child.Text())
+
+				switch child.Tag {
+				case "status":
+					this.subStatus = val
+				case "update":
+					this.subUpdate = val
+				}
+			}
 		}
 	}
 
@@ -79,6 +121,7 @@ func (this *IntercomClient) Run(ctx context.Context, pubEndpoint, pullEndpoint s
 
 	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
 	subscriber.AddStatusHandler(this.handleMsgBusEnvelope(ctx))
+	subscriber.AddUpdateHandler(this.handleMsgBusEnvelope(ctx))
 	subscriber.Start("RUNTIME")
 
 	endpoint, err := url.Parse(this.endpoint)
@@ -94,14 +137,17 @@ func (this *IntercomClient) Run(ctx context.Context, pubEndpoint, pullEndpoint s
 		OnConnectionUp: func(mgr *autopaho.ConnectionManager, _ *paho.Connack) {
 			this.log("[DEBUG] Intercom client connection up")
 
-			_, err := mgr.Subscribe(ctx, &paho.Subscribe{
-				Subscriptions: []paho.SubscribeOptions{
-					{Topic: "devices/#/status", QoS: 0, NoLocal: true},
-					{Topic: "devices/#/update", QoS: 0, NoLocal: true},
-				},
-			})
+			var subs []paho.SubscribeOptions
 
-			if err != nil {
+			if this.subStatus {
+				subs = append(subs, paho.SubscribeOptions{Topic: "devices/+/status", QoS: 0, NoLocal: true})
+			}
+
+			if this.subUpdate {
+				subs = append(subs, paho.SubscribeOptions{Topic: "devices/+/update", QoS: 0, NoLocal: true})
+			}
+
+			if _, err := mgr.Subscribe(ctx, &paho.Subscribe{Subscriptions: subs}); err != nil {
 				this.log("[ERROR] unable to subscribe to Intercom status and update topics: %v", err)
 			}
 
@@ -174,7 +220,7 @@ func (this *IntercomClient) handleIntercom(pub paho.PublishReceived) (bool, erro
 	return true, nil
 }
 
-func (this *IntercomClient) handleMsgBusEnvelope(ctx context.Context) msgbus.StatusHandler {
+func (this *IntercomClient) handleMsgBusEnvelope(ctx context.Context) func(msgbus.Envelope) {
 	return func(env msgbus.Envelope) {
 		if env.Sender() == this.name {
 			return
@@ -182,6 +228,10 @@ func (this *IntercomClient) handleMsgBusEnvelope(ctx context.Context) msgbus.Sta
 
 		switch env.Kind {
 		case msgbus.ENVELOPE_STATUS:
+			if !this.pubStatus {
+				return
+			}
+
 			status, err := env.Status()
 			if err != nil {
 				if !errors.Is(err, msgbus.ErrKindNotStatus) {
@@ -204,6 +254,10 @@ func (this *IntercomClient) handleMsgBusEnvelope(ctx context.Context) msgbus.Sta
 			queue := &autopaho.QueuePublish{Publish: &paho.Publish{Topic: topic, QoS: 0, Payload: payload}}
 			this.client.PublishViaQueue(ctx, queue)
 		case msgbus.ENVELOPE_UPDATE:
+			if !this.pubUpdate {
+				return
+			}
+
 			update, err := env.Update()
 			if err != nil {
 				if !errors.Is(err, msgbus.ErrKindNotUpdate) {

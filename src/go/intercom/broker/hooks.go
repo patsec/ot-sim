@@ -2,7 +2,8 @@ package broker
 
 import (
 	"bytes"
-	"strconv"
+	"encoding/json"
+	"strings"
 
 	mochi "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/packets"
@@ -12,12 +13,12 @@ import (
 type PublishToMsgBus struct {
 	mochi.HookBase
 
-	name string
-
+	name   string
 	pusher *msgbus.Pusher
-	topics map[string]string
+	log    func(string, ...any)
 
-	log func(string, ...any)
+	subStatus bool
+	subUpdate bool
 }
 
 func (this *PublishToMsgBus) ID() string {
@@ -35,18 +36,19 @@ func (this *PublishToMsgBus) OnPublished(c *mochi.Client, p packets.Packet) {
 		return
 	}
 
-	this.log("[DEBUG] topic: %s -- payload: %s", p.TopicName, string(p.Payload))
-
-	if tag, ok := this.topics[p.TopicName]; ok {
-		var points []msgbus.Point
-
-		value, err := strconv.ParseFloat(string(p.Payload), 64)
-		if err != nil {
-			this.log("[ERROR] parsing payload for topic %s to float64: %v", p.TopicName, err)
+	if strings.HasSuffix(p.TopicName, "/status") {
+		if !this.subStatus {
 			return
 		}
 
-		points = append(points, msgbus.Point{Tag: tag, Value: value})
+		this.log("[DEBUG] topic: %s -- payload: %s", p.TopicName, string(p.Payload))
+
+		var points []msgbus.Point
+
+		if err := json.Unmarshal(p.Payload, &points); err != nil {
+			this.log("[ERROR] unmarshaling status points: %v", err)
+			return
+		}
 
 		env, err := msgbus.NewEnvelope(this.name, msgbus.Status{Measurements: points})
 		if err != nil {
@@ -56,6 +58,33 @@ func (this *PublishToMsgBus) OnPublished(c *mochi.Client, p packets.Packet) {
 
 		if err := this.pusher.Push("RUNTIME", env); err != nil {
 			this.log("[ERROR] sending status message: %v", err)
+			return
+		}
+	}
+
+	if strings.HasSuffix(p.TopicName, "/update") {
+		if !this.subUpdate {
+			return
+		}
+
+		this.log("[DEBUG] topic: %s -- payload: %s", p.TopicName, string(p.Payload))
+
+		var points []msgbus.Point
+
+		if err := json.Unmarshal(p.Payload, &points); err != nil {
+			this.log("[ERROR] unmarshaling update points: %v", err)
+			return
+		}
+
+		env, err := msgbus.NewEnvelope(this.name, msgbus.Update{Updates: points})
+		if err != nil {
+			this.log("[ERROR] creating update message: %v", err)
+			return
+		}
+
+		if err := this.pusher.Push("RUNTIME", env); err != nil {
+			this.log("[ERROR] sending update message: %v", err)
+			return
 		}
 	}
 }
