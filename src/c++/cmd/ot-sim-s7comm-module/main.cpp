@@ -34,7 +34,7 @@ public:
         return std::make_shared<ChannelListener>(name, pusher);
     }
 
-    ChannelListener(std::string name, otsim::dnp3::Pusher pusher) : name(name), pusher(pusher) {
+    ChannelListener(std::string name, otsim::msgbus::Pusher pusher) : name(name), pusher(pusher) {
         thread = std::thread(std::bind(&ChannelListener::Run, this));
     }
 
@@ -185,9 +185,10 @@ int main(int argc, char** argv){
                 We need to create a handler here for the server for subscribing purposes.
                 A handler can either be a status handler or an update handler, both are types of envelopes.
                 Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
-                contains the struct status or update).
+                contains the a vector of the struct status or update).
                 */
-                sub->AddHandler(    );
+                otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
+                sub->AddHandler(updateHandler);
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
