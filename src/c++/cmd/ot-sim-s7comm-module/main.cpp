@@ -9,7 +9,7 @@
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
 
-#include "snap7/release/Wrappers/c-cpp/snap7.h"
+#include "Snap7/snap7_libmain.h"
 
 //for multithreading, mutex
 std::condition_variable cv;

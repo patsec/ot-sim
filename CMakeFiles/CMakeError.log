@@ -1,0 +1,32 @@
+Determining if the strtod_l exist failed with the following output:
+Change Dir: /home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a9f2f/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a9f2f.dir/build.make CMakeFiles/cmTC_a9f2f.dir/build
+gmake[1]: Entering directory '/home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a9f2f.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIE -o CMakeFiles/cmTC_a9f2f.dir/CheckSymbolExists.c.o -c /home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
+/home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘strtod_l’ undeclared (first use in this function); did you mean ‘strtoull’?
+    8 |   return ((int*)(&strtod_l))[argc];
+      |                   ^~~~~~~~
+      |                   strtoull
+/home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_a9f2f.dir/build.make:78: CMakeFiles/cmTC_a9f2f.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_a9f2f/fast] Error 2
+
+
+File /home/htoohey/repos/ot-sim/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strtod_l
+  return ((int*)(&strtod_l))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}

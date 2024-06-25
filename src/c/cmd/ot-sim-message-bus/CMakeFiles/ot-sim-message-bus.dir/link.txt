@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/ot-sim-message-bus.dir/main.c.o -o ot-sim-message-bus  -lczmq /usr/lib/x86_64-linux-gnu/libxml2.so -lzmq 

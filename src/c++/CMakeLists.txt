@@ -36,6 +36,7 @@ add_subdirectory(dnp3)
 add_subdirectory(msgbus)
 
 add_subdirectory(cmd/ot-sim-dnp3-module)
+add_subdirectory(cmd/ot-sim-s7comm-module)
 
 if(BUILD_E2E)
   add_subdirectory(cmd/ot-sim-e2e-dnp3-master)

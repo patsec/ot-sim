@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://github.com/chriskohlhoff/asio/archive/asio-1-16-0.zip'
+tag='SHA1=6BDD33522D5B95B36445ABB2072A481F7CE15402'

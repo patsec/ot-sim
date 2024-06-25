@@ -1,0 +1,1 @@
+/usr/bin/c++  -pthread -Wall CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o -o ot-sim-s7comm-module  -Wl,-rpath,/home/htoohey/repos/ot-sim/src/c++/msgbus: ../../deps/fmt/libfmt.a -lot-sim-snap7 ../../msgbus/libot-sim-msgbus.so /usr/lib/x86_64-linux-gnu/libzmq.so 
