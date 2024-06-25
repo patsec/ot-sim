@@ -187,7 +187,7 @@ typedef struct{
     longword  TotalLength;
     longword  In_R_ID;
     longword  Elapsed;
-    byte      Seq_Out;
+    std::byte      Seq_Out;
 }TRecvStatus;
 
 typedef struct{
@@ -221,11 +221,11 @@ private:
     TPendingBuffer RxBuffer;
     longword FSendElapsed;
     bool BindError;
-    byte NextByte;
+    std::byte NextByte;
     pfn_ParBRecvCallBack OnBRecv;
     pfn_ParBSendCompletion OnBSend;
     void ClearRecv();
-    byte GetNextByte();
+    std::byte GetNextByte();
     void CloseWorker();
     bool BlockSend();
     bool PickData();

@@ -153,10 +153,10 @@ EXPORTSPEC int S7API Srv_Stop(S7Object Server);
 EXPORTSPEC int S7API Srv_SetUseSZLCache(S7Object Server, const SZLAnswerMap& cacheRef);
 EXPORTSPEC int S7API Srv_UnsetUseSZLCache(S7Object Server);
 // Data
-EXPORTSPEC int S7API Srv_GetDiagRequest(S7Object Server, longword client_id, byte job_id, RequestDiag*& rd);
-EXPORTSPEC int S7API Srv_AddDiagResponse(S7Object Server, longword client_id, byte job_id, ResponseDiag* rd);
+EXPORTSPEC int S7API Srv_GetDiagRequest(S7Object Server, longword client_id, std::byte job_id, RequestDiag*& rd);
+EXPORTSPEC int S7API Srv_AddDiagResponse(S7Object Server, longword client_id, std::byte job_id, ResponseDiag* rd);
 EXPORTSPEC int S7API Srv_AddBlock(S7Object Server, void *pBinary, int Size);
-EXPORTSPEC int S7API Srv_GetBlock(S7Object Server, byte BlkType, word BlkNum, pbyte &block);
+EXPORTSPEC int S7API Srv_GetBlock(S7Object Server, std::byte BlkType, word BlkNum, pbyte &block);
 EXPORTSPEC int S7API Srv_AddDiagItem(S7Object Server, pbyte Item);
 EXPORTSPEC int S7API Srv_RegisterArea(S7Object Server, int AreaCode, word Index, void *pUsrData, int Size);
 EXPORTSPEC int S7API Srv_UnregisterArea(S7Object Server, int AreaCode, word Index);
