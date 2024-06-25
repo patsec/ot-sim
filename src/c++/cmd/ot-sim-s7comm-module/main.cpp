@@ -189,9 +189,13 @@ int main(int argc, char** argv){
                 */
                 otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
-                /*
-                        THIS IS WHERE I THINK statusHandler's version, kind, (maybe metadata) should be added
-                */
+                //Add the envelope's (statusHandler's) version and kind
+                auto version = device.get<uint16_t>("version", "1.0");
+                statusHandler.version=version;
+
+                std::string kind = "Status";
+                statusHandler.kind=kind;
+                
 
                 sub->AddHandler(statusHandler); //pair the handler with the subscriber
 
@@ -204,6 +208,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
+                    p.value = point.get<std::string>("value","");
+                    p.ts = point.get<std::string>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -280,9 +286,12 @@ int main(int argc, char** argv){
                 */
                 otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
 
-                /*
-                        THIS IS WHERE I THINK updateHandler's version, kind, (maybe metadata) should be added
-                */
+                //Add the envelope's (updateHandler's) version and kind
+                auto version = device.get<uint16_t>("version", "1.0");
+                updateHandler.version=version;
+
+                std::string kind = "Status";
+                updateHandler.kind=kind;
 
                 sub->AddHandler(updateHandler); //pair the handler with the subscriber
 
@@ -293,16 +302,18 @@ int main(int argc, char** argv){
                     
                     otsim::msgbus::Point p;
                     
-                    //get the current tag
+                    //get the current tag, value, and ts
                     p.tag = point.get<std::string>("tag");
+                    p.value = point.get<std::string>("value","");
+                    p.ts = point.get<std::string>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
 
-                    /*
-                        This is where I would need to set update's "recipient" and "confirm"... if that's a requirement
-                    */
-                    
+                    //set the update's recipient and confirm fields
+                    update.recipient = point.get<std::string>("recipient", "");
+                    update.confirm = point.get<std::string>("confirm", "");
+
                     update.updates.push_back(p);
                     updateHandler.contents.push_back(update);
                 }
