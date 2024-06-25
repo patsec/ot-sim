@@ -226,6 +226,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
+                    p.value = point.get<std::string>("value","");
+                    p.ts = point.get<std::string>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -327,13 +329,15 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
+                    p.value = point.get<std::string>("value","");
+                    p.ts = point.get<std::string>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
 
-                    /*
-                        This is where I would need to set update's "recipient" and "confirm"... if that's a requirement
-                    */
+                    //set the update's recipient and confirm fields
+                    update.recipient = point.get<std::string>("recipient", "");
+                    update.confirm = point.get<std::string>("confirm", "");
 
                     update.updates.push_back(p);
                     updateHandler.contents.push_back(update);
