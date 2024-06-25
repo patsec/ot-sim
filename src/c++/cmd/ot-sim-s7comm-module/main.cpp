@@ -1,3 +1,5 @@
+#include <condition_variable>
+#include <csignal>
 #include <iostream>
 #include <mutex>
 #include <thread>
