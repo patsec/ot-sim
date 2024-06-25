@@ -208,7 +208,7 @@ int main(int argc, char** argv){
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
                     status.measurements.push_back(p);
-                    statusHandler.contents.push_back(stats);
+                    statusHandler.contents.push_back(status);
                 }
 
                 //loop through the outputs, getting the tag for each
@@ -224,7 +224,7 @@ int main(int argc, char** argv){
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
                     status.measurements.push_back(p);
-                    statusHandler.contents.push_back(stats);
+                    statusHandler.contents.push_back(status);
                 }
 
                 //start the server and add it to the vector of servers
@@ -289,13 +289,43 @@ int main(int argc, char** argv){
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                    auto point = iter->second;
                     
+                    otsim::msgbus::Point p;
+                    
+                    //get the current tag
+                    p.tag = point.get<std::string>("tag");
+
+                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                    otsim::msgbus::Update update;
+
+                    /*
+                        This is where I would need to set update's "recipient" and "confirm"... if that's a requirement
+                    */
+                    
+                    update.updates.push_back(p);
+                    updateHandler.contents.push_back(update);
                 }
 
                 //loop through the outputs, getting the tag for each
                 auto outputs = device.equal_range("output");
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
+                    auto point = iter->second;
                     
+                    otsim::msgbus::Point p;
+                    
+                    //get the current tag
+                    p.tag = point.get<std::string>("tag");
+
+                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                    otsim::msgbus::Update update;
+
+                    /*
+                        This is where I would need to set update's "recipient" and "confirm"... if that's a requirement
+                    */
+
+                    update.updates.push_back(p);
+                    updateHandler.contents.push_back(update);
                 }
 
                 //connect
