@@ -187,13 +187,13 @@ int main(int argc, char** argv){
                 Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
                 contains the a vector of the struct status or update).
                 */
-                otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
+                otsim::msgbus::StatusHandler statusHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
 
                 /*
-                        THIS IS WHERE I THINK updateHandler's version, kind, (maybe metadata) should be added
+                        THIS IS WHERE I THINK statusHandler's version, kind, (maybe metadata) should be added
                 */
 
-                sub->AddHandler(updateHandler);
+                sub->AddHandler(statusHandler); //pair the handler with the subscriber
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
@@ -205,10 +205,10 @@ int main(int argc, char** argv){
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
 
-                    //create an update object, push the tag to it, push that update object to the updateHandler's contents vector
-                    otsim::msgbus::Update update;
-                    update.updates.push_back(p);
-                    updateHandler.contents.push_back(update);
+                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                    otsim::msgbus::Status status;
+                    status.measurements.push_back(p);
+                    statusHandler.contents.push_back(stats);
                 }
 
                 //loop through the outputs, getting the tag for each
