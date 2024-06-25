@@ -85,10 +85,10 @@ int main(int argc, char** argv){
     }
 
     //keep servers in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<otsim::Snap7::S7Object>> servers;         
+    std::vector<std::shared_ptr<otsim::snap7::S7Object>> servers;         
 
     //keep clients in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<otsim::Snap7::S7Object>> clients;
+    std::vector<std::shared_ptr<otsim::snap7::S7Object>> clients;
 
     // Keep client channel listeners in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<ChannelListener>> listeners;
@@ -167,8 +167,8 @@ int main(int argc, char** argv){
                 std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
 
                 //create the server object
-                otsim::Snap7::S7Object Server;
-                Server = otsim::Snap7::Srv_Create();
+                otsim::snap7::S7Object Server;
+                Server = otsim::snap7::Srv_Create();
 
                 //get the endpoint and set it
                 if (device.get_child_optional("endpoint")) {
@@ -177,13 +177,8 @@ int main(int argc, char** argv){
                     std::string ip = endpoint.substr(0, endpoint.find(":"));
                     std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
 
-                    auto ip_endpoint = opendnp3::IPEndpoint(ip, port);
-
-                    auto mode = device.get<std::string>("endpoint.<xmlattr>.accept-mode", "CloseNew");
-                    auto acceptMode = opendnp3::ServerAcceptModeSpec::from_string(mode);
-
                     //set the ip address that the server will start to when started (doesn't start until the end of this loop)
-                    otsim::Snap7::Srv_StartTo(Server, ip_endpoint);
+                    otsim::snap7::Srv_StartTo(Server, ip);
                 }
 
                 /*
@@ -197,23 +192,33 @@ int main(int argc, char** argv){
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                    auto point = iter->second;
                     
+                    otsim::msgbus::Point p;
+                    
+                    //get the current tag
+                    p.tag = point.get<std::string>("tag");
                 }
 
                 //loop through the outputs, getting the tag for each
                 auto outputs = device.equal_range("output");
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
+                    auto point = iter->second;
                     
+                    otsim::msgbus::Point p;
+                    
+                    //get the current tag
+                    p.tag = point.get<std::string>("tag");
                 }
 
                 //start the server and add it to the vector of servers
-                otsim::Snap7::Srv_Start(Server);
+                otsim::snap7::Srv_Start(Server);
                 servers.push_back(Server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object
-                otsim::Snap7::S7Object Client;
-                Client = otsim::Snap7::Cli_Create();
+                otsim::snap7::S7Object Client;
+                Client = otsim::snap7::Cli_Create();
 
                 //create a channel listener object
                 auto listener = ChannelListener::Create(name, pusher);
@@ -226,7 +231,7 @@ int main(int argc, char** argv){
                 */
                 try {
                     auto connectionType = device.get<uint16_t>("connection-type", 3);
-                    otsim::Snap7::Cli_SetConnectionType(Client, connectionType);
+                    otsim::snap7::Cli_SetConnectionType(Client, connectionType);
                 } catch (pt::ptree_bad_path&) {
                     std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
                 }
@@ -242,14 +247,14 @@ int main(int argc, char** argv){
 
                 auto remote_tsap = device.get<uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                otsim::Snap7::Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
+                otsim::snap7::Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
 
                 /*
                 declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
                 */
                 auto rack = device.get<uint16_t>("rack", 0);
                 auto slot = device.get<uint16_t>("slot", 2);
-                otsim::Snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
+                otsim::snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
 
                 //sub->AddHandler line will go here <------------------------
 
@@ -266,7 +271,7 @@ int main(int argc, char** argv){
                 }
 
                 //connect
-                otsim::Snap7::Cli_Connect(Client);
+                otsim::snap7::Cli_Connect(Client);
 
                 clients.push_back(Client);
 
@@ -275,7 +280,6 @@ int main(int argc, char** argv){
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
                 return 1;
             }
-
 
             //push back the subscriber created for this s7comm device
             sub->Start("RUNTIME");
@@ -297,12 +301,12 @@ int main(int argc, char** argv){
     }
 
     for (auto &client : clients) {
-        otsim::Snap7::Cli_Destroy(client);
+        otsim::snap7::Cli_Destroy(client);
     }
 
     for (auto &server : servers) {
-        otsim::Snap7::Srv_Stop(server);
-        otsim::Snap7::Srv_Destroy(server);
+        otsim::snap7::Srv_Stop(server);
+        otsim::snap7::Srv_Destroy(server);
     }
 
     return 0;

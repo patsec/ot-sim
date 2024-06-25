@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
 
           auto outstation = server->AddOutstation(config, restart, pusher);
           sub->AddHandler(std::bind(&otsim::dnp3::Outstation::HandleMsgBusStatus, outstation, std::placeholders::_1));
- 
+
           auto inputs = outstn.equal_range("input");
           for (auto iter = inputs.first; iter != inputs.second; ++iter) {
             auto point = iter->second;
@@ -444,7 +444,7 @@ int main(int argc, char** argv) {
 
           auto master = client->AddMaster(id, local, remote, timeout, pusher);
           sub->AddHandler(std::bind(&otsim::dnp3::Master::HandleMsgBusUpdate, master, std::placeholders::_1));
- 
+
           auto inputs = mstr.equal_range("input");
           for (auto iter = inputs.first; iter != inputs.second; ++iter) {
             auto point = iter->second;
