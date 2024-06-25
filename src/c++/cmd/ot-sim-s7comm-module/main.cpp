@@ -195,7 +195,6 @@ int main(int argc, char** argv){
 
                 std::string kind = "Status";
                 statusHandler.kind=kind;
-                
 
                 sub->AddHandler(statusHandler); //pair the handler with the subscriber
 
