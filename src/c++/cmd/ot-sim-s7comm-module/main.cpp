@@ -190,7 +190,7 @@ int main(int argc, char** argv){
                 otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
                 //Add the envelope's (statusHandler's) version and kind
-                auto version = device.get<uint16_t>("version", "1.0");
+                auto version = device.get<uint16_t>("version", "v1");
                 statusHandler.version=version;
 
                 std::string kind = "Status";
@@ -287,10 +287,10 @@ int main(int argc, char** argv){
                 otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
 
                 //Add the envelope's (updateHandler's) version and kind
-                auto version = device.get<uint16_t>("version", "1.0");
+                auto version = device.get<uint16_t>("version", "v1");
                 updateHandler.version=version;
 
-                std::string kind = "Status";
+                std::string kind = "Update";
                 updateHandler.kind=kind;
 
                 sub->AddHandler(updateHandler); //pair the handler with the subscriber
