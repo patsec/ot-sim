@@ -70,7 +70,7 @@ private:
         otsim::msgbus::Status contents = {.measurements = points};
         auto env = otsim::msgbus::NewEnvelope(name, contents);
 
-        pusher->Push("RUNTIME", env);
+        pusher.Push("RUNTIME", env);
     }
 
     std::string             name;
