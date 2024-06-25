@@ -187,7 +187,7 @@ int main(int argc, char** argv){
                 Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
                 contains the a vector of the struct status or update).
                 */
-                otsim::msgbus::StatusHandler statusHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
+                otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
                 /*
                         THIS IS WHERE I THINK statusHandler's version, kind, (maybe metadata) should be added
@@ -220,6 +220,11 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
+
+                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                    otsim::msgbus::Status status;
+                    status.measurements.push_back(p);
+                    statusHandler.contents.push_back(stats);
                 }
 
                 //start the server and add it to the vector of servers
@@ -267,7 +272,19 @@ int main(int argc, char** argv){
                 auto slot = device.get<uint16_t>("slot", 2);
                 otsim::snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
 
-                //sub->AddHandler line will go here <------------------------
+                /*
+                We need to create a handler here for the server for subscribing purposes.
+                A handler can either be a status handler or an update handler, both are types of envelopes.
+                Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
+                contains the a vector of the struct status or update).
+                */
+                otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
+
+                /*
+                        THIS IS WHERE I THINK updateHandler's version, kind, (maybe metadata) should be added
+                */
+
+                sub->AddHandler(updateHandler); //pair the handler with the subscriber
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
