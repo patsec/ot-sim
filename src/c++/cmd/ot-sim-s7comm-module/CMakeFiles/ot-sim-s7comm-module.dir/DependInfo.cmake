@@ -14,6 +14,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
   "/home/htoohey/repos/ot-sim/src/c++/deps/fmt/CMakeFiles/fmt.dir/DependInfo.cmake"
+  "/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/DependInfo.cmake"
   "/home/htoohey/repos/ot-sim/src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/DependInfo.cmake"
   )
 

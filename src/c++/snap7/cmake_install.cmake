@@ -1,4 +1,4 @@
-# Install script for directory: /home/htoohey/repos/ot-sim/src/c++/dnp3
+# Install script for directory: /home/htoohey/repos/ot-sim/src/c++/snap7
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -43,21 +43,21 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so"
+         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/htoohey/repos/ot-sim/src/c++/dnp3/libot-sim-dnp3.so")
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/htoohey/repos/ot-sim/src/c++/snap7/libot-sim-snap7.so")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so")
     file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so"
-         OLD_RPATH "/home/htoohey/repos/ot-sim/src/c++/deps/opendnp3/cpp/lib:/home/htoohey/repos/ot-sim/src/c++/msgbus:"
+         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so"
+         OLD_RPATH "/home/htoohey/repos/ot-sim/src/c++/msgbus:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-dnp3.so")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libot-sim-snap7.so")
     endif()
   endif()
 endif()

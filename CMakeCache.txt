@@ -523,6 +523,9 @@ opendnp3_SOURCE_DIR:STATIC=/home/htoohey/repos/ot-sim/src/c++/deps/opendnp3
 //Dependencies for the target
 ot-sim-dnp3_LIB_DEPENDS:STATIC=general;fmt::fmt;general;opendnp3;general;ot-sim-msgbus;
 
+//Dependencies for the target
+ot-sim-snap7_LIB_DEPENDS:STATIC=general;fmt::fmt;general;ot-sim-msgbus;
+
 //Value Computed by CMake
 ot-sim_BINARY_DIR:STATIC=/home/htoohey/repos/ot-sim
 
@@ -681,7 +684,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=13
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=14
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

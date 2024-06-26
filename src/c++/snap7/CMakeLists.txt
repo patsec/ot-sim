@@ -4,7 +4,7 @@ include_directories(
   ${OTSIM_INCLUDE_DIRS}
 )
 
-file(GLOB_RECURSE ot-sim-snap7_SRC *.cpp *.hpp)
+file(GLOB_RECURSE ot-sim-snap7 *.cpp *.hpp)
 
 add_library(ot-sim-snap7 SHARED
   ${ot-sim-snap7}
