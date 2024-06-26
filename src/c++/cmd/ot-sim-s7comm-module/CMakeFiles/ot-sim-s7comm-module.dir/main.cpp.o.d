@@ -816,17 +816,7 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc \
- /home/htoohey/repos/ot-sim/src/c++/msgbus/pusher.hpp \
- /usr/include/c++/11/atomic \
- /home/htoohey/repos/ot-sim/src/c++/msgbus/envelope.hpp \
- /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
- /usr/include/c++/11/bits/stl_map.h \
- /usr/include/c++/11/bits/stl_multimap.h \
- /home/htoohey/repos/ot-sim/src/c++/deps/json/single_include/nlohmann/json.hpp \
- /usr/include/c++/11/numeric /usr/include/c++/11/bits/stl_numeric.h \
- /usr/include/c++/11/pstl/glue_numeric_defs.h \
- /usr/include/c++/11/forward_list /usr/include/c++/11/bits/forward_list.h \
- /usr/include/c++/11/bits/forward_list.tcc /usr/include/c++/11/valarray \
+ /home/htoohey/repos/ot-sim/src/c++/deps/fmt/include/fmt/format.h \
  /usr/include/c++/11/cmath /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
@@ -849,6 +839,18 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
  /usr/include/c++/11/tr1/poly_hermite.tcc \
  /usr/include/c++/11/tr1/poly_laguerre.tcc \
  /usr/include/c++/11/tr1/riemann_zeta.tcc \
+ /home/htoohey/repos/ot-sim/src/c++/deps/fmt/include/fmt/core.h \
+ /home/htoohey/repos/ot-sim/src/c++/msgbus/pusher.hpp \
+ /usr/include/c++/11/atomic \
+ /home/htoohey/repos/ot-sim/src/c++/msgbus/envelope.hpp \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
+ /usr/include/c++/11/bits/stl_map.h \
+ /usr/include/c++/11/bits/stl_multimap.h \
+ /home/htoohey/repos/ot-sim/src/c++/deps/json/single_include/nlohmann/json.hpp \
+ /usr/include/c++/11/numeric /usr/include/c++/11/bits/stl_numeric.h \
+ /usr/include/c++/11/pstl/glue_numeric_defs.h \
+ /usr/include/c++/11/forward_list /usr/include/c++/11/bits/forward_list.h \
+ /usr/include/c++/11/bits/forward_list.tcc /usr/include/c++/11/valarray \
  /usr/include/c++/11/bits/valarray_array.h \
  /usr/include/c++/11/bits/valarray_array.tcc \
  /usr/include/c++/11/bits/valarray_before.h \
@@ -864,10 +866,10 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
  /home/htoohey/repos/ot-sim/src/c++/deps/cppzmq/zmq.hpp \
  /usr/include/zmq.h /usr/include/c++/11/optional \
  /home/htoohey/repos/ot-sim/src/c++/msgbus/subscriber.hpp \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap7_libmain.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_client.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap_threads.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap_platform.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap7_libmain.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_client.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap_threads.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap_platform.h \
  /usr/include/x86_64-linux-gnu/sys/param.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h \
@@ -907,21 +909,21 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
  /usr/include/asm-generic/ioctl.h \
  /usr/include/x86_64-linux-gnu/bits/ioctl-types.h \
  /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/unix_threads.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap_sysutils.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/unix_threads.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap_sysutils.h \
  /usr/include/semaphore.h /usr/include/x86_64-linux-gnu/bits/semaphore.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_micro_client.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_peer.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_types.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_isotcp.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap_msgsock.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_micro_client.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_peer.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_types.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_isotcp.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap_msgsock.h \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/bits/stat.h \
  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_server.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/snap_tcpsrvr.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_server.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/snap_tcpsrvr.h \
  /usr/include/c++/11/list /usr/include/c++/11/bits/stl_list.h \
  /usr/include/c++/11/bits/list.tcc \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_partner.h \
- /home/htoohey/repos/ot-sim/src/c++/Snap7/s7_text.h
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_partner.h \
+ /home/htoohey/repos/ot-sim/src/c++/snap7/s7_text.h

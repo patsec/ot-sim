@@ -914,21 +914,7 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  src/c++/msgbus/pusher.hpp \
-  /usr/include/c++/11/atomic \
-  src/c++/msgbus/envelope.hpp \
-  /usr/include/c++/11/map \
-  /usr/include/c++/11/bits/stl_tree.h \
-  /usr/include/c++/11/bits/stl_map.h \
-  /usr/include/c++/11/bits/stl_multimap.h \
-  src/c++/deps/json/single_include/nlohmann/json.hpp \
-  /usr/include/c++/11/numeric \
-  /usr/include/c++/11/bits/stl_numeric.h \
-  /usr/include/c++/11/pstl/glue_numeric_defs.h \
-  /usr/include/c++/11/forward_list \
-  /usr/include/c++/11/bits/forward_list.h \
-  /usr/include/c++/11/bits/forward_list.tcc \
-  /usr/include/c++/11/valarray \
+  src/c++/deps/fmt/include/fmt/format.h \
   /usr/include/c++/11/cmath \
   /usr/include/math.h \
   /usr/include/x86_64-linux-gnu/bits/math-vector.h \
@@ -953,6 +939,22 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
   /usr/include/c++/11/tr1/poly_hermite.tcc \
   /usr/include/c++/11/tr1/poly_laguerre.tcc \
   /usr/include/c++/11/tr1/riemann_zeta.tcc \
+  src/c++/deps/fmt/include/fmt/core.h \
+  src/c++/msgbus/pusher.hpp \
+  /usr/include/c++/11/atomic \
+  src/c++/msgbus/envelope.hpp \
+  /usr/include/c++/11/map \
+  /usr/include/c++/11/bits/stl_tree.h \
+  /usr/include/c++/11/bits/stl_map.h \
+  /usr/include/c++/11/bits/stl_multimap.h \
+  src/c++/deps/json/single_include/nlohmann/json.hpp \
+  /usr/include/c++/11/numeric \
+  /usr/include/c++/11/bits/stl_numeric.h \
+  /usr/include/c++/11/pstl/glue_numeric_defs.h \
+  /usr/include/c++/11/forward_list \
+  /usr/include/c++/11/bits/forward_list.h \
+  /usr/include/c++/11/bits/forward_list.tcc \
+  /usr/include/c++/11/valarray \
   /usr/include/c++/11/bits/valarray_array.h \
   /usr/include/c++/11/bits/valarray_array.tcc \
   /usr/include/c++/11/bits/valarray_before.h \
@@ -973,10 +975,10 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
   /usr/include/zmq.h \
   /usr/include/c++/11/optional \
   src/c++/msgbus/subscriber.hpp \
-  src/c++/Snap7/snap7_libmain.h \
-  src/c++/Snap7/s7_client.h \
-  src/c++/Snap7/snap_threads.h \
-  src/c++/Snap7/snap_platform.h \
+  src/c++/snap7/snap7_libmain.h \
+  src/c++/snap7/s7_client.h \
+  src/c++/snap7/snap_threads.h \
+  src/c++/snap7/snap_platform.h \
   /usr/include/x86_64-linux-gnu/sys/param.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h \
@@ -1023,45 +1025,43 @@ src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o:
   /usr/include/asm-generic/ioctl.h \
   /usr/include/x86_64-linux-gnu/bits/ioctl-types.h \
   /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
-  src/c++/Snap7/unix_threads.h \
-  src/c++/Snap7/snap_sysutils.h \
+  src/c++/snap7/unix_threads.h \
+  src/c++/snap7/snap_sysutils.h \
   /usr/include/semaphore.h \
   /usr/include/x86_64-linux-gnu/bits/semaphore.h \
-  src/c++/Snap7/s7_micro_client.h \
-  src/c++/Snap7/s7_peer.h \
-  src/c++/Snap7/s7_types.h \
-  src/c++/Snap7/s7_isotcp.h \
-  src/c++/Snap7/snap_msgsock.h \
+  src/c++/snap7/s7_micro_client.h \
+  src/c++/snap7/s7_peer.h \
+  src/c++/snap7/s7_types.h \
+  src/c++/snap7/s7_isotcp.h \
+  src/c++/snap7/snap_msgsock.h \
   /usr/include/fcntl.h \
   /usr/include/x86_64-linux-gnu/bits/fcntl.h \
   /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
   /usr/include/linux/falloc.h \
   /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
-  src/c++/Snap7/s7_server.h \
-  src/c++/Snap7/snap_tcpsrvr.h \
+  src/c++/snap7/s7_server.h \
+  src/c++/snap7/snap_tcpsrvr.h \
   /usr/include/c++/11/list \
   /usr/include/c++/11/bits/stl_list.h \
   /usr/include/c++/11/bits/list.tcc \
-  src/c++/Snap7/s7_partner.h \
-  src/c++/Snap7/s7_text.h
+  src/c++/snap7/s7_partner.h \
+  src/c++/snap7/s7_text.h
 
 
-src/c++/Snap7/s7_partner.h:
+src/c++/snap7/s7_partner.h:
 
-src/c++/Snap7/snap_tcpsrvr.h:
+src/c++/snap7/snap_tcpsrvr.h:
 
 /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
 
 /usr/include/fcntl.h:
 
-src/c++/Snap7/snap_msgsock.h:
+src/c++/snap7/s7_peer.h:
 
-src/c++/Snap7/s7_isotcp.h:
+src/c++/snap7/s7_micro_client.h:
 
 /usr/include/semaphore.h:
-
-src/c++/Snap7/snap_sysutils.h:
 
 /usr/include/x86_64-linux-gnu/asm/ioctl.h:
 
@@ -1091,7 +1091,11 @@ src/c++/Snap7/snap_sysutils.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h:
 
-src/c++/Snap7/s7_client.h:
+src/c++/snap7/snap_platform.h:
+
+src/c++/snap7/snap_threads.h:
+
+src/c++/snap7/s7_client.h:
 
 /usr/include/linux/param.h:
 
@@ -1103,8 +1107,6 @@ src/c++/deps/cppzmq/zmq.hpp:
 
 /usr/include/c++/11/cassert:
 
-src/c++/Snap7/unix_threads.h:
-
 /usr/include/c++/11/bits/indirect_array.h:
 
 /usr/include/c++/11/bits/mask_array.h:
@@ -1114,6 +1116,26 @@ src/c++/Snap7/unix_threads.h:
 /usr/include/c++/11/bits/valarray_after.h:
 
 /usr/include/c++/11/bits/valarray_array.tcc:
+
+/usr/include/c++/11/bits/forward_list.tcc:
+
+/usr/include/c++/11/bits/forward_list.h:
+
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
+
+/usr/include/c++/11/numeric:
+
+/usr/include/c++/11/bits/stl_multimap.h:
+
+src/c++/snap7/snap_msgsock.h:
+
+/usr/include/c++/11/bits/stl_map.h:
+
+src/c++/msgbus/envelope.hpp:
+
+src/c++/msgbus/pusher.hpp:
+
+src/c++/snap7/s7_server.h:
 
 /usr/include/x86_64-linux-gnu/bits/param.h:
 
@@ -1151,21 +1173,7 @@ src/c++/Snap7/unix_threads.h:
 
 /usr/include/c++/11/cmath:
 
-/usr/include/c++/11/bits/forward_list.tcc:
-
-/usr/include/c++/11/bits/forward_list.h:
-
-/usr/include/x86_64-linux-gnu/asm/sockios.h:
-
-/usr/include/c++/11/numeric:
-
-/usr/include/c++/11/bits/stl_multimap.h:
-
-/usr/include/c++/11/bits/stl_map.h:
-
-src/c++/msgbus/envelope.hpp:
-
-src/c++/msgbus/pusher.hpp:
+src/c++/deps/fmt/include/fmt/format.h:
 
 /usr/include/c++/11/fstream:
 
@@ -1283,8 +1291,6 @@ src/c++/msgbus/pusher.hpp:
 
 /usr/include/boost/serialization/access.hpp:
 
-src/c++/Snap7/s7_text.h:
-
 /usr/include/boost/config/abi_suffix.hpp:
 
 /usr/include/c++/11/atomic:
@@ -1370,6 +1376,8 @@ src/c++/Snap7/s7_text.h:
 /usr/include/boost/mpl/base.hpp:
 
 /usr/include/boost/mpl/insert_fwd.hpp:
+
+src/c++/snap7/s7_types.h:
 
 /usr/include/boost/mpl/set/aux_/insert_impl.hpp:
 
@@ -1483,6 +1491,8 @@ src/c++/Snap7/s7_text.h:
 
 /usr/include/boost/mpl/iter_fold.hpp:
 
+src/c++/snap7/s7_text.h:
+
 /usr/include/boost/multi_index/detail/index_matcher.hpp:
 
 /usr/include/boost/mpl/distance_fwd.hpp:
@@ -1529,8 +1539,6 @@ src/c++/Snap7/s7_text.h:
 
 /usr/include/boost/mpl/negate.hpp:
 
-src/c++/Snap7/s7_server.h:
-
 /usr/include/boost/mpl/aux_/preprocessed/gcc/less.hpp:
 
 /usr/include/boost/mpl/aux_/config/forwarding.hpp:
@@ -1558,8 +1566,6 @@ src/c++/Snap7/s7_server.h:
 /usr/include/boost/mpl/not_equal_to.hpp:
 
 /usr/include/boost/mpl/aux_/has_tag.hpp:
-
-src/c++/Snap7/snap7_libmain.h:
 
 /usr/include/boost/mpl/sequence_tag.hpp:
 
@@ -1809,8 +1815,6 @@ src/c++/Snap7/snap7_libmain.h:
 
 /usr/include/boost/preprocessor/control/while.hpp:
 
-src/c++/Snap7/snap_threads.h:
-
 /usr/include/boost/mpl/aux_/clear_impl.hpp:
 
 /usr/include/boost/config/helper_macros.hpp:
@@ -1993,6 +1997,8 @@ src/c++/cmd/ot-sim-s7comm-module/main.cpp:
 
 /usr/include/endian.h:
 
+src/c++/snap7/snap_sysutils.h:
+
 /usr/include/stdint.h:
 
 /usr/include/boost/mpl/aux_/find_if_pred.hpp:
@@ -2052,8 +2058,6 @@ src/c++/cmd/ot-sim-s7comm-module/main.cpp:
 /usr/include/boost/type_index/stl_type_index.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h:
-
-src/c++/Snap7/s7_peer.h:
 
 /usr/include/boost/mpl/set/aux_/insert_range_impl.hpp:
 
@@ -2149,6 +2153,8 @@ src/c++/Snap7/s7_peer.h:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
+src/c++/snap7/unix_threads.h:
+
 /usr/include/boost/mpl/not.hpp:
 
 /usr/include/boost/multi_index/detail/do_not_copy_elements_tag.hpp:
@@ -2160,8 +2166,6 @@ src/c++/Snap7/s7_peer.h:
 /usr/include/boost/multi_index/detail/ord_index_args.hpp:
 
 /usr/include/c++/11/iosfwd:
-
-src/c++/Snap7/s7_types.h:
 
 /usr/include/c++/11/initializer_list:
 
@@ -2221,8 +2225,6 @@ src/c++/Snap7/s7_types.h:
 
 /usr/include/c++/11/ext/type_traits.h:
 
-src/c++/Snap7/snap_platform.h:
-
 /usr/include/boost/mpl/vector/aux_/O1_size.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
@@ -2256,6 +2258,8 @@ src/c++/Snap7/snap_platform.h:
 /usr/include/boost/iterator/iterator_traits.hpp:
 
 /usr/include/x86_64-linux-gnu/asm/socket.h:
+
+src/c++/snap7/snap7_libmain.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
@@ -2360,6 +2364,8 @@ src/c++/Snap7/snap_platform.h:
 /usr/include/c++/11/bits/nested_exception.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+src/c++/deps/fmt/include/fmt/core.h:
 
 /usr/include/boost/mpl/set/aux_/size_impl.hpp:
 
@@ -2747,6 +2753,8 @@ src/c++/deps/json/single_include/nlohmann/json.hpp:
 
 /usr/include/boost/type_traits/is_assignable.hpp:
 
+src/c++/snap7/s7_isotcp.h:
+
 /usr/include/boost/preprocessor/facilities/overload.hpp:
 
 /usr/include/boost/preprocessor/variadic/size.hpp:
@@ -2788,8 +2796,6 @@ src/c++/deps/json/single_include/nlohmann/json.hpp:
 /usr/include/boost/mpl/aux_/config/overload_resolution.hpp:
 
 /usr/include/boost/mpl/and.hpp:
-
-src/c++/Snap7/s7_micro_client.h:
 
 /usr/include/boost/mpl/aux_/preprocessed/gcc/apply_wrap.hpp:
 

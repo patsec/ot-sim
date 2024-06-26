@@ -8,14 +8,18 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
+#include "fmt/format.h"
+
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
 
-#include "Snap7/snap7_libmain.h"
+#include "snap7/snap7_libmain.h"
 
 //for multithreading, mutex
 std::condition_variable cv;
 std::mutex m;
+
+typedef std::shared_ptr<otsim::msgbus::Pusher> Pusher;
 
 void signalHandler(int) {
     //if threads waiting for *this, notify_one unblocks one of the waiting threads
@@ -30,17 +34,17 @@ There is still a thread that is used to run the channel listener, but it does no
 normally.
 This class should accomplish all pushing and interface through zeromq via the msgbus pusher class
 */
-class ChannelListener{
+class Listener {
 public:
-    static std::shared_ptr<ChannelListener> Create(std::string name, otsim::msgbus::Pusher pusher) {
-        return std::make_shared<ChannelListener>(name, pusher);
+    static std::shared_ptr<Listener> Create(std::string name, otsim::msgbus::Pusher pusher) {
+        return std::make_shared<Listener>(name, pusher);
     }
 
-    ChannelListener(std::string name, otsim::msgbus::Pusher pusher) : name(name), pusher(pusher) {
-        thread = std::thread(std::bind(&ChannelListener::Run, this));
+    Listener(std::string name, otsim::msgbus::Pusher pusher) : name(name), pusher(pusher) {
+        thread = std::thread(std::bind(&Listener::Run, this));
     }
 
-    ~ChannelListener() {};
+    ~Listener() {};
 
     //primary loop, which continually publishes on 5 second intervals
     void Run() {
@@ -93,7 +97,7 @@ int main(int argc, char** argv){
     std::vector<std::shared_ptr<otsim::snap7::S7Object>> clients;
 
     // Keep client channel listeners in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<ChannelListener>> listeners;
+    std::vector<std::shared_ptr<Listener>> listeners;
 
     //keep subscribers in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<otsim::msgbus::Subscriber>> subscribers;
@@ -246,7 +250,7 @@ int main(int argc, char** argv){
                 Client = otsim::snap7::Cli_Create();
 
                 //create a channel listener object
-                auto listener = ChannelListener::Create(name, pusher);
+                auto listener = Listener::Create(name, pusher);
 
                 /*
                 set the connection type for the device based on what is provided in the xml.
@@ -357,7 +361,7 @@ int main(int argc, char** argv){
 
             //push back the subscriber created for this s7comm device
             sub->Start("RUNTIME");
-            subscrubers.push_back(sub);
+            subscribers.push_back(sub);
 
         } //end of S7COMM loop
     } //end of BOOST_FOREACH loop
