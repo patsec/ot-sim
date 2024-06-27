@@ -82,15 +82,6 @@
 /home/htoohey/repos/ot-sim/src/c++/dnp3/CMakeFiles/install.dir
 /home/htoohey/repos/ot-sim/src/c++/dnp3/CMakeFiles/install/local.dir
 /home/htoohey/repos/ot-sim/src/c++/dnp3/CMakeFiles/install/strip.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/ot-sim-snap7.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/package.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/package_source.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/edit_cache.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/rebuild_cache.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/list_install_components.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/install.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/install/local.dir
-/home/htoohey/repos/ot-sim/src/c++/snap7/CMakeFiles/install/strip.dir
 /home/htoohey/repos/ot-sim/src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir
 /home/htoohey/repos/ot-sim/src/c++/msgbus/CMakeFiles/package.dir
 /home/htoohey/repos/ot-sim/src/c++/msgbus/CMakeFiles/package_source.dir

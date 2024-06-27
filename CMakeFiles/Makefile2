@@ -101,7 +101,6 @@ src/c++/all: src/c++/deps/fmt/all
 src/c++/all: src/c++/deps/json/all
 src/c++/all: src/c++/deps/opendnp3/all
 src/c++/all: src/c++/dnp3/all
-src/c++/all: src/c++/snap7/all
 src/c++/all: src/c++/msgbus/all
 src/c++/all: src/c++/cmd/ot-sim-dnp3-module/all
 src/c++/all: src/c++/cmd/ot-sim-s7comm-module/all
@@ -113,7 +112,6 @@ src/c++/preinstall: src/c++/deps/fmt/preinstall
 src/c++/preinstall: src/c++/deps/json/preinstall
 src/c++/preinstall: src/c++/deps/opendnp3/preinstall
 src/c++/preinstall: src/c++/dnp3/preinstall
-src/c++/preinstall: src/c++/snap7/preinstall
 src/c++/preinstall: src/c++/msgbus/preinstall
 src/c++/preinstall: src/c++/cmd/ot-sim-dnp3-module/preinstall
 src/c++/preinstall: src/c++/cmd/ot-sim-s7comm-module/preinstall
@@ -125,7 +123,6 @@ src/c++/clean: src/c++/deps/fmt/clean
 src/c++/clean: src/c++/deps/json/clean
 src/c++/clean: src/c++/deps/opendnp3/clean
 src/c++/clean: src/c++/dnp3/clean
-src/c++/clean: src/c++/snap7/clean
 src/c++/clean: src/c++/msgbus/clean
 src/c++/clean: src/c++/cmd/ot-sim-dnp3-module/clean
 src/c++/clean: src/c++/cmd/ot-sim-s7comm-module/clean
@@ -267,21 +264,6 @@ src/c++/msgbus/clean: src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/clean
 .PHONY : src/c++/msgbus/clean
 
 #=============================================================================
-# Directory level rules for directory src/c++/snap7
-
-# Recursive "all" directory target.
-src/c++/snap7/all: src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all
-.PHONY : src/c++/snap7/all
-
-# Recursive "preinstall" directory target.
-src/c++/snap7/preinstall:
-.PHONY : src/c++/snap7/preinstall
-
-# Recursive "clean" directory target.
-src/c++/snap7/clean: src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/clean
-.PHONY : src/c++/snap7/clean
-
-#=============================================================================
 # Directory level rules for directory src/c/cmd/ot-sim-message-bus
 
 # Recursive "all" directory target.
@@ -303,7 +285,7 @@ src/c/cmd/ot-sim-message-bus/clean: src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-s
 src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/build.make src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/build.make src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=92 "Built target ot-sim-message-bus"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=97 "Built target ot-sim-message-bus"
 .PHONY : src/c/cmd/ot-sim-message-bus/CMakeFiles/ot-sim-message-bus.dir/all
 
 # Build rule for subdir invocation for target.
@@ -355,12 +337,12 @@ src/c++/deps/fmt/CMakeFiles/fmt.dir/clean:
 src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/build.make src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/build.make src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88 "Built target opendnp3"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93 "Built target opendnp3"
 .PHONY : src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/all
 
 # Build rule for subdir invocation for target.
 src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 87
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 92
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
 .PHONY : src/c++/deps/opendnp3/cpp/lib/CMakeFiles/opendnp3.dir/rule
@@ -383,12 +365,12 @@ src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/all: src/c++/deps/opendnp3/cpp/lib/CMake
 src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/all: src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
 	$(MAKE) $(MAKESILENT) -f src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/build.make src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/build.make src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=89,90 "Built target ot-sim-dnp3"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=94,95 "Built target ot-sim-dnp3"
 .PHONY : src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/all
 
 # Build rule for subdir invocation for target.
 src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 91
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 97
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
 .PHONY : src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/rule
@@ -403,45 +385,18 @@ src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/clean:
 .PHONY : src/c++/dnp3/CMakeFiles/ot-sim-dnp3.dir/clean
 
 #=============================================================================
-# Target rules for target src/c++/snap7/CMakeFiles/ot-sim-snap7.dir
-
-# All Build rule for target.
-src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all: src/c++/deps/fmt/CMakeFiles/fmt.dir/all
-src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all: src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
-	$(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/depend
-	$(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=95,96,97,98,99,100 "Built target ot-sim-snap7"
-.PHONY : src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all
-
-# Build rule for subdir invocation for target.
-src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
-.PHONY : src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/rule
-
-# Convenience name for target.
-ot-sim-snap7: src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/rule
-.PHONY : ot-sim-snap7
-
-# clean rule for target.
-src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/clean:
-	$(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/clean
-.PHONY : src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/clean
-
-#=============================================================================
 # Target rules for target src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir
 
 # All Build rule for target.
 src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/build.make src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/build.make src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=93 "Built target ot-sim-msgbus"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=98,99 "Built target ot-sim-msgbus"
 .PHONY : src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
 
 # Build rule for subdir invocation for target.
 src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
 .PHONY : src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/rule
@@ -465,12 +420,12 @@ src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/all: src/c++/dn
 src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/all: src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
 	$(MAKE) $(MAKESILENT) -f src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/build.make src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/build.make src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=91 "Built target ot-sim-dnp3-module"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=96 "Built target ot-sim-dnp3-module"
 .PHONY : src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/all
 
 # Build rule for subdir invocation for target.
 src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 92
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 98
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
 .PHONY : src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/rule
@@ -489,16 +444,15 @@ src/c++/cmd/ot-sim-dnp3-module/CMakeFiles/ot-sim-dnp3-module.dir/clean:
 
 # All Build rule for target.
 src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/all: src/c++/deps/fmt/CMakeFiles/fmt.dir/all
-src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/all: src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/all
 src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/all: src/c++/msgbus/CMakeFiles/ot-sim-msgbus.dir/all
 	$(MAKE) $(MAKESILENT) -f src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/build.make src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/build.make src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=94 "Built target ot-sim-s7comm-module"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/htoohey/repos/ot-sim/CMakeFiles --progress-num=100 "Built target ot-sim-s7comm-module"
 .PHONY : src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/all
 
 # Build rule for subdir invocation for target.
 src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/htoohey/repos/ot-sim/CMakeFiles 0
 .PHONY : src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/rule

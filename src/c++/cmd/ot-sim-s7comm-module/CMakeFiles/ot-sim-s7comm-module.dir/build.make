@@ -93,7 +93,6 @@ ot__sim__s7comm__module_EXTERNAL_OBJECTS =
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/main.cpp.o
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/cmd/ot-sim-s7comm-module/CMakeFiles/ot-sim-s7comm-module.dir/build.make
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/deps/fmt/libfmt.a
-src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/snap7/libot-sim-snap7.so
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/msgbus/libot-sim-msgbus.so
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: src/c++/deps/fmt/libfmt.a
 src/c++/cmd/ot-sim-s7comm-module/ot-sim-s7comm-module: /usr/lib/x86_64-linux-gnu/libzmq.so

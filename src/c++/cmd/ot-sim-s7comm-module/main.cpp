@@ -18,6 +18,7 @@
 //for multithreading, mutex
 std::condition_variable cv;
 std::mutex m;
+namespace pt = boost::property_tree;
 
 typedef std::shared_ptr<otsim::msgbus::Pusher> Pusher;
 
@@ -181,7 +182,7 @@ int main(int argc, char** argv){
                     auto endpoint = device.get<std::string>("endpoint");
 
                     std::string ip = endpoint.substr(0, endpoint.find(":"));
-                    std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
+                    //std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
 
                     //set the ip address that the server will start to when started (doesn't start until the end of this loop)
                     otsim::snap7::Srv_StartTo(Server, ip);
@@ -196,7 +197,7 @@ int main(int argc, char** argv){
                 otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
                 //Add the envelope's (statusHandler's) version and kind
-                auto version = device.get<uint16_t>("version", "v1");
+                auto version = device.get<std::uint16_t>("version", "v1");
                 statusHandler.version=version;
 
                 std::string kind = "Status";
@@ -213,8 +214,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::string>("value","");
-                    p.ts = point.get<std::string>("ts","");
+                    p.value = point.get<std::double>("value","");
+                    p.ts = point.get<std::uint64>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -231,8 +232,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::string>("value","");
-                    p.ts = point.get<std::string>("ts","");
+                    p.value = point.get<std::double>("value","");
+                    p.ts = point.get<std::uint64>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -246,8 +247,8 @@ int main(int argc, char** argv){
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object
-                otsim::snap7::S7Object Client;
-                Client = otsim::snap7::Cli_Create();
+                otsim::snap7::S7Object client;
+                client = otsim::snap7::Cli_Create();
 
                 //create a channel listener object
                 auto listener = Listener::Create(name, pusher);
@@ -259,8 +260,8 @@ int main(int argc, char** argv){
                 s7 basic is likely the main/only connection type for more clients.
                 */
                 try {
-                    auto connectionType = device.get<uint16_t>("connection-type", 3);
-                    otsim::snap7::Cli_SetConnectionType(Client, connectionType);
+                    auto connectionType = device.get<std::uint16_t>("connection-type", 3);
+                    otsim::snap7::Cli_SetConnectionType(client, connectionType);
                 } catch (pt::ptree_bad_path&) {
                     std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
                 }
@@ -270,20 +271,20 @@ int main(int argc, char** argv){
                 local TSAP and remote TSAP are stored as 16 bit unsigned integers. address is stored as a pointer
                 to an ANSI string; "192.168.1.12" for example. 
                 */
-                auto ip_address = device.get<uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
+                auto ip_address = device.get<std::uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
 
-                auto local_tsap = device.get<uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
+                auto local_tsap = device.get<std::uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
 
-                auto remote_tsap = device.get<uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
+                auto remote_tsap = device.get<std::uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                otsim::snap7::Cli_SetConnectionParams(Client, ip_address, local_tsap, remote_tsap); 
+                otsim::snap7::Cli_SetConnectionParams(client, ip_address, local_tsap, remote_tsap); 
 
                 /*
                 declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
                 */
-                auto rack = device.get<uint16_t>("rack", 0);
-                auto slot = device.get<uint16_t>("slot", 2);
-                otsim::snap7::Cli_ConnectTo(Client, ip_address, rack, slot);
+                auto rack = device.get<std::uint16_t>("rack", 0);
+                auto slot = device.get<std::uint16_t>("slot", 2);
+                otsim::snap7::Cli_ConnectTo(client, ip_address, rack, slot);
 
                 /*
                 We need to create a handler here for the server for subscribing purposes.
@@ -294,7 +295,7 @@ int main(int argc, char** argv){
                 otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
 
                 //Add the envelope's (updateHandler's) version and kind
-                auto version = device.get<uint16_t>("version", "v1");
+                auto version = device.get<std::string>("version", "v1");
                 updateHandler.version=version;
 
                 std::string kind = "Update";
@@ -311,8 +312,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag, value, and ts
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::string>("value","");
-                    p.ts = point.get<std::string>("ts","");
+                    p.value = point.get<std::double>("value","");
+                    p.ts = point.get<std::uint64>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
@@ -334,8 +335,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::string>("value","");
-                    p.ts = point.get<std::string>("ts","");
+                    p.value = point.get<std::double>("value","");
+                    p.ts = point.get<std::uint64>("ts","");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
@@ -349,9 +350,9 @@ int main(int argc, char** argv){
                 }
 
                 //connect
-                otsim::snap7::Cli_Connect(Client);
+                otsim::snap7::Cli_Connect(client);
 
-                clients.push_back(Client);
+                clients.push_back(client);
 
                 listeners.push_back(listener);
             } else {

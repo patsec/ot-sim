@@ -234,19 +234,6 @@ ot-sim-dnp3/fast:
 .PHONY : ot-sim-dnp3/fast
 
 #=============================================================================
-# Target rules for targets named ot-sim-snap7
-
-# Build rule for target.
-ot-sim-snap7: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ot-sim-snap7
-.PHONY : ot-sim-snap7
-
-# fast build rule for target.
-ot-sim-snap7/fast:
-	$(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build
-.PHONY : ot-sim-snap7/fast
-
-#=============================================================================
 # Target rules for targets named ot-sim-msgbus
 
 # Build rule for target.
@@ -306,7 +293,6 @@ help:
 	@echo "... ot-sim-message-bus"
 	@echo "... ot-sim-msgbus"
 	@echo "... ot-sim-s7comm-module"
-	@echo "... ot-sim-snap7"
 .PHONY : help
 
 
