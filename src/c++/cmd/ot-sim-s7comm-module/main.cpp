@@ -197,7 +197,7 @@ int main(int argc, char** argv){
                 otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
                 //Add the envelope's (statusHandler's) version and kind
-                auto version = device.get<std::uint16_t>("version", "v1");
+                auto version = device.get<std::string>("version", "v1");
                 statusHandler.version=version;
 
                 std::string kind = "Status";
@@ -214,8 +214,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::double>("value","");
-                    p.ts = point.get<std::uint64>("ts","");
+                    p.value = point.get<double>("value");
+                    p.ts = point.get<std::uint64_t>("ts");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -232,8 +232,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::double>("value","");
-                    p.ts = point.get<std::uint64>("ts","");
+                    p.value = point.get<double>("value");
+                    p.ts = point.get<std::uint64_t>("ts");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
@@ -271,7 +271,7 @@ int main(int argc, char** argv){
                 local TSAP and remote TSAP are stored as 16 bit unsigned integers. address is stored as a pointer
                 to an ANSI string; "192.168.1.12" for example. 
                 */
-                auto ip_address = device.get<std::uint16_t>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
+                auto ip_address = device.get<std::string>("ip-address", "192.168.0.0"); //get IP, defaults to 192.168.0.0 arbitrarily
 
                 auto local_tsap = device.get<std::uint16_t>("local-tsap", 10.00); //get local TSAP, defaults to 10.00
 
@@ -312,8 +312,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag, value, and ts
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::double>("value","");
-                    p.ts = point.get<std::uint64>("ts","");
+                    p.value = point.get<double>("value");
+                    p.ts = point.get<std::uint64_t>("ts");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
@@ -335,8 +335,8 @@ int main(int argc, char** argv){
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<std::double>("value","");
-                    p.ts = point.get<std::uint64>("ts","");
+                    p.value = point.get<double>("value");
+                    p.ts = point.get<std::uint64_t>("ts");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Update update;
