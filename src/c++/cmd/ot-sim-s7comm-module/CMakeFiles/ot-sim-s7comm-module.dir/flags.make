@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
 
-CXX_INCLUDES = -I/home/htoohey/repos/ot-sim/src/c++/deps -I/home/htoohey/repos/ot-sim/src/c++/deps/fmt/include -I/home/htoohey/repos/ot-sim/src/c++ -I/home/htoohey/repos/ot-sim/src/c++/deps/cppzmq -I/home/htoohey/repos/ot-sim/src/c++/deps/json/single_include
+CXX_INCLUDES = -I/home/htoohey/repos/ot-sim/src/c++/deps -I/home/htoohey/repos/ot-sim/src/c++/deps/fmt/include -I/home/htoohey/repos/ot-sim/src/c++/snap7 -I/home/htoohey/repos/ot-sim/src/c++ -I/home/htoohey/repos/ot-sim/src/c++/deps/cppzmq -I/home/htoohey/repos/ot-sim/src/c++/deps/json/single_include
 
 CXX_FLAGS =  -pthread -Wall -fPIE
 

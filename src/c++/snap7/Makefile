@@ -195,293 +195,293 @@ ot-sim-snap7/fast:
 	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build
 .PHONY : ot-sim-snap7/fast
 
-core/s7_client.o: core/s7_client.cpp.o
-.PHONY : core/s7_client.o
+s7_client.o: s7_client.cpp.o
+.PHONY : s7_client.o
 
 # target to build an object file
-core/s7_client.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_client.cpp.o
-.PHONY : core/s7_client.cpp.o
+s7_client.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_client.cpp.o
+.PHONY : s7_client.cpp.o
 
-core/s7_client.i: core/s7_client.cpp.i
-.PHONY : core/s7_client.i
+s7_client.i: s7_client.cpp.i
+.PHONY : s7_client.i
 
 # target to preprocess a source file
-core/s7_client.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_client.cpp.i
-.PHONY : core/s7_client.cpp.i
+s7_client.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_client.cpp.i
+.PHONY : s7_client.cpp.i
 
-core/s7_client.s: core/s7_client.cpp.s
-.PHONY : core/s7_client.s
+s7_client.s: s7_client.cpp.s
+.PHONY : s7_client.s
 
 # target to generate assembly for a file
-core/s7_client.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_client.cpp.s
-.PHONY : core/s7_client.cpp.s
+s7_client.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_client.cpp.s
+.PHONY : s7_client.cpp.s
 
-core/s7_isotcp.o: core/s7_isotcp.cpp.o
-.PHONY : core/s7_isotcp.o
+s7_isotcp.o: s7_isotcp.cpp.o
+.PHONY : s7_isotcp.o
 
 # target to build an object file
-core/s7_isotcp.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_isotcp.cpp.o
-.PHONY : core/s7_isotcp.cpp.o
+s7_isotcp.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_isotcp.cpp.o
+.PHONY : s7_isotcp.cpp.o
 
-core/s7_isotcp.i: core/s7_isotcp.cpp.i
-.PHONY : core/s7_isotcp.i
+s7_isotcp.i: s7_isotcp.cpp.i
+.PHONY : s7_isotcp.i
 
 # target to preprocess a source file
-core/s7_isotcp.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_isotcp.cpp.i
-.PHONY : core/s7_isotcp.cpp.i
+s7_isotcp.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_isotcp.cpp.i
+.PHONY : s7_isotcp.cpp.i
 
-core/s7_isotcp.s: core/s7_isotcp.cpp.s
-.PHONY : core/s7_isotcp.s
+s7_isotcp.s: s7_isotcp.cpp.s
+.PHONY : s7_isotcp.s
 
 # target to generate assembly for a file
-core/s7_isotcp.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_isotcp.cpp.s
-.PHONY : core/s7_isotcp.cpp.s
+s7_isotcp.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_isotcp.cpp.s
+.PHONY : s7_isotcp.cpp.s
 
-core/s7_micro_client.o: core/s7_micro_client.cpp.o
-.PHONY : core/s7_micro_client.o
+s7_micro_client.o: s7_micro_client.cpp.o
+.PHONY : s7_micro_client.o
 
 # target to build an object file
-core/s7_micro_client.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_micro_client.cpp.o
-.PHONY : core/s7_micro_client.cpp.o
+s7_micro_client.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_micro_client.cpp.o
+.PHONY : s7_micro_client.cpp.o
 
-core/s7_micro_client.i: core/s7_micro_client.cpp.i
-.PHONY : core/s7_micro_client.i
+s7_micro_client.i: s7_micro_client.cpp.i
+.PHONY : s7_micro_client.i
 
 # target to preprocess a source file
-core/s7_micro_client.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_micro_client.cpp.i
-.PHONY : core/s7_micro_client.cpp.i
+s7_micro_client.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_micro_client.cpp.i
+.PHONY : s7_micro_client.cpp.i
 
-core/s7_micro_client.s: core/s7_micro_client.cpp.s
-.PHONY : core/s7_micro_client.s
+s7_micro_client.s: s7_micro_client.cpp.s
+.PHONY : s7_micro_client.s
 
 # target to generate assembly for a file
-core/s7_micro_client.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_micro_client.cpp.s
-.PHONY : core/s7_micro_client.cpp.s
+s7_micro_client.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_micro_client.cpp.s
+.PHONY : s7_micro_client.cpp.s
 
-core/s7_partner.o: core/s7_partner.cpp.o
-.PHONY : core/s7_partner.o
+s7_partner.o: s7_partner.cpp.o
+.PHONY : s7_partner.o
 
 # target to build an object file
-core/s7_partner.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_partner.cpp.o
-.PHONY : core/s7_partner.cpp.o
+s7_partner.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_partner.cpp.o
+.PHONY : s7_partner.cpp.o
 
-core/s7_partner.i: core/s7_partner.cpp.i
-.PHONY : core/s7_partner.i
+s7_partner.i: s7_partner.cpp.i
+.PHONY : s7_partner.i
 
 # target to preprocess a source file
-core/s7_partner.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_partner.cpp.i
-.PHONY : core/s7_partner.cpp.i
+s7_partner.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_partner.cpp.i
+.PHONY : s7_partner.cpp.i
 
-core/s7_partner.s: core/s7_partner.cpp.s
-.PHONY : core/s7_partner.s
+s7_partner.s: s7_partner.cpp.s
+.PHONY : s7_partner.s
 
 # target to generate assembly for a file
-core/s7_partner.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_partner.cpp.s
-.PHONY : core/s7_partner.cpp.s
+s7_partner.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_partner.cpp.s
+.PHONY : s7_partner.cpp.s
 
-core/s7_peer.o: core/s7_peer.cpp.o
-.PHONY : core/s7_peer.o
+s7_peer.o: s7_peer.cpp.o
+.PHONY : s7_peer.o
 
 # target to build an object file
-core/s7_peer.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_peer.cpp.o
-.PHONY : core/s7_peer.cpp.o
+s7_peer.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_peer.cpp.o
+.PHONY : s7_peer.cpp.o
 
-core/s7_peer.i: core/s7_peer.cpp.i
-.PHONY : core/s7_peer.i
+s7_peer.i: s7_peer.cpp.i
+.PHONY : s7_peer.i
 
 # target to preprocess a source file
-core/s7_peer.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_peer.cpp.i
-.PHONY : core/s7_peer.cpp.i
+s7_peer.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_peer.cpp.i
+.PHONY : s7_peer.cpp.i
 
-core/s7_peer.s: core/s7_peer.cpp.s
-.PHONY : core/s7_peer.s
+s7_peer.s: s7_peer.cpp.s
+.PHONY : s7_peer.s
 
 # target to generate assembly for a file
-core/s7_peer.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_peer.cpp.s
-.PHONY : core/s7_peer.cpp.s
+s7_peer.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_peer.cpp.s
+.PHONY : s7_peer.cpp.s
 
-core/s7_server.o: core/s7_server.cpp.o
-.PHONY : core/s7_server.o
+s7_server.o: s7_server.cpp.o
+.PHONY : s7_server.o
 
 # target to build an object file
-core/s7_server.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_server.cpp.o
-.PHONY : core/s7_server.cpp.o
+s7_server.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_server.cpp.o
+.PHONY : s7_server.cpp.o
 
-core/s7_server.i: core/s7_server.cpp.i
-.PHONY : core/s7_server.i
+s7_server.i: s7_server.cpp.i
+.PHONY : s7_server.i
 
 # target to preprocess a source file
-core/s7_server.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_server.cpp.i
-.PHONY : core/s7_server.cpp.i
+s7_server.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_server.cpp.i
+.PHONY : s7_server.cpp.i
 
-core/s7_server.s: core/s7_server.cpp.s
-.PHONY : core/s7_server.s
+s7_server.s: s7_server.cpp.s
+.PHONY : s7_server.s
 
 # target to generate assembly for a file
-core/s7_server.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_server.cpp.s
-.PHONY : core/s7_server.cpp.s
+s7_server.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_server.cpp.s
+.PHONY : s7_server.cpp.s
 
-core/s7_text.o: core/s7_text.cpp.o
-.PHONY : core/s7_text.o
+s7_text.o: s7_text.cpp.o
+.PHONY : s7_text.o
 
 # target to build an object file
-core/s7_text.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_text.cpp.o
-.PHONY : core/s7_text.cpp.o
+s7_text.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_text.cpp.o
+.PHONY : s7_text.cpp.o
 
-core/s7_text.i: core/s7_text.cpp.i
-.PHONY : core/s7_text.i
+s7_text.i: s7_text.cpp.i
+.PHONY : s7_text.i
 
 # target to preprocess a source file
-core/s7_text.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_text.cpp.i
-.PHONY : core/s7_text.cpp.i
+s7_text.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_text.cpp.i
+.PHONY : s7_text.cpp.i
 
-core/s7_text.s: core/s7_text.cpp.s
-.PHONY : core/s7_text.s
+s7_text.s: s7_text.cpp.s
+.PHONY : s7_text.s
 
 # target to generate assembly for a file
-core/s7_text.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/core/s7_text.cpp.s
-.PHONY : core/s7_text.cpp.s
+s7_text.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/s7_text.cpp.s
+.PHONY : s7_text.cpp.s
 
-lib/snap7_libmain.o: lib/snap7_libmain.cpp.o
-.PHONY : lib/snap7_libmain.o
+snap7_libmain.o: snap7_libmain.cpp.o
+.PHONY : snap7_libmain.o
 
 # target to build an object file
-lib/snap7_libmain.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/lib/snap7_libmain.cpp.o
-.PHONY : lib/snap7_libmain.cpp.o
+snap7_libmain.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap7_libmain.cpp.o
+.PHONY : snap7_libmain.cpp.o
 
-lib/snap7_libmain.i: lib/snap7_libmain.cpp.i
-.PHONY : lib/snap7_libmain.i
+snap7_libmain.i: snap7_libmain.cpp.i
+.PHONY : snap7_libmain.i
 
 # target to preprocess a source file
-lib/snap7_libmain.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/lib/snap7_libmain.cpp.i
-.PHONY : lib/snap7_libmain.cpp.i
+snap7_libmain.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap7_libmain.cpp.i
+.PHONY : snap7_libmain.cpp.i
 
-lib/snap7_libmain.s: lib/snap7_libmain.cpp.s
-.PHONY : lib/snap7_libmain.s
+snap7_libmain.s: snap7_libmain.cpp.s
+.PHONY : snap7_libmain.s
 
 # target to generate assembly for a file
-lib/snap7_libmain.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/lib/snap7_libmain.cpp.s
-.PHONY : lib/snap7_libmain.cpp.s
+snap7_libmain.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap7_libmain.cpp.s
+.PHONY : snap7_libmain.cpp.s
 
-sys/snap_msgsock.o: sys/snap_msgsock.cpp.o
-.PHONY : sys/snap_msgsock.o
+snap_msgsock.o: snap_msgsock.cpp.o
+.PHONY : snap_msgsock.o
 
 # target to build an object file
-sys/snap_msgsock.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_msgsock.cpp.o
-.PHONY : sys/snap_msgsock.cpp.o
+snap_msgsock.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_msgsock.cpp.o
+.PHONY : snap_msgsock.cpp.o
 
-sys/snap_msgsock.i: sys/snap_msgsock.cpp.i
-.PHONY : sys/snap_msgsock.i
+snap_msgsock.i: snap_msgsock.cpp.i
+.PHONY : snap_msgsock.i
 
 # target to preprocess a source file
-sys/snap_msgsock.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_msgsock.cpp.i
-.PHONY : sys/snap_msgsock.cpp.i
+snap_msgsock.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_msgsock.cpp.i
+.PHONY : snap_msgsock.cpp.i
 
-sys/snap_msgsock.s: sys/snap_msgsock.cpp.s
-.PHONY : sys/snap_msgsock.s
+snap_msgsock.s: snap_msgsock.cpp.s
+.PHONY : snap_msgsock.s
 
 # target to generate assembly for a file
-sys/snap_msgsock.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_msgsock.cpp.s
-.PHONY : sys/snap_msgsock.cpp.s
+snap_msgsock.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_msgsock.cpp.s
+.PHONY : snap_msgsock.cpp.s
 
-sys/snap_sysutils.o: sys/snap_sysutils.cpp.o
-.PHONY : sys/snap_sysutils.o
+snap_sysutils.o: snap_sysutils.cpp.o
+.PHONY : snap_sysutils.o
 
 # target to build an object file
-sys/snap_sysutils.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_sysutils.cpp.o
-.PHONY : sys/snap_sysutils.cpp.o
+snap_sysutils.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_sysutils.cpp.o
+.PHONY : snap_sysutils.cpp.o
 
-sys/snap_sysutils.i: sys/snap_sysutils.cpp.i
-.PHONY : sys/snap_sysutils.i
+snap_sysutils.i: snap_sysutils.cpp.i
+.PHONY : snap_sysutils.i
 
 # target to preprocess a source file
-sys/snap_sysutils.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_sysutils.cpp.i
-.PHONY : sys/snap_sysutils.cpp.i
+snap_sysutils.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_sysutils.cpp.i
+.PHONY : snap_sysutils.cpp.i
 
-sys/snap_sysutils.s: sys/snap_sysutils.cpp.s
-.PHONY : sys/snap_sysutils.s
+snap_sysutils.s: snap_sysutils.cpp.s
+.PHONY : snap_sysutils.s
 
 # target to generate assembly for a file
-sys/snap_sysutils.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_sysutils.cpp.s
-.PHONY : sys/snap_sysutils.cpp.s
+snap_sysutils.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_sysutils.cpp.s
+.PHONY : snap_sysutils.cpp.s
 
-sys/snap_tcpsrvr.o: sys/snap_tcpsrvr.cpp.o
-.PHONY : sys/snap_tcpsrvr.o
+snap_tcpsrvr.o: snap_tcpsrvr.cpp.o
+.PHONY : snap_tcpsrvr.o
 
 # target to build an object file
-sys/snap_tcpsrvr.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_tcpsrvr.cpp.o
-.PHONY : sys/snap_tcpsrvr.cpp.o
+snap_tcpsrvr.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_tcpsrvr.cpp.o
+.PHONY : snap_tcpsrvr.cpp.o
 
-sys/snap_tcpsrvr.i: sys/snap_tcpsrvr.cpp.i
-.PHONY : sys/snap_tcpsrvr.i
+snap_tcpsrvr.i: snap_tcpsrvr.cpp.i
+.PHONY : snap_tcpsrvr.i
 
 # target to preprocess a source file
-sys/snap_tcpsrvr.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_tcpsrvr.cpp.i
-.PHONY : sys/snap_tcpsrvr.cpp.i
+snap_tcpsrvr.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_tcpsrvr.cpp.i
+.PHONY : snap_tcpsrvr.cpp.i
 
-sys/snap_tcpsrvr.s: sys/snap_tcpsrvr.cpp.s
-.PHONY : sys/snap_tcpsrvr.s
+snap_tcpsrvr.s: snap_tcpsrvr.cpp.s
+.PHONY : snap_tcpsrvr.s
 
 # target to generate assembly for a file
-sys/snap_tcpsrvr.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_tcpsrvr.cpp.s
-.PHONY : sys/snap_tcpsrvr.cpp.s
+snap_tcpsrvr.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_tcpsrvr.cpp.s
+.PHONY : snap_tcpsrvr.cpp.s
 
-sys/snap_threads.o: sys/snap_threads.cpp.o
-.PHONY : sys/snap_threads.o
+snap_threads.o: snap_threads.cpp.o
+.PHONY : snap_threads.o
 
 # target to build an object file
-sys/snap_threads.cpp.o:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_threads.cpp.o
-.PHONY : sys/snap_threads.cpp.o
+snap_threads.cpp.o:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_threads.cpp.o
+.PHONY : snap_threads.cpp.o
 
-sys/snap_threads.i: sys/snap_threads.cpp.i
-.PHONY : sys/snap_threads.i
+snap_threads.i: snap_threads.cpp.i
+.PHONY : snap_threads.i
 
 # target to preprocess a source file
-sys/snap_threads.cpp.i:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_threads.cpp.i
-.PHONY : sys/snap_threads.cpp.i
+snap_threads.cpp.i:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_threads.cpp.i
+.PHONY : snap_threads.cpp.i
 
-sys/snap_threads.s: sys/snap_threads.cpp.s
-.PHONY : sys/snap_threads.s
+snap_threads.s: snap_threads.cpp.s
+.PHONY : snap_threads.s
 
 # target to generate assembly for a file
-sys/snap_threads.cpp.s:
-	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/sys/snap_threads.cpp.s
-.PHONY : sys/snap_threads.cpp.s
+snap_threads.cpp.s:
+	cd /home/htoohey/repos/ot-sim && $(MAKE) $(MAKESILENT) -f src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/build.make src/c++/snap7/CMakeFiles/ot-sim-snap7.dir/snap_threads.cpp.s
+.PHONY : snap_threads.cpp.s
 
 # Help Target
 help:
@@ -498,42 +498,42 @@ help:
 	@echo "... package_source"
 	@echo "... rebuild_cache"
 	@echo "... ot-sim-snap7"
-	@echo "... core/s7_client.o"
-	@echo "... core/s7_client.i"
-	@echo "... core/s7_client.s"
-	@echo "... core/s7_isotcp.o"
-	@echo "... core/s7_isotcp.i"
-	@echo "... core/s7_isotcp.s"
-	@echo "... core/s7_micro_client.o"
-	@echo "... core/s7_micro_client.i"
-	@echo "... core/s7_micro_client.s"
-	@echo "... core/s7_partner.o"
-	@echo "... core/s7_partner.i"
-	@echo "... core/s7_partner.s"
-	@echo "... core/s7_peer.o"
-	@echo "... core/s7_peer.i"
-	@echo "... core/s7_peer.s"
-	@echo "... core/s7_server.o"
-	@echo "... core/s7_server.i"
-	@echo "... core/s7_server.s"
-	@echo "... core/s7_text.o"
-	@echo "... core/s7_text.i"
-	@echo "... core/s7_text.s"
-	@echo "... lib/snap7_libmain.o"
-	@echo "... lib/snap7_libmain.i"
-	@echo "... lib/snap7_libmain.s"
-	@echo "... sys/snap_msgsock.o"
-	@echo "... sys/snap_msgsock.i"
-	@echo "... sys/snap_msgsock.s"
-	@echo "... sys/snap_sysutils.o"
-	@echo "... sys/snap_sysutils.i"
-	@echo "... sys/snap_sysutils.s"
-	@echo "... sys/snap_tcpsrvr.o"
-	@echo "... sys/snap_tcpsrvr.i"
-	@echo "... sys/snap_tcpsrvr.s"
-	@echo "... sys/snap_threads.o"
-	@echo "... sys/snap_threads.i"
-	@echo "... sys/snap_threads.s"
+	@echo "... s7_client.o"
+	@echo "... s7_client.i"
+	@echo "... s7_client.s"
+	@echo "... s7_isotcp.o"
+	@echo "... s7_isotcp.i"
+	@echo "... s7_isotcp.s"
+	@echo "... s7_micro_client.o"
+	@echo "... s7_micro_client.i"
+	@echo "... s7_micro_client.s"
+	@echo "... s7_partner.o"
+	@echo "... s7_partner.i"
+	@echo "... s7_partner.s"
+	@echo "... s7_peer.o"
+	@echo "... s7_peer.i"
+	@echo "... s7_peer.s"
+	@echo "... s7_server.o"
+	@echo "... s7_server.i"
+	@echo "... s7_server.s"
+	@echo "... s7_text.o"
+	@echo "... s7_text.i"
+	@echo "... s7_text.s"
+	@echo "... snap7_libmain.o"
+	@echo "... snap7_libmain.i"
+	@echo "... snap7_libmain.s"
+	@echo "... snap_msgsock.o"
+	@echo "... snap_msgsock.i"
+	@echo "... snap_msgsock.s"
+	@echo "... snap_sysutils.o"
+	@echo "... snap_sysutils.i"
+	@echo "... snap_sysutils.s"
+	@echo "... snap_tcpsrvr.o"
+	@echo "... snap_tcpsrvr.i"
+	@echo "... snap_tcpsrvr.s"
+	@echo "... snap_threads.o"
+	@echo "... snap_threads.i"
+	@echo "... snap_threads.s"
 .PHONY : help
 
 

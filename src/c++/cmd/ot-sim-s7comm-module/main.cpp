@@ -29,7 +29,7 @@ void signalHandler(int) {
 
 /*
 LISTENER CLASS TO CONTINUALLY PUBLISH MESSAGES TO THE MSGBUS <------------- similar to DNP3 module
-The main difference between this channel listener and the dnp3 channel listener is that this one does not deal with threading
+The main difference between this listener and the dnp3 channel listener is that this one does not deal with threading
 because snap7 does not implement channels or channel states, which dnp3 bases its threading on.
 There is still a thread that is used to run the channel listener, but it does not have any mutex implementation, so it should just work
 normally.
@@ -92,10 +92,10 @@ int main(int argc, char** argv){
     }
 
     //keep servers in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<otsim::snap7::S7Object>> servers;         
+    std::vector<std::shared_ptr<snap7::S7Object>> servers;         
 
     //keep clients in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<otsim::snap7::S7Object>> clients;
+    std::vector<std::shared_ptr<snap7::S7Object>> clients;
 
     // Keep client channel listeners in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<Listener>> listeners;
@@ -174,8 +174,8 @@ int main(int argc, char** argv){
                 std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
 
                 //create the server object
-                otsim::snap7::S7Object Server;
-                Server = otsim::snap7::Srv_Create();
+                snap7::S7Object Server;
+                Server = snap7::Srv_Create();
 
                 //get the endpoint and set it
                 if (device.get_child_optional("endpoint")) {
@@ -185,7 +185,7 @@ int main(int argc, char** argv){
                     //std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
 
                     //set the ip address that the server will start to when started (doesn't start until the end of this loop)
-                    otsim::snap7::Srv_StartTo(Server, ip);
+                    snap7::Srv_StartTo(Server, ip);
                 }
 
                 /*
@@ -242,13 +242,13 @@ int main(int argc, char** argv){
                 }
 
                 //start the server and add it to the vector of servers
-                otsim::snap7::Srv_Start(Server);
+                snap7::Srv_Start(Server);
                 servers.push_back(Server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object
-                otsim::snap7::S7Object client;
-                client = otsim::snap7::Cli_Create();
+                snap7::S7Object client;
+                client = snap7::Cli_Create();
 
                 //create a channel listener object
                 auto listener = Listener::Create(name, pusher);
@@ -261,7 +261,7 @@ int main(int argc, char** argv){
                 */
                 try {
                     auto connectionType = device.get<std::uint16_t>("connection-type", 3);
-                    otsim::snap7::Cli_SetConnectionType(client, connectionType);
+                    snap7::Cli_SetConnectionType(client, connectionType);
                 } catch (pt::ptree_bad_path&) {
                     std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
                 }
@@ -277,14 +277,14 @@ int main(int argc, char** argv){
 
                 auto remote_tsap = device.get<std::uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                otsim::snap7::Cli_SetConnectionParams(client, ip_address, local_tsap, remote_tsap); 
+                snap7::Cli_SetConnectionParams(client, ip_address, local_tsap, remote_tsap); 
 
                 /*
                 declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
                 */
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
-                otsim::snap7::Cli_ConnectTo(client, ip_address, rack, slot);
+                snap7::Cli_ConnectTo(client, ip_address, rack, slot);
 
                 /*
                 We need to create a handler here for the server for subscribing purposes.
@@ -350,7 +350,7 @@ int main(int argc, char** argv){
                 }
 
                 //connect
-                otsim::snap7::Cli_Connect(client);
+                snap7::Cli_Connect(client);
 
                 clients.push_back(client);
 
@@ -380,12 +380,12 @@ int main(int argc, char** argv){
     }
 
     for (auto &client : clients) {
-        otsim::snap7::Cli_Destroy(client);
+        snap7::Cli_Destroy(client);
     }
 
     for (auto &server : servers) {
-        otsim::snap7::Srv_Stop(server);
-        otsim::snap7::Srv_Destroy(server);
+        snap7::Srv_Stop(server);
+        snap7::Srv_Destroy(server);
     }
 
     return 0;
