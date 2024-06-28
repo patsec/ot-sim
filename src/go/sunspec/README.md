@@ -26,3 +26,7 @@ How do we want to specify point scalings?
 
   * map scaling values to SF values?
   * have deault scaling values for SF's that can be overwritten?
+
+## TODO
+
+* [ ] Build out initial Model 1 (static data)

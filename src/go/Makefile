@@ -44,8 +44,8 @@ clean:
 	$(RM) bin/ot-sim-tailscale-module
 	$(RM) bin/ot-sim-telnet-module
 
-sunspec/types.go: sunspec/models/json/schema.json bin/go-jsonschema
-	$(GOBIN)/go-jsonschema -p sunspec -o sunspec/types.go sunspec/models/json/schema.json
+sunspec/common/types.go: sunspec/common/models/json/schema.json bin/go-jsonschema
+	$(GOBIN)/go-jsonschema -p common -o sunspec/common/types.go sunspec/common/models/json/schema.json
 
 MSGBUS_SOURCES := $(shell find msgbus \( -name '*.go' \))
 
@@ -81,7 +81,7 @@ bin/ot-sim-node-red-module: $(NODERED_SOURCES)
 
 SUNSPEC_SOURCES := $(shell find sunspec \( -name '*.go' \))
 
-bin/ot-sim-sunspec-module: $(SUNSPEC_SOURCES) sunspec/types.go
+bin/ot-sim-sunspec-module: $(SUNSPEC_SOURCES) $(MSGBUS_SOURCES)
 	mkdir -p bin
 	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-sunspec-module cmd/ot-sim-sunspec-module/main.go
 
