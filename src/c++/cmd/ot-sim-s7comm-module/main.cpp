@@ -13,7 +13,7 @@
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
 
-#include "snap7/snap7_libmain.h"
+#include "snap7.h"
 
 //for multithreading, mutex
 std::condition_variable cv;
@@ -37,11 +37,11 @@ This class should accomplish all pushing and interface through zeromq via the ms
 */
 class Listener {
 public:
-    static std::shared_ptr<Listener> Create(std::string name, otsim::msgbus::Pusher pusher) {
+    static std::shared_ptr<Listener> Create(std::string name, Pusher pusher) {
         return std::make_shared<Listener>(name, pusher);
     }
 
-    Listener(std::string name, otsim::msgbus::Pusher pusher) : name(name), pusher(pusher) {
+    Listener(std::string name, Pusher pusher) : name(name), pusher(pusher) {
         thread = std::thread(std::bind(&Listener::Run, this));
     }
 
@@ -75,11 +75,11 @@ private:
         otsim::msgbus::Status contents = {.measurements = points};
         auto env = otsim::msgbus::NewEnvelope(name, contents);
 
-        pusher.Push("RUNTIME", env);
+        pusher->Push("RUNTIME", env);
     }
 
-    std::string             name;
-    otsim::msgbus::Pusher   pusher;
+    std::string name;
+    Pusher      pusher;
 
     std::thread thread;
 };
@@ -92,10 +92,10 @@ int main(int argc, char** argv){
     }
 
     //keep servers in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<snap7::S7Object>> servers;         
+    std::vector<std::shared_ptr<TS7Server>> servers;         
 
     //keep clients in scope so their threads don't terminate immediately.
-    std::vector<std::shared_ptr<snap7::S7Object>> clients;
+    std::vector<std::shared_ptr<TS7Client>> clients;
 
     // Keep client channel listeners in scope so their threads don't terminate immediately.
     std::vector<std::shared_ptr<Listener>> listeners;
@@ -174,8 +174,7 @@ int main(int argc, char** argv){
                 std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
 
                 //create the server object
-                snap7::S7Object Server;
-                Server = snap7::Srv_Create();
+                auto server = std::make_shared<TS7Server>();
 
                 //get the endpoint and set it
                 if (device.get_child_optional("endpoint")) {
@@ -185,24 +184,16 @@ int main(int argc, char** argv){
                     //std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
 
                     //set the ip address that the server will start to when started (doesn't start until the end of this loop)
-                    snap7::Srv_StartTo(Server, ip);
+                    server->StartTo(ip.c_str());
                 }
 
-                /*
-                We need to create a handler here for the server for subscribing purposes.
-                A handler can either be a status handler or an update handler, both are types of envelopes.
-                Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
-                contains the a vector of the struct status or update).
+                /* TODO:
+                  We need to create a handler here for the server for subscribing purposes.
+                  A handler can either be a status handler or an update handler, both are types of envelopes.
+                  Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
+                  contains the a vector of the struct status or update).
                 */
                 otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
-
-                //Add the envelope's (statusHandler's) version and kind
-                auto version = device.get<std::string>("version", "v1");
-                statusHandler.version=version;
-
-                std::string kind = "Status";
-                statusHandler.kind=kind;
-
                 sub->AddHandler(statusHandler); //pair the handler with the subscriber
 
                 //loop through the inputs, getting the tag for each
@@ -220,7 +211,7 @@ int main(int argc, char** argv){
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
                     status.measurements.push_back(p);
-                    statusHandler.contents.push_back(status);
+                    // statusHandler.contents.push_back(status);
                 }
 
                 //loop through the outputs, getting the tag for each
@@ -238,17 +229,15 @@ int main(int argc, char** argv){
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
                     status.measurements.push_back(p);
-                    statusHandler.contents.push_back(status);
+                    // statusHandler.contents.push_back(status);
                 }
 
                 //start the server and add it to the vector of servers
-                snap7::Srv_Start(Server);
-                servers.push_back(Server);
+                servers.push_back(server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object
-                snap7::S7Object client;
-                client = snap7::Cli_Create();
+                auto client = std::make_shared<TS7Client>();
 
                 //create a channel listener object
                 auto listener = Listener::Create(name, pusher);
@@ -261,7 +250,7 @@ int main(int argc, char** argv){
                 */
                 try {
                     auto connectionType = device.get<std::uint16_t>("connection-type", 3);
-                    snap7::Cli_SetConnectionType(client, connectionType);
+                    client->SetConnectionType(connectionType);
                 } catch (pt::ptree_bad_path&) {
                     std::cerr << "ERROR: missing mode for CONNECTION TYPE for client s7comm device" << std::endl;
                 }
@@ -277,14 +266,14 @@ int main(int argc, char** argv){
 
                 auto remote_tsap = device.get<std::uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                snap7::Cli_SetConnectionParams(client, ip_address, local_tsap, remote_tsap); 
+                client->SetConnectionParams(ip_address.c_str(), local_tsap, remote_tsap); 
 
                 /*
                 declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
                 */
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
-                snap7::Cli_ConnectTo(client, ip_address, rack, slot);
+                client->ConnectTo(ip_address.c_str(), rack, slot);
 
                 /*
                 We need to create a handler here for the server for subscribing purposes.
@@ -293,14 +282,6 @@ int main(int argc, char** argv){
                 contains the a vector of the struct status or update).
                 */
                 otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
-
-                //Add the envelope's (updateHandler's) version and kind
-                auto version = device.get<std::string>("version", "v1");
-                updateHandler.version=version;
-
-                std::string kind = "Update";
-                updateHandler.kind=kind;
-
                 sub->AddHandler(updateHandler); //pair the handler with the subscriber
 
                 //loop through the inputs, getting the tag for each
@@ -323,7 +304,7 @@ int main(int argc, char** argv){
                     update.confirm = point.get<std::string>("confirm", "");
 
                     update.updates.push_back(p);
-                    updateHandler.contents.push_back(update);
+                    // updateHandler.contents.push_back(update);
                 }
 
                 //loop through the outputs, getting the tag for each
@@ -346,14 +327,11 @@ int main(int argc, char** argv){
                     update.confirm = point.get<std::string>("confirm", "");
 
                     update.updates.push_back(p);
-                    updateHandler.contents.push_back(update);
+                    // updateHandler.contents.push_back(update);
                 }
 
                 //connect
-                snap7::Cli_Connect(client);
-
                 clients.push_back(client);
-
                 listeners.push_back(listener);
             } else {
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
@@ -380,12 +358,11 @@ int main(int argc, char** argv){
     }
 
     for (auto &client : clients) {
-        snap7::Cli_Destroy(client);
+        // TODO: anything?
     }
 
     for (auto &server : servers) {
-        snap7::Srv_Stop(server);
-        snap7::Srv_Destroy(server);
+        server->Stop();
     }
 
     return 0;
