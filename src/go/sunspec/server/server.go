@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"actshad.dev/mbserver"
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/sunspec/common"
 
+	"actshad.dev/mbserver"
 	"github.com/beevik/etree"
 )
 

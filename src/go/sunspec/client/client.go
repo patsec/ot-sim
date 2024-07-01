@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/beevik/etree"
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/sunspec/common"
 
 	"actshad.dev/modbus"
+	"github.com/beevik/etree"
 )
 
 type Factory struct{}
