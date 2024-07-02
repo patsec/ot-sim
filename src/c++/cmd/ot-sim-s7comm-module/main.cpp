@@ -273,7 +273,6 @@ int main(int argc, char** argv){
                 */
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
-                client->ConnectTo(ip_address.c_str(), rack, slot);
 
                 /*
                 We need to create a handler here for the server for subscribing purposes.
@@ -331,6 +330,7 @@ int main(int argc, char** argv){
                 }
 
                 //connect
+                client->ConnectTo(ip_address.c_str(), rack, slot);
                 clients.push_back(client);
                 listeners.push_back(listener);
             } else {
