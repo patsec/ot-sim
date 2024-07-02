@@ -357,10 +357,6 @@ int main(int argc, char** argv){
         sub->Stop();
     }
 
-    for (auto &client : clients) {
-        // TODO: anything?
-    }
-
     for (auto &server : servers) {
         server->Stop();
     }
