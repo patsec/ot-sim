@@ -37,6 +37,7 @@ add_subdirectory(deps/json)
 add_subdirectory(deps/opendnp3)
 
 add_subdirectory(dnp3)
+add_subdirectory(s7)
 add_subdirectory(msgbus)
 
 add_subdirectory(cmd/ot-sim-dnp3-module)

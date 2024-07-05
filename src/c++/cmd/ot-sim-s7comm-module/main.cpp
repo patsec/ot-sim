@@ -13,6 +13,8 @@
 #include "msgbus/pusher.hpp"
 #include "msgbus/subscriber.hpp"
 
+#include "s7/server.hpp"
+
 #include "snap7.h"
 
 //for multithreading, mutex
@@ -187,13 +189,15 @@ int main(int argc, char** argv){
                     server->StartTo(ip.c_str());
                 }
 
-                /* TODO:
-                  We need to create a handler here for the server for subscribing purposes.
+                /*
                   A handler can either be a status handler or an update handler, both are types of envelopes.
                   Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
                   contains the a vector of the struct status or update).
                 */
-                otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
+
+                        //wrong  
+                        otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
+
                 sub->AddHandler(statusHandler); //pair the handler with the subscriber
 
                 //loop through the inputs, getting the tag for each
@@ -233,6 +237,7 @@ int main(int argc, char** argv){
                 }
 
                 //start the server and add it to the vector of servers
+                server->Start();
                 servers.push_back(server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
@@ -275,7 +280,6 @@ int main(int argc, char** argv){
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
                 /*
-                We need to create a handler here for the server for subscribing purposes.
                 A handler can either be a status handler or an update handler, both are types of envelopes.
                 Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
                 contains the a vector of the struct status or update).
@@ -328,7 +332,7 @@ int main(int argc, char** argv){
                     update.updates.push_back(p);
                     // updateHandler.contents.push_back(update);
                 }
-
+                
                 //connect
                 client->ConnectTo(ip_address.c_str(), rack, slot);
                 clients.push_back(client);
