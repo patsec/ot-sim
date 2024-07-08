@@ -4,7 +4,6 @@
 #include "msgbus/metrics.hpp"
 #include "msgbus/pusher.hpp"
 
-
 namespace otsim {
 namespace s7 {
 

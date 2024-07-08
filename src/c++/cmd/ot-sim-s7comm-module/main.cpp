@@ -178,23 +178,27 @@ int main(int argc, char** argv){
                 //create the server object
                 auto server = std::make_shared<TS7Server>();
 
+                std::string address = "0.0.0.0";
+
                 //get the endpoint and set it
                 if (device.get_child_optional("endpoint")) {
                     auto endpoint = device.get<std::string>("endpoint");
 
                     std::string ip = endpoint.substr(0, endpoint.find(":"));
-                    //std::uint16_t port = static_cast<std::uint16_t>(stoi(endpoint.substr(endpoint.find(":") + 1)));
+                    address = ip;
 
                     //set the ip address that the server will start to when started (doesn't start until the end of this loop)
                     server->StartTo(ip.c_str());
                 }
 
-                /*
-                  A handler can either be a status handler or an update handler, both are types of envelopes.
-                  Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
-                  contains the a vector of the struct status or update).
-                */
+                otsim::s7::ServerConfig config = {
+                    .id = device.get<std::string>("<xmlattr>.name", "s7-server"),
+                    .address = address.c_str(),
+                };
 
+                // TODO: fix the error associated with the line below
+                // auto s7server = otsim::s7::Server::Create(config, pusher);
+                
                         //wrong  
                         otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
