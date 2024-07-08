@@ -17,7 +17,7 @@ namespace otsim {
 namespace s7 {
 
 struct ServerConfig {
-    std::string id; //id = ip address
+    std::string id;
     std::string logLevel = "info";
 };
 
