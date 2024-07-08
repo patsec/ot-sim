@@ -7,25 +7,14 @@
 
 namespace otsim {
 namespace s7 {
-/*
-void Server::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
-  auto sender = otsim::msgbus::GetEnvelopeSender(env);
+  Server::Server(ServerConfig config, Pusher pusher) {
+    metrics = otsim::msgbus::MetricsPusher::Create();
 
-  if (sender == config.id) {
-    return;
+    metrics->NewMetric("Counter", "status_count",            "number of OT-sim status messages processed");
+    metrics->NewMetric("Counter", "update_count",            "number of OT-sim update messages generated");
+    metrics->NewMetric("Counter", "s7_binary_write_count", "number of S7 binary writes processed");
+    metrics->NewMetric("Counter", "s7_analog_write_count", "number of S7 analog writes processed");
   }
-
-  metrics->IncrMetric("status_count");
-
-  for (auto &p : env.contents.measurements) {
-    if (points.count(p.tag)) {
-      std::cout << fmt::format("[{}] status received for tag {}", config.id, p.tag) << std::endl;
-
-      auto lock = std::unique_lock<std::mutex>(pointsMu);
-      points[p.tag] = p;
-    }
-  }
-}*/
 
 } // namespace s7
 } // namespace otsim

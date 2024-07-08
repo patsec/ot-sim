@@ -14,7 +14,7 @@
 #include "snap7.h"
 
 namespace otsim {
-namespace snap7 {
+namespace s7 {
 
 struct ServerConfig {
     std::string id; //id = ip address
@@ -23,27 +23,27 @@ struct ServerConfig {
 
 class Server {
 public:
-    static std::shared_ptr<Server> Create(ServerConfig config, otsim::s7::Pusher pusher) {
+    static std::shared_ptr<Server> Create(ServerConfig config, Pusher pusher) {
         return std::make_shared<Server>(config, pusher);
     }
 
-    Server(ServerConfig config, otsim::s7::Pusher pusher);
+    Server(ServerConfig config, Pusher pusher);
     ~Server() {};
 
     std::string ID() { return config.id; }
 
     void Run();
 
-    bool AddBinaryInput(otsim::s7::BinaryInputPoint point);
-    bool AddBinaryOutput(otsim::s7::BinaryOutputPoint point);
-    bool AddAnalogInput(otsim::s7::AnalogInputPoint point);
-    bool AddAnalogOutput(otsim::s7::AnalogOutputPoint point);
+    bool AddBinaryInput(BinaryInputPoint point);
+    bool AddBinaryOutput(BinaryOutputPoint point);
+    bool AddAnalogInput(AnalogInputPoint point);
+    bool AddAnalogOutput(AnalogOutputPoint point);
 
     void WriteBinary(uint16_t address, bool value);
     void WriteAnalog(uint16_t address, double value);
 
-    const otsim::s7::BinaryOutputPoint* GetBinaryOutput(const uint16_t address);
-    const otsim::s7::AnalogOutputPoint* GetAnalogOutput(const uint16_t address);
+    const BinaryOutputPoint* GetBinaryOutput(const uint16_t address);
+    const AnalogOutputPoint* GetAnalogOutput(const uint16_t address);
 
     void ResetOutputs();
 
@@ -52,8 +52,8 @@ public:
 private:
   ServerConfig config;
 
-  otsim::s7::Pusher pusher;
-  otsim::msgbus::MetricsPusher metrics;
+  Pusher pusher;
+  MetricsPusher metrics;
 
   std::map<std::uint16_t, otsim::s7::BinaryInputPoint> binaryInputs;
   std::map<std::uint16_t, otsim::s7::BinaryOutputPoint> binaryOutputs;
@@ -65,7 +65,8 @@ private:
 
   std::atomic<bool> running;
 };
+
 } // namespace s7
 } // namespace otsim
 
-#endif // OTSIM_DNP3_MASTER_HPP
+#endif // OTSIM_S7_SERVER_HPP
