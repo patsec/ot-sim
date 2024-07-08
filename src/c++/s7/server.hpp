@@ -55,10 +55,10 @@ private:
   Pusher pusher;
   MetricsPusher metrics;
 
-  std::map<std::uint16_t, otsim::s7::BinaryInputPoint> binaryInputs;
-  std::map<std::uint16_t, otsim::s7::BinaryOutputPoint> binaryOutputs;
-  std::map<std::uint16_t, otsim::s7::AnalogInputPoint> analogInputs;
-  std::map<std::uint16_t, otsim::s7::AnalogOutputPoint> analogOutputs;
+  std::map<std::uint16_t, BinaryInputPoint> binaryInputs;
+  std::map<std::uint16_t, BinaryOutputPoint> binaryOutputs;
+  std::map<std::uint16_t, AnalogInputPoint> analogInputs;
+  std::map<std::uint16_t, AnalogOutputPoint> analogOutputs;
 
   std::map<std::string, otsim::msgbus::Point> points;
   std::mutex pointsMu;

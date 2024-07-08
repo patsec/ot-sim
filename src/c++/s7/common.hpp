@@ -8,9 +8,12 @@
 namespace otsim {
 namespace s7 {
 
+template <typename T>
 struct Point {
   std::uint16_t address {};
   std::string   tag     {};
+
+  T value {};
 
   bool output {};
   bool sbo {};
@@ -18,11 +21,11 @@ struct Point {
   double deadband;
 };
 
-typedef bool BinaryInputPoint;
-typedef float AnalogInputPoint;
+typedef Point<bool> BinaryInputPoint;
+typedef Point<float> AnalogInputPoint;
 
-typedef bool BinaryOutputPoint;
-typedef float AnalogOutputPoint;
+typedef Point<bool> BinaryOutputPoint;
+typedef Point<float> AnalogOutputPoint;
 
 typedef std::shared_ptr<otsim::msgbus::Pusher> Pusher;
 typedef std::shared_ptr<otsim::msgbus::MetricsPusher> MetricsPusher;
