@@ -1,52 +1,69 @@
 #ifndef OTSIM_S7_SERVER_HPP
 #define OTSIM_S7_SERVER_HPP
 
-#include <condition_variable>
-#include <iostream>
-#include <map>
+#include <atomic>
+#include <mutex>
+#include <thread>
+
+#include "common.hpp"
 
 #include "msgbus/envelope.hpp"
+#include "msgbus/metrics.hpp"
 #include "msgbus/pusher.hpp"
 
 #include "snap7.h"
 
 namespace otsim {
 namespace snap7 {
+
+struct ServerConfig {
+    std::string id; //id = ip address
+    std::string logLevel = "info";
+};
+
 class Server {
 public:
-    /*static std::shared_ptr<Server> Create(std::string id, otsim::msgbus::Pusher pusher) {
-        return std::make_shared<Server>(id, pusher);
-    }*/
+    static std::shared_ptr<Server> Create(ServerConfig config, otsim::s7::Pusher pusher) {
+        return std::make_shared<Server>(config, pusher);
+    }
 
-    Server(std::string id, otsim::msgbus::Pusher pusher);
-
+    Server(ServerConfig config, otsim::s7::Pusher pusher);
     ~Server() {};
 
-    std::string ID() { return id; }
-    std::uint16_t Address() { return address; }
+    std::string ID() { return config.id; }
+
+    void Run();
+
+    bool AddBinaryInput(otsim::s7::BinaryInputPoint point);
+    bool AddBinaryOutput(otsim::s7::BinaryOutputPoint point);
+    bool AddAnalogInput(otsim::s7::AnalogInputPoint point);
+    bool AddAnalogOutput(otsim::s7::AnalogOutputPoint point);
+
+    void WriteBinary(uint16_t address, bool value);
+    void WriteAnalog(uint16_t address, double value);
+
+    const otsim::s7::BinaryOutputPoint* GetBinaryOutput(const uint16_t address);
+    const otsim::s7::AnalogOutputPoint* GetAnalogOutput(const uint16_t address);
+
+    void ResetOutputs();
 
     void HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env);
 
-    // TODO: finish BuildConfig function
-    void BuildConfig(std::uint16_t ip_address) {
-        address = ip_address;
-    }
-    // TODO: add binary/analog code
-
 private:
-  std::string   id;
-  std::uint16_t address;
+  ServerConfig config;
 
-  otsim::msgbus::Pusher pusher;
+  otsim::s7::Pusher pusher;
+  otsim::msgbus::MetricsPusher metrics;
 
-  std::map<std::uint16_t, std::string> binaryInputTags;
-  std::map<std::uint16_t, std::string> binaryOutputTags;
-  std::map<std::uint16_t, std::string> analogInputTags;
-  std::map<std::uint16_t, std::string> analogOutputTags;
+  std::map<std::uint16_t, otsim::s7::BinaryInputPoint> binaryInputs;
+  std::map<std::uint16_t, otsim::s7::BinaryOutputPoint> binaryOutputs;
+  std::map<std::uint16_t, otsim::s7::AnalogInputPoint> analogInputs;
+  std::map<std::uint16_t, otsim::s7::AnalogOutputPoint> analogOutputs;
 
-  //need to implement binaryOutputs / analogOutputs typedef 
-        //std::map<std::string, BinaryOutputPoint> binaryOutputs;
-        //std::map<std::string, AnalogOutputPoint> analogOutputs;
+  std::map<std::string, otsim::msgbus::Point> points;
+  std::mutex pointsMu;
+
+  std::atomic<bool> running;
 };
 } // namespace s7
 } // namespace otsim

@@ -1,11 +1,14 @@
 #include <iostream>
 
+#include "server.hpp"
 #include "fmt/format.h"
+
+#include "msgbus/metrics.hpp"
 
 namespace otsim {
 namespace s7 {
-
-void Outstation::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
+/*
+void Server::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
   auto sender = otsim::msgbus::GetEnvelopeSender(env);
 
   if (sender == config.id) {
@@ -22,7 +25,7 @@ void Outstation::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus:
       points[p.tag] = p;
     }
   }
-}
+}*/
 
 } // namespace s7
 } // namespace otsim
