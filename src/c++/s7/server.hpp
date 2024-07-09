@@ -34,7 +34,7 @@ public:
     std::string ID() { return config.id; }
 
     void Run();
-    
+
     bool AddBinaryInput(BinaryInputPoint point);
     bool AddBinaryOutput(BinaryOutputPoint point);
     bool AddAnalogInput(AnalogInputPoint point);

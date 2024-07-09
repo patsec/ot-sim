@@ -21,142 +21,144 @@ struct ClientConfig {
 
 class Client{
 public:
-  static std::shared_ptr<Client> Create(std::string id, Pusher pusher) {
-    return std::make_shared<Client>(id, pusher);
-  }
+    static std::shared_ptr<Client> Create(std::string id, Pusher pusher) {
+        return std::make_shared<Client>(id, pusher);
+    }
 
-  Master(std::string id, Pusher pusher);
-  ~Master() {};
+    Master(std::string id, Pusher pusher);
+    ~Master() {};
 
-  std::string ID() { return id; }
-  std::uint16_t Address() { return address; }
+    std::string ID() { return id; }
+    std::uint16_t Address() { return address; }
 
-  //HERE
+    ClientConfig BuildConfig(std::string idVal, std::string local) {
+        address = local;
 
-  ClientConfig BuildConfig(std::string idVal, std::string local) {
-    address = local;
+        ClientConfig config;
 
-    ClientConfig config;
+        config.address  = local;
+        config.id = idVal;
 
-    config.address  = local;
-    config.id = idVal;
+        std::cout << "initializing client " << config.address std::endl;
 
-    std::cout << "initializing client " << config.address std::endl;
+        return config;
+    }
+        
+    void AddBinaryTag(std::uint16_t address, std::string tag) {
+        binaryInputTags[address] = tag;
+    }
 
-    return config;
-  }
-    
-  void AddBinaryTag(std::uint16_t address, std::string tag) {
-    binaryInputTags[address] = tag;
-  }
+    void AddBinaryTag(std::uint16_t address, std::string tag, bool sbo) {
+        binaryOutputTags[address] = tag;
 
-  void AddBinaryTag(std::uint16_t address, std::string tag, bool sbo) {
-    binaryOutputTags[address] = tag;
+        BinaryOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
+        binaryOutputs[tag] = point;
+    }
 
-    BinaryOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
-    binaryOutputs[tag] = point;
-  }
+    void AddAnalogTag(std::uint16_t address, std::string tag) {
+        analogInputTags[address] = tag;
+    }
 
-  void AddAnalogTag(std::uint16_t address, std::string tag) {
-    analogInputTags[address] = tag;
-  }
+    void AddAnalogTag(std::uint16_t address, std::string tag, bool sbo) {
+        analogOutputTags[address] = tag;
 
-  void AddAnalogTag(std::uint16_t address, std::string tag, bool sbo) {
-    analogOutputTags[address] = tag;
+        AnalogOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
+        analogOutputs[tag] = point;
+    }
+        
+    std::string GetBinaryTag(std::uint16_t address, bool output = false) {
+        if (output) {
+        auto iter = binaryOutputTags.find(address);
+        if (iter != binaryOutputTags.end()) {
+            return iter->second;
+        }
 
-    AnalogOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
-    analogOutputs[tag] = point;
-  }
-    
-  std::string GetBinaryTag(std::uint16_t address, bool output = false) {
-    if (output) {
-      auto iter = binaryOutputTags.find(address);
-      if (iter != binaryOutputTags.end()) {
+        return {};
+        }
+
+        auto iter = binaryInputTags.find(address);
+        if (iter != binaryInputTags.end()) {
         return iter->second;
-      }
+        }
 
-      return {};
+        return {};
     }
 
-    auto iter = binaryInputTags.find(address);
-    if (iter != binaryInputTags.end()) {
-      return iter->second;
-    }
+    std::string GetAnalogTag(std::uint16_t address, bool output = false) {
+        if (output) {
+        auto iter = analogOutputTags.find(address);
+        if (iter != analogOutputTags.end()) {
+            return iter->second;
+        }
 
-    return {};
-  }
+        return {};
+        }
 
-  std::string GetAnalogTag(std::uint16_t address, bool output = false) {
-    if (output) {
-      auto iter = analogOutputTags.find(address);
-      if (iter != analogOutputTags.end()) {
+        auto iter = analogInputTags.find(address);
+        if (iter != analogInputTags.end()) {
         return iter->second;
-      }
+        }
 
-      return {};
+        return {};
     }
 
-    auto iter = analogInputTags.find(address);
-    if (iter != analogInputTags.end()) {
-      return iter->second;
-    }
+    // TODO: Finish WriteBinary function, currently uses dnp3 functions
+    bool WriteBinary(std::string tag, bool status) {
+        auto iter = binaryOutputs.find(tag);
+        if (iter == binaryOutputs.end()) {
+        return false;
+        }
 
-    return {};
-  }
+        auto point = iter->second;
+
+        if (!point.output) {
+        return false;
+        }
+
+        auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+
+        if (point.sbo) {
+        opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+        opendnp3::ControlRelayOutputBlock crob(code);
+
+        master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+        } else {
+        opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+        opendnp3::ControlRelayOutputBlock crob(code);
+
+        master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+        }
+
+        return true;
+    }
     
-  bool WriteBinary(std::string tag, bool status) {
-    auto iter = binaryOutputs.find(tag);
-    if (iter == binaryOutputs.end()) {
-      return false;
-    }
+    // TODO: Implement WriteAnalog function below
 
-    auto point = iter->second;
-
-    if (!point.output) {
-      return false;
-    }
-
-    auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
-
-    if (point.sbo) {
-      opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-      opendnp3::ControlRelayOutputBlock crob(code);
-
-      master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
-    } else {
-      opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-      opendnp3::ControlRelayOutputBlock crob(code);
-
-      master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
-    }
-
-    return true;
-  }
     /*
-  bool WriteAnalog(std::string tag, double value) {
-    auto iter = analogOutputs.find(tag);
-    if (iter == analogOutputs.end()) {
-      return false;
-    }
+    bool WriteAnalog(std::string tag, double value) {
+        auto iter = analogOutputs.find(tag);
+        if (iter == analogOutputs.end()) {
+        return false;
+        }
 
-    auto point = iter->second;
+        auto point = iter->second;
 
-    if (!point.output) {
-      return false;
-    }
+        if (!point.output) {
+        return false;
+        }
 
-    auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+        auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
 
-    if (point.sbo) {
-      auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
-      master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
-    } else {
-      auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
-      master->DirectOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
-    }
+        if (point.sbo) {
+        auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
+        master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
+        } else {
+        auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
+        master->DirectOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
+        }
 
-    return true;
-  }*/
+        return true;
+    }*/
 
   void HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Update>& env);
 
