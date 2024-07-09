@@ -196,6 +196,8 @@ int main(int argc, char** argv){
                     .address = address.c_str(),
                 };
 
+                // TODO: Implement XML for loop to get DB information for the server
+
                 // TODO: fix the error associated with the line below
                     //auto s7server = otsim::s7::Server::Create(config, pusher);
                 

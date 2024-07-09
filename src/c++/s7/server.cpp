@@ -7,7 +7,11 @@
 
 namespace otsim {
 namespace s7 {
+  
+  //Constructor
   Server::Server(ServerConfig config, Pusher pusher) {
+
+    //create a Metrics Pusher and add counters for status', updates, and binary/analog writes
     metrics = otsim::msgbus::MetricsPusher::Create();
     
     metrics->NewMetric("Counter", "status_count",            "number of OT-sim status messages processed");
@@ -15,7 +19,7 @@ namespace s7 {
     metrics->NewMetric("Counter", "s7_binary_write_count", "number of S7 binary writes processed");
     metrics->NewMetric("Counter", "s7_analog_write_count", "number of S7 analog writes processed");
   }
-  
+
   void Server::Run(){
     metrics->Start(pusher, config.id);
 
@@ -27,22 +31,30 @@ namespace s7 {
   }
 
   bool Server::AddBinaryInput(BinaryInputPoint point) {
+    /*
+    * in our binary inputs array, at the position equal to the address of the 
+    * point being passed in, set the value equal to the incoming point. Then
+    * create a msgbus Point structure and store it in the list of points
+    */
     binaryInputs[point.address] = point;
     points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
-    return true;
+    return true; //assuming this doesn't fail, return true
   }
 
   bool Server::AddBinaryOutput(BinaryOutputPoint point) {
     point.output = true;
 
+    //store the point and point tag into the binaryOutputs and points arrays respectively
     binaryOutputs[point.address] = point;
     points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
-    return true;
+    return true; 
   }
 
   bool Server::AddAnalogInput(AnalogInputPoint point) {
+
+    //store the point and point tag into the analogInputs and points arrays respectively
     analogInputs[point.address] = point;
     points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
@@ -52,12 +64,14 @@ namespace s7 {
   bool Server::AddAnalogOutput(AnalogOutputPoint point) {
     point.output = true;
 
+    //store the point and point tag into the analogOutputs and points arrays respectively
     analogOutputs[point.address] = point;
     points[point.tag] = otsim::msgbus::Point{point.tag, 0.0, 0};
 
     return true;
   }
 
+  //this function interacts with the message bus to store status information for tags so other modules can access it (binary)
   void Server::WriteBinary(std::uint16_t address, bool status) {
     auto iter = binaryOutputs.find(address);
     if (iter == binaryOutputs.end()) {
@@ -76,6 +90,7 @@ namespace s7 {
     metrics->IncrMetric("update_count");
   }
 
+  //this function interacts with the message bus to store status information for tags so other modules can access it (analog)
   void Server::WriteAnalog(std::uint16_t address, double value) {
     auto iter = analogOutputs.find(address);
     if (iter == analogOutputs.end()) {
@@ -100,6 +115,7 @@ namespace s7 {
       return NULL;
     }
 
+    //if the function hasn't returned, it must've found the output, so it returns the value
     return &iter->second;
   }
 
@@ -109,9 +125,14 @@ namespace s7 {
       return NULL;
     }
 
+    //if the function hasn't returned, it must've found the output, so it returns the value
     return &iter->second;
   }
 
+  /*
+  * set all outputs to new points with zero values, create a new envelope with those points
+  * and then push that envelope with the pusher
+  */
   void Server::ResetOutputs() {
     otsim::msgbus::Points points;
 
@@ -133,16 +154,19 @@ namespace s7 {
     }
   }
 
-  
+    
   void Server::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
     auto sender = otsim::msgbus::GetEnvelopeSender(env);
 
+    //if the status sender is the current s7 device, return because the status does not need to be handled
     if (sender == config.id) {
       return;
     }
 
+    //increment status count
     metrics->IncrMetric("status_count");
 
+    //add each point in measurements to the points array based on tag
     for (auto &p : env.contents.measurements) {
       if (points.count(p.tag)) {
         std::cout << fmt::format("[{}] status received for tag {}", config.id, p.tag) << std::endl;
