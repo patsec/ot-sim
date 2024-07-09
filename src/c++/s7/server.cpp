@@ -15,6 +15,16 @@ namespace s7 {
     metrics->NewMetric("Counter", "s7_binary_write_count", "number of S7 binary writes processed");
     metrics->NewMetric("Counter", "s7_analog_write_count", "number of S7 analog writes processed");
   }
+  
+  void Server::Run(){
+    metrics->Start(pusher, config.id);
+
+    while(running){
+
+    }
+
+    metrics->Stop();
+  }
 
   bool Server::AddBinaryInput(BinaryInputPoint point) {
     binaryInputs[point.address] = point;

@@ -197,9 +197,9 @@ int main(int argc, char** argv){
                 };
 
                 // TODO: fix the error associated with the line below
-                // auto s7server = otsim::s7::Server::Create(config, pusher);
+                    //auto s7server = otsim::s7::Server::Create(config, pusher);
                 
-                        //wrong  
+                        //wrong
                         otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
 
                 sub->AddHandler(statusHandler); //pair the handler with the subscriber
