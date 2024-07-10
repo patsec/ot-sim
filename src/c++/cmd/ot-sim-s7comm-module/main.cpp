@@ -196,7 +196,17 @@ int main(int argc, char** argv){
                     .address = address.c_str(),
                 };
 
-                // TODO: Implement XML for loop to get DB information for the server
+                // TODO: FINISH XML for loop to get DB information for the server
+                auto DBinputs = device.equal_range("DB");
+
+                //loop through each database listed in the XML
+                for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                    auto DBinput = iter->second;
+
+                    //get DB name (arbitrary)
+
+                    //get DB size
+                }
 
                 // TODO: fix the error associated with the line below
                     //auto s7server = otsim::s7::Server::Create(config, pusher);

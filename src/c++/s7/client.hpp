@@ -21,6 +21,7 @@ struct ClientConfig {
 
 class Client{
 public:
+    //used for dynamically creating Clients
     static std::shared_ptr<Client> Create(std::string id, Pusher pusher) {
         return std::make_shared<Client>(id, pusher);
     }
@@ -30,7 +31,8 @@ public:
 
     std::string ID() { return id; }
     std::uint16_t Address() { return address; }
-
+    
+    //setter function for id and address (config)
     ClientConfig BuildConfig(std::string idVal, std::string local) {
         address = local;
 
@@ -114,20 +116,22 @@ public:
         if (!point.output) {
         return false;
         }
+        
+        // TODO: Learn about S7 equivalent of ICommandTaskResult, OperationType, CommandSet, ControlRelayOutputBlock
+        // TODO: Replace this block of code with S7 method of writing binary
+            auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
 
-        auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+            if (point.sbo) {
+            opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+            opendnp3::ControlRelayOutputBlock crob(code);
 
-        if (point.sbo) {
-        opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-        opendnp3::ControlRelayOutputBlock crob(code);
+            master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+            } else {
+            opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+            opendnp3::ControlRelayOutputBlock crob(code);
 
-        master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
-        } else {
-        opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-        opendnp3::ControlRelayOutputBlock crob(code);
-
-        master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
-        }
+            master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+            }
 
         return true;
     }
