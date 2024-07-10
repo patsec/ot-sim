@@ -23,7 +23,7 @@ target_link_libraries(ot-sim-s7comm-module
   ${Boost_LIBRARIES}
   fmt::fmt
   ot-sim-msgbus
-  snap7
+  ot-sim-s7
 )
 
 install(TARGETS ot-sim-s7comm-module
