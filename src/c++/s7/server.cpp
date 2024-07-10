@@ -20,6 +20,7 @@ namespace s7 {
     metrics->NewMetric("Counter", "s7_analog_write_count", "number of S7 analog writes processed");
   }
 
+  // TODO: Finish this run code
   void Server::Run(){
     metrics->Start(pusher, config.id);
 

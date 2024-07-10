@@ -200,12 +200,16 @@ int main(int argc, char** argv){
                 auto DBinputs = device.equal_range("DB");
 
                 //loop through each database listed in the XML
-                for(auto iter=inputs.first; iter !=inputs.second; iter++){
+                for(auto iter=DBinputs.first; iter !=DBinputs.second; iter++){
                     auto DBinput = iter->second;
+                    std::string dbName;
+                    uint16_t dbSize;
 
                     //get DB name (arbitrary)
+                    dbName = DBinput.get<std::string>("name");
 
                     //get DB size
+                    dbSize = DBinput.get<uint16_t>("size");
                 }
 
                 // TODO: fix the error associated with the line below

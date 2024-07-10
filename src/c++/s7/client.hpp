@@ -26,11 +26,11 @@ public:
         return std::make_shared<Client>(id, pusher);
     }
 
-    Master(std::string id, Pusher pusher);
-    ~Master() {};
+    Client(std::string id, Pusher pusher);
+    ~Client() {};
 
     std::string ID() { return id; }
-    std::uint16_t Address() { return address; }
+    std::string Address() { return address; }
     
     //setter function for id and address (config)
     ClientConfig BuildConfig(std::string idVal, std::string local) {
@@ -41,7 +41,7 @@ public:
         config.address  = local;
         config.id = idVal;
 
-        std::cout << "initializing client " << config.address std::endl;
+        std::cout << "initializing client " << config.address << std::endl;
 
         return config;
     }
@@ -103,7 +103,7 @@ public:
 
         return {};
     }
-
+/*
     // TODO: Finish WriteBinary function, currently uses dnp3 functions
     bool WriteBinary(std::string tag, bool status) {
         auto iter = binaryOutputs.find(tag);
@@ -138,7 +138,7 @@ public:
     
     // TODO: Implement WriteAnalog function below
 
-    /*
+    
     bool WriteAnalog(std::string tag, double value) {
         auto iter = analogOutputs.find(tag);
         if (iter == analogOutputs.end()) {
@@ -169,9 +169,11 @@ public:
 
 private:
   std::string   id;
-  std::uint16_t address;
+  std::string address;
 
   Pusher pusher;
+
+  std::shared_ptr<otsim::s7::Client> client;
 
   std::map<std::uint16_t, std::string> binaryInputTags;
   std::map<std::uint16_t, std::string> binaryOutputTags;
