@@ -220,18 +220,11 @@ int main(int argc, char** argv){
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
                     auto point = iter->second;
 
-                    otsim::s7::BinaryInputPoint p; //use this
-                    
-                    //otsim::msgbus::Point p; //remove this
+                    otsim::s7::BinaryInputPoint p;
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
                     p.address = point.get<std::uint16_t>("address");
-
-                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                    otsim::msgbus::Status status;
-                    //status.measurements.push_back(p);
-                    // statusHandler.contents.push_back(status);
 
                     // TODO: implement binary/ analog functionality
                     s7server->AddBinaryInput(p);
@@ -242,17 +235,13 @@ int main(int argc, char** argv){
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
                     auto point = iter->second;
                     
-                    otsim::msgbus::Point p;
+                    otsim::s7::BinaryOutputPoint p;
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<double>("value");
-                    p.ts = point.get<std::uint64_t>("ts");
+                    p.address = point.get<std::uint16_t>("value");
 
-                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                    otsim::msgbus::Status status;
-                    status.measurements.push_back(p);
-                    // statusHandler.contents.push_back(status);
+                    s7server->AddBinaryOutput(p);
                 }
 
                 //start the server and add it to the vector of servers
