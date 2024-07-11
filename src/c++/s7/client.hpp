@@ -23,11 +23,11 @@ struct ClientConfig {
 class Client : public std::enable_shared_from_this<Client>{
 public:
     //used for dynamically creating Clients
-    static std::shared_ptr<Client> Create(ClientConfig config, Pusher pusher) {
-        return std::make_shared<Client>(config, pusher);
+    static std::shared_ptr<Client> Create(std::string id, Pusher pusher) {
+        return std::make_shared<Client>(id, pusher);
     }
 
-    Client(ClientConfig config, Pusher pusher);
+    Client(std::string id, Pusher pusher);
     ~Client() {};
 
     std::string ID() { return id; }
@@ -36,6 +36,7 @@ public:
     //setter function for id and address (config)
     ClientConfig BuildConfig(std::string idVal, std::uint16_t local) {
         address = local;
+        id = idVal;
 
         ClientConfig config;
 

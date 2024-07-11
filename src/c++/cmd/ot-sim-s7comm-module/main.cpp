@@ -15,7 +15,6 @@
 
 #include "s7/server.hpp"
 #include "s7/client.hpp"
-#include "s7/common.hpp"
 
 #include "snap7.h"
 
@@ -335,12 +334,20 @@ int main(int argc, char** argv){
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
+                /*
                 otsim::s7::ClientConfig config = {
                     .id = device.get<std::string>("<xmlattr>.name", "s7-client"),
                     .address = device.get<std::uint16_t>("address"),
-                };
+                };*/
 
-                auto s7client = otsim::s7::Client::Create(config, pusher);
+                std::string cliId = device.get<std::string>("<xmlattr>.name", "s7-client");
+                std::uint16_t cliAddr = device.get<std::uint16_t>("address");
+
+                //auto s7client = otsim::s7::Client::Create(config, pusher);
+                //sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
+
+                auto s7client = otsim::s7::Client::Create(cliId, pusher);
+                s7client->BuildConfig(cliId, cliAddr);
                 sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
 
                 //loop through the inputs, getting the tag for each
@@ -365,6 +372,10 @@ int main(int argc, char** argv){
 
                         s7client->AddBinaryTag(address_read, tag_read);
                     } else if(typ.compare("analog")== 0){
+                        std::string tag_read = point.get<std::string>("tag");
+                        std::uint16_t address_read = point.get<std::uint16_t>("address");
+
+                        s7client->AddAnalogTag(address_read, tag_read);
 
                     } else{
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
@@ -387,9 +398,20 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){
+                        std::string tag_read = point.get<std::string>("tag");
+                        std::uint16_t address_read = point.get<std::uint16_t>("address");
+
+                        auto sbo  = point.get<bool>("sbo", 0) == 1;
+
+                        s7client->AddBinaryTag(address_read, tag_read, sbo);
  
                     } else if(typ.compare("analog")== 0){
+                        std::string tag_read = point.get<std::string>("tag");
+                        std::uint16_t address_read = point.get<std::uint16_t>("address");
 
+                        auto sbo  = point.get<bool>("sbo", 0) == 1;
+
+                        s7client->AddAnalogTag(address_read, tag_read, sbo);
                     } else{
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM output" << std::endl;
                         continue;
