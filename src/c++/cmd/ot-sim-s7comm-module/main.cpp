@@ -213,23 +213,20 @@ int main(int argc, char** argv){
                 }
 
                 auto s7server = otsim::s7::Server::Create(config, pusher);
-                
-                //wrong
-                otsim::msgbus::StatusHandler statusHandler; //this status handler will have measurements (vectors of points) pushed to it during the XML scan
-
-                sub->AddHandler(statusHandler); //pair the handler with the subscriber
+                sub->AddHandler(std::bind(&otsim::s7::Server::HandleMsgBusStatus, s7server, std::placeholders::_1));
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
                     auto point = iter->second;
+
+                    //otsim::s7::Point p; //use this
                     
-                    otsim::msgbus::Point p;
+                    otsim::msgbus::Point p; //remove this
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    p.value = point.get<double>("value");
-                    p.ts = point.get<std::uint64_t>("ts");
+                    //p.address = point.get<std::uint16_t>("address");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;

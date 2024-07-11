@@ -22,7 +22,7 @@ struct ServerConfig {
     std::string logLevel = "info";
 };
 
-class Server {
+class Server : public std::enable_shared_from_this<Server>{
 public:
     static std::shared_ptr<Server> Create(ServerConfig config, Pusher pusher) {
         return std::make_shared<Server>(config, pusher);
