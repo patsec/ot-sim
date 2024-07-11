@@ -223,6 +223,7 @@ int main(int argc, char** argv){
 
                     std::string typ;
 
+                    //get the type of the input/output (binary or analog)
                     try {
                         typ = point.get<std::string>("<xmlattr>.type");
                     } catch (pt::ptree_bad_path&) {
@@ -233,18 +234,20 @@ int main(int argc, char** argv){
                     if(typ.compare("binary")== 0){
                         otsim::s7::BinaryInputPoint p;
                     
-                        //get the current tag
+                        //get input information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
+                        //set input information
                         s7server->AddBinaryInput(p);
                     } else if(typ.compare("analog")== 0){
                         otsim::s7::AnalogInputPoint p;
                     
-                        //get the current tag
+                        //get input information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
+                        //set input information
                         s7server->AddAnalogInput(p);
                     } else {
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
@@ -260,6 +263,7 @@ int main(int argc, char** argv){
 
                     std::string typ;
 
+                    //get the type of the input/output (binary or analog)
                     try {
                         typ = point.get<std::string>("<xmlattr>.type");
                     } catch (pt::ptree_bad_path&) {
@@ -270,20 +274,26 @@ int main(int argc, char** argv){
                     if(typ.compare("binary")== 0){
                         otsim::s7::BinaryOutputPoint p;
                     
-                        //get the current tag
+                        //get output information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
+
+                        //set the sbo boolean to be true because it is an output
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
+                        //set output information
                         s7server->AddBinaryOutput(p);
                     } else if(typ.compare("analog")== 0){
                         otsim::s7::AnalogOutputPoint p;
                     
-                        //get the current tag
+                        //get output information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
+
+                        //set the sbo boolean to be true because it is an output
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
+                        //set output information
                         s7server->AddAnalogOutput(p);
                     } else {
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM output" << std::endl;
@@ -365,13 +375,13 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){   
-                        //get the current tag and address
-                        
+                        //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
                         s7client->AddBinaryTag(address_read, tag_read);
                     } else if(typ.compare("analog")== 0){
+                        //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
@@ -398,17 +408,21 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){
+                        //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
+                        //set the sbo boolean to be true because it is an output
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddBinaryTag(address_read, tag_read, sbo);
  
                     } else if(typ.compare("analog")== 0){
+                        //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
+                        //set the sbo boolean to be true because it is an output
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddAnalogTag(address_read, tag_read, sbo);
