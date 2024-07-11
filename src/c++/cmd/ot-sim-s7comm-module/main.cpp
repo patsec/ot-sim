@@ -343,46 +343,78 @@ int main(int argc, char** argv){
                 auto inputs = device.equal_range("input");
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
                     auto point = iter->second;
+
+                    std::string typ;
+
+                    try {
+                        typ = point.get<std::string>("<xmlattr>.type");
+                    } catch (pt::ptree_bad_path&) {
+                        std::cerr << "ERROR: missing type for S7COMM input" << std::endl;
+                        continue;
+                    }
+
+                    if(typ.compare("binary")== 0){
+                        otsim::msgbus::Point p;
                     
-                    otsim::msgbus::Point p;
-                    
-                    //get the current tag, value, and ts
-                    p.tag = point.get<std::string>("tag");
-                    p.value = point.get<double>("value");
-                    p.ts = point.get<std::uint64_t>("ts");
+                        //get the current tag, value, and ts
+                        p.tag = point.get<std::string>("tag");
+                        p.value = point.get<double>("value");
+                        p.ts = point.get<std::uint64_t>("ts");
 
-                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                    otsim::msgbus::Update update;
+                        //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                        otsim::msgbus::Update update;
 
-                    //set the update's recipient and confirm fields
-                    update.recipient = point.get<std::string>("recipient", "");
-                    update.confirm = point.get<std::string>("confirm", "");
+                        //set the update's recipient and confirm fields
+                        update.recipient = point.get<std::string>("recipient", "");
+                        update.confirm = point.get<std::string>("confirm", "");
 
-                    update.updates.push_back(p);
-                    // updateHandler.contents.push_back(update);
+                        update.updates.push_back(p);
+                        // updateHandler.contents.push_back(update);
+                    } else if(typ.compare("analog")== 0){
+
+                    } else{
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7comm input" << std::endl;
+                        continue;
+                    }
                 }
 
                 //loop through the outputs, getting the tag for each
                 auto outputs = device.equal_range("output");
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
                     auto point = iter->second;
-                    
-                    otsim::msgbus::Point p;
-                    
-                    //get the current tag
-                    p.tag = point.get<std::string>("tag");
-                    p.value = point.get<double>("value");
-                    p.ts = point.get<std::uint64_t>("ts");
 
-                    //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                    otsim::msgbus::Update update;
+                    std::string typ;
 
-                    //set the update's recipient and confirm fields
-                    update.recipient = point.get<std::string>("recipient", "");
-                    update.confirm = point.get<std::string>("confirm", "");
+                    try {
+                        typ = point.get<std::string>("<xmlattr>.type");
+                    } catch (pt::ptree_bad_path&) {
+                        std::cerr << "ERROR: missing type for S7COMM output" << std::endl;
+                        continue;
+                    }
 
-                    update.updates.push_back(p);
-                    // updateHandler.contents.push_back(update);
+                    if(typ.compare("binary")== 0){
+                        otsim::msgbus::Point p;
+                        
+                        //get the current tag
+                        p.tag = point.get<std::string>("tag");
+                        p.value = point.get<double>("value");
+                        p.ts = point.get<std::uint64_t>("ts");
+
+                        //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
+                        otsim::msgbus::Update update;
+
+                        //set the update's recipient and confirm fields
+                        update.recipient = point.get<std::string>("recipient", "");
+                        update.confirm = point.get<std::string>("confirm", "");
+
+                        update.updates.push_back(p);
+                        // updateHandler.contents.push_back(update);
+                    } else if(typ.compare("analog")== 0){
+
+                    } else{
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM output" << std::endl;
+                        continue;
+                    }
                 }
                 
                 //connect
