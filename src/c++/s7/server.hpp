@@ -33,7 +33,7 @@ public:
 
     std::string ID() { return config.id; }
 
-    void Run();
+    void Run(std::shared_ptr<TS7Server> ts7server);
 
     bool AddBinaryInput(BinaryInputPoint point);
     bool AddBinaryOutput(BinaryOutputPoint point);

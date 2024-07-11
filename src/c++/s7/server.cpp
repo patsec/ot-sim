@@ -5,6 +5,8 @@
 
 #include "msgbus/metrics.hpp"
 
+#include "snap7.h"
+
 namespace otsim {
 namespace s7 {
   
@@ -20,15 +22,28 @@ namespace s7 {
     metrics->NewMetric("Counter", "s7_analog_write_count", "number of S7 analog writes processed");
   }
 
-  // TODO: Finish this run code
-  void Server::Run(){
+  //start the snap7 server created in otstim-s7comm-module main.cpp
+  void Server::Run(std::shared_ptr<TS7Server> ts7server){
     metrics->Start(pusher, config.id);
+    ts7server->Start();
 
     while(running){
+      for (const auto& kv : analogOutputs) {
+        const std::uint16_t addr = kv.first;
+        const float   val  = kv.second.value;
 
+        WriteAnalog(addr, val);
+        metrics->IncrMetric("s7_analog_write_count");
+      }
+
+      for (const auto& kv : binaryOutputs) {
+        const std::uint16_t addr = kv.first;
+        const bool   val  = kv.second.value;
+
+        WriteAnalog(addr, val);
+        metrics->IncrMetric("s7_binary_write_count");
+      }
     }
-
-    metrics->Stop();
   }
 
   bool Server::AddBinaryInput(BinaryInputPoint point) {

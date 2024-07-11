@@ -245,7 +245,7 @@ int main(int argc, char** argv){
                 }
 
                 //start the server and add it to the vector of servers
-                server->Start();
+                s7server->Run(server);
                 servers.push_back(server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
