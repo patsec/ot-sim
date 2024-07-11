@@ -45,7 +45,7 @@ public:
 
         return config;
     }
-        
+
     void AddBinaryTag(std::uint16_t address, std::string tag) {
         binaryInputTags[address] = tag;
     }

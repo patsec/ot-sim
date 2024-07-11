@@ -246,7 +246,7 @@ int main(int argc, char** argv){
 
                         s7server->AddAnalogInput(p);
                     } else {
-                        std::cerr << "ERROR: invalid type " << typ << " provided for S7 input" << std::endl;
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
                         continue;
                     }
 
@@ -262,7 +262,7 @@ int main(int argc, char** argv){
                     try {
                         typ = point.get<std::string>("<xmlattr>.type");
                     } catch (pt::ptree_bad_path&) {
-                        std::cerr << "ERROR: missing type for S7COMM input" << std::endl;
+                        std::cerr << "ERROR: missing type for S7COMM output" << std::endl;
                         continue;
                     }
 
@@ -271,7 +271,8 @@ int main(int argc, char** argv){
                     
                         //get the current tag
                         p.tag = point.get<std::string>("tag");
-                        p.address = point.get<std::uint16_t>("value");
+                        p.address = point.get<std::uint16_t>("address");
+                        p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         s7server->AddBinaryOutput(p);
                     } else if(typ.compare("analog")== 0){
@@ -279,11 +280,12 @@ int main(int argc, char** argv){
                     
                         //get the current tag
                         p.tag = point.get<std::string>("tag");
-                        p.address = point.get<std::uint16_t>("value");
+                        p.address = point.get<std::uint16_t>("address");
+                        p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         s7server->AddAnalogOutput(p);
                     } else {
-                        std::cerr << "ERROR: invalid type " << typ << " provided for S7 output" << std::endl;
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM output" << std::endl;
                         continue;
                     }
                 }
@@ -296,7 +298,7 @@ int main(int argc, char** argv){
                 //create the client object
                 auto client = std::make_shared<TS7Client>();
 
-                //create a channel listener object
+                //create a listener for publishing purposes
                 auto listener = Listener::Create(name, pusher);
 
                 /*
@@ -331,11 +333,7 @@ int main(int argc, char** argv){
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
-                /*
-                A handler can either be a status handler or an update handler, both are types of envelopes.
-                Envelopes store a version (string), kind (string), metadata, and contents (typenamed, either
-                contains the a vector of the struct status or update).
-                */
+
                 otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
                 sub->AddHandler(updateHandler); //pair the handler with the subscriber
 
@@ -354,12 +352,11 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){
-                        otsim::msgbus::Point p;
+                        otsim::s7::BinaryInputPoint p;
                     
                         //get the current tag, value, and ts
                         p.tag = point.get<std::string>("tag");
-                        p.value = point.get<double>("value");
-                        p.ts = point.get<std::uint64_t>("ts");
+                        p.address = point.get<std::uint16_t>("address");
 
                         //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                         otsim::msgbus::Update update;
@@ -368,12 +365,12 @@ int main(int argc, char** argv){
                         update.recipient = point.get<std::string>("recipient", "");
                         update.confirm = point.get<std::string>("confirm", "");
 
-                        update.updates.push_back(p);
+                        //update.updates.push_back(p);
                         // updateHandler.contents.push_back(update);
                     } else if(typ.compare("analog")== 0){
 
                     } else{
-                        std::cerr << "ERROR: invalid type " << typ << " provided for S7comm input" << std::endl;
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
                         continue;
                     }
                 }
@@ -393,12 +390,11 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){
-                        otsim::msgbus::Point p;
+                        otsim::s7::BinaryOutputPoint p;
                         
                         //get the current tag
                         p.tag = point.get<std::string>("tag");
                         p.value = point.get<double>("value");
-                        p.ts = point.get<std::uint64_t>("ts");
 
                         //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                         otsim::msgbus::Update update;
@@ -407,7 +403,7 @@ int main(int argc, char** argv){
                         update.recipient = point.get<std::string>("recipient", "");
                         update.confirm = point.get<std::string>("confirm", "");
 
-                        update.updates.push_back(p);
+                        //update.updates.push_back(p);
                         // updateHandler.contents.push_back(update);
                     } else if(typ.compare("analog")== 0){
 
