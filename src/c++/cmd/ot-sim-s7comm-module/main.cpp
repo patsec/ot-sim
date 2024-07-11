@@ -14,6 +14,7 @@
 #include "msgbus/subscriber.hpp"
 
 #include "s7/server.hpp"
+#include "s7/client.hpp"
 
 #include "snap7.h"
 
@@ -333,9 +334,13 @@ int main(int argc, char** argv){
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
+                otsim::s7::ClientConfig config = {
+                    .id = device.get<std::string>("<xmlattr>.name", "s7-client"),
+                    .address = device.get<std::uint16_t>("address"),
+                };
 
-                otsim::msgbus::UpdateHandler updateHandler; //this update handler will have updates (vectors of points) pushed to it during the XML scan
-                sub->AddHandler(updateHandler); //pair the handler with the subscriber
+                auto s7client = otsim::s7::Client::Create(config, pusher);
+                sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
 
                 //loop through the inputs, getting the tag for each
                 auto inputs = device.equal_range("input");
@@ -357,16 +362,8 @@ int main(int argc, char** argv){
                         //get the current tag, value, and ts
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
+                        
 
-                        //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                        otsim::msgbus::Update update;
-
-                        //set the update's recipient and confirm fields
-                        update.recipient = point.get<std::string>("recipient", "");
-                        update.confirm = point.get<std::string>("confirm", "");
-
-                        //update.updates.push_back(p);
-                        // updateHandler.contents.push_back(update);
                     } else if(typ.compare("analog")== 0){
 
                     } else{

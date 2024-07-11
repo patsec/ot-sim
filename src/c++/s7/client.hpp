@@ -16,24 +16,24 @@ namespace s7 {
 
 struct ClientConfig {
     std::string id;
-    std::string address;
+    std::uint16_t address;
 };
 
 class Client{
 public:
     //used for dynamically creating Clients
-    static std::shared_ptr<Client> Create(std::string id, Pusher pusher) {
-        return std::make_shared<Client>(id, pusher);
+    static std::shared_ptr<Client> Create(ClientConfig config, Pusher pusher) {
+        return std::make_shared<Client>(config.id, pusher);
     }
 
     Client(std::string id, Pusher pusher);
     ~Client() {};
 
     std::string ID() { return id; }
-    std::string Address() { return address; }
+    std::uint16_t Address() { return address; }
     
     //setter function for id and address (config)
-    ClientConfig BuildConfig(std::string idVal, std::string local) {
+    ClientConfig BuildConfig(std::string idVal, std::uint16_t local) {
         address = local;
 
         ClientConfig config;
@@ -169,7 +169,7 @@ public:
 
 private:
   std::string   id;
-  std::string address;
+  std::uint16_t address;
 
   Pusher pusher;
 
