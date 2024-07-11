@@ -193,7 +193,7 @@ int main(int argc, char** argv){
 
                 otsim::s7::ServerConfig config = {
                     .id = device.get<std::string>("<xmlattr>.name", "s7-server"),
-                    .address = address.c_str(),
+                    .address = device.get<std::uint16_t>("address"),
                 };
 
                 // TODO: FINISH XML for loop to get DB information for the server
@@ -220,18 +220,21 @@ int main(int argc, char** argv){
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
                     auto point = iter->second;
 
-                    //otsim::s7::Point p; //use this
+                    otsim::s7::BinaryInputPoint p; //use this
                     
-                    otsim::msgbus::Point p; //remove this
+                    //otsim::msgbus::Point p; //remove this
                     
                     //get the current tag
                     p.tag = point.get<std::string>("tag");
-                    //p.address = point.get<std::uint16_t>("address");
+                    p.address = point.get<std::uint16_t>("address");
 
                     //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
                     otsim::msgbus::Status status;
-                    status.measurements.push_back(p);
+                    //status.measurements.push_back(p);
                     // statusHandler.contents.push_back(status);
+
+                    // TODO: implement binary/ analog functionality
+                    s7server->AddBinaryInput(p);
                 }
 
                 //loop through the outputs, getting the tag for each

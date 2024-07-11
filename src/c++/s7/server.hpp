@@ -18,7 +18,7 @@ namespace s7 {
 
 struct ServerConfig {
     std::string id;
-    std::string address;
+    std::uint16_t address;
     std::string logLevel = "info";
 };
 
