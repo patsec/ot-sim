@@ -15,6 +15,7 @@
 
 #include "s7/server.hpp"
 #include "s7/client.hpp"
+#include "s7/common.hpp"
 
 #include "snap7.h"
 
@@ -356,14 +357,13 @@ int main(int argc, char** argv){
                         continue;
                     }
 
-                    if(typ.compare("binary")== 0){
-                        otsim::s7::BinaryInputPoint p;
-                    
-                        //get the current tag, value, and ts
-                        p.tag = point.get<std::string>("tag");
-                        p.address = point.get<std::uint16_t>("address");
+                    if(typ.compare("binary")== 0){   
+                        //get the current tag and address
                         
+                        std::string tag_read = point.get<std::string>("tag");
+                        std::uint16_t address_read = point.get<std::uint16_t>("address");
 
+                        s7client->AddBinaryTag(address_read, tag_read);
                     } else if(typ.compare("analog")== 0){
 
                     } else{
@@ -387,21 +387,7 @@ int main(int argc, char** argv){
                     }
 
                     if(typ.compare("binary")== 0){
-                        otsim::s7::BinaryOutputPoint p;
-                        
-                        //get the current tag
-                        p.tag = point.get<std::string>("tag");
-                        p.value = point.get<double>("value");
-
-                        //create a status object, push the tag to it, push that status object to the statusHandler's contents vector
-                        otsim::msgbus::Update update;
-
-                        //set the update's recipient and confirm fields
-                        update.recipient = point.get<std::string>("recipient", "");
-                        update.confirm = point.get<std::string>("confirm", "");
-
-                        //update.updates.push_back(p);
-                        // updateHandler.contents.push_back(update);
+ 
                     } else if(typ.compare("analog")== 0){
 
                     } else{

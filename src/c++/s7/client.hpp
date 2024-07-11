@@ -17,16 +17,17 @@ namespace s7 {
 struct ClientConfig {
     std::string id;
     std::uint16_t address;
+    std::string logLevel = "info";
 };
 
-class Client{
+class Client : public std::enable_shared_from_this<Client>{
 public:
     //used for dynamically creating Clients
     static std::shared_ptr<Client> Create(ClientConfig config, Pusher pusher) {
-        return std::make_shared<Client>(config.id, pusher);
+        return std::make_shared<Client>(config, pusher);
     }
 
-    Client(std::string id, Pusher pusher);
+    Client(ClientConfig config, Pusher pusher);
     ~Client() {};
 
     std::string ID() { return id; }
