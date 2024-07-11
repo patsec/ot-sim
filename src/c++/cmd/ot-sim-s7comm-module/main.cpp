@@ -236,7 +236,6 @@ int main(int argc, char** argv){
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
-                        // TODO: implement binary/ analog functionality
                         s7server->AddBinaryInput(p);
                     } else if(typ.compare("analog")== 0){
                         otsim::s7::AnalogInputPoint p;
@@ -245,7 +244,6 @@ int main(int argc, char** argv){
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
-                        // TODO: implement binary/ analog functionality
                         s7server->AddAnalogInput(p);
                     } else {
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7 input" << std::endl;
@@ -258,14 +256,36 @@ int main(int argc, char** argv){
                 auto outputs = device.equal_range("output");
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
                     auto point = iter->second;
-                    
-                    otsim::s7::BinaryOutputPoint p;
-                    
-                    //get the current tag
-                    p.tag = point.get<std::string>("tag");
-                    p.address = point.get<std::uint16_t>("value");
 
-                    s7server->AddBinaryOutput(p);
+                    std::string typ;
+
+                    try {
+                        typ = point.get<std::string>("<xmlattr>.type");
+                    } catch (pt::ptree_bad_path&) {
+                        std::cerr << "ERROR: missing type for S7COMM input" << std::endl;
+                        continue;
+                    }
+
+                    if(typ.compare("binary")== 0){
+                        otsim::s7::BinaryOutputPoint p;
+                    
+                        //get the current tag
+                        p.tag = point.get<std::string>("tag");
+                        p.address = point.get<std::uint16_t>("value");
+
+                        s7server->AddBinaryOutput(p);
+                    } else if(typ.compare("analog")== 0){
+                        otsim::s7::AnalogOutputPoint p;
+                    
+                        //get the current tag
+                        p.tag = point.get<std::string>("tag");
+                        p.address = point.get<std::uint16_t>("value");
+
+                        s7server->AddAnalogOutput(p);
+                    } else {
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7 output" << std::endl;
+                        continue;
+                    }
                 }
 
                 //start the server and add it to the vector of servers
