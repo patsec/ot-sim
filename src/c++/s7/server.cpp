@@ -28,6 +28,8 @@ namespace s7 {
     ts7server->Start();
 
     while(running){
+
+      //loop through all analog outputs, get their address and value, send that information to WriteAnalog where they will be pushed to the msgbus
       for (const auto& kv : analogOutputs) {
         const std::uint16_t addr = kv.first;
         const float   val  = kv.second.value;
@@ -36,6 +38,7 @@ namespace s7 {
         metrics->IncrMetric("s7_analog_write_count");
       }
 
+      //loop through all binary outputs, get their address and value, send that information to WriteBinary where they will be pushed to the msgbus
       for (const auto& kv : binaryOutputs) {
         const std::uint16_t addr = kv.first;
         const bool   val  = kv.second.value;
@@ -43,6 +46,7 @@ namespace s7 {
         WriteAnalog(addr, val);
         metrics->IncrMetric("s7_binary_write_count");
       }
+      
     }
   }
 

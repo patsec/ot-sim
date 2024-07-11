@@ -220,14 +220,38 @@ int main(int argc, char** argv){
                 for(auto iter=inputs.first; iter !=inputs.second; iter++){
                     auto point = iter->second;
 
-                    otsim::s7::BinaryInputPoint p;
-                    
-                    //get the current tag
-                    p.tag = point.get<std::string>("tag");
-                    p.address = point.get<std::uint16_t>("address");
+                    std::string typ;
 
-                    // TODO: implement binary/ analog functionality
-                    s7server->AddBinaryInput(p);
+                    try {
+                        typ = point.get<std::string>("<xmlattr>.type");
+                    } catch (pt::ptree_bad_path&) {
+                        std::cerr << "ERROR: missing type for S7COMM input" << std::endl;
+                        continue;
+                    }
+
+                    if(typ.compare("binary")== 0){
+                        otsim::s7::BinaryInputPoint p;
+                    
+                        //get the current tag
+                        p.tag = point.get<std::string>("tag");
+                        p.address = point.get<std::uint16_t>("address");
+
+                        // TODO: implement binary/ analog functionality
+                        s7server->AddBinaryInput(p);
+                    } else if(typ.compare("analog")== 0){
+                        otsim::s7::AnalogInputPoint p;
+                    
+                        //get the current tag
+                        p.tag = point.get<std::string>("tag");
+                        p.address = point.get<std::uint16_t>("address");
+
+                        // TODO: implement binary/ analog functionality
+                        s7server->AddAnalogInput(p);
+                    } else {
+                        std::cerr << "ERROR: invalid type " << typ << " provided for S7 input" << std::endl;
+                        continue;
+                    }
+
                 }
 
                 //loop through the outputs, getting the tag for each
