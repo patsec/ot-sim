@@ -44,6 +44,8 @@ public:
         return std::make_shared<Listener>(name, pusher);
     }
 
+
+    //declaration sets the incoming name and pusher
     Listener(std::string name, Pusher pusher) : name(name), pusher(pusher) {
         thread = std::thread(std::bind(&Listener::Run, this));
     }
@@ -69,21 +71,21 @@ private:
     */
     void publish() {
         std::string tag   = fmt::format("{}.connected", name);
-
         std::cout << fmt::format("[{}] setting connected", name) << std::endl;
 
         otsim::msgbus::Points points;
         points.push_back(otsim::msgbus::Point{tag});
-
         otsim::msgbus::Status contents = {.measurements = points};
-        auto env = otsim::msgbus::NewEnvelope(name, contents);
 
+        //create an envelope with all of the data
+        auto env = otsim::msgbus::NewEnvelope(name, contents);
+        
+        //push all data to msgbus
         pusher->Push("RUNTIME", env);
     }
 
     std::string name;
     Pusher      pusher;
-
     std::thread thread;
 };
 
@@ -213,6 +215,7 @@ int main(int argc, char** argv){
                     dbSize = DBinput.get<uint16_t>("size");
                 }
 
+                //create a handler using the server class from the s7 folder, which links snap7 and msgbus
                 auto s7server = otsim::s7::Server::Create(config, pusher);
                 sub->AddHandler(std::bind(&otsim::s7::Server::HandleMsgBusStatus, s7server, std::placeholders::_1));
 
@@ -256,7 +259,7 @@ int main(int argc, char** argv){
 
                 }
 
-                //loop through the outputs, getting the tag for each
+                //loop through the outputs, getting the tag for each. if it is an output, the sbo value will be set to 'true'
                 auto outputs = device.equal_range("output");
                 for(auto iter=outputs.first; iter !=outputs.second; iter++){
                     auto point = iter->second;
@@ -353,11 +356,13 @@ int main(int argc, char** argv){
                 std::string cliId = device.get<std::string>("<xmlattr>.name", "s7-client");
                 std::uint16_t cliAddr = device.get<std::uint16_t>("address");
 
-                //auto s7client = otsim::s7::Client::Create(config, pusher);
-                //sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
-
+                // TODO: Fix the linker error associated with this line of code
                 auto s7client = otsim::s7::Client::Create(cliId, pusher);
+
+                //create an object of the client class from the s7 folder, which links snap to msgbus
                 s7client->BuildConfig(cliId, cliAddr);
+
+                //add the s7client to subscriber as a handler. the s7client will call handlemsgbusupdate with one input (an envelope)
                 sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
 
                 //loop through the inputs, getting the tag for each
@@ -367,6 +372,7 @@ int main(int argc, char** argv){
 
                     std::string typ;
 
+                    //get the type of input (binary or analog)
                     try {
                         typ = point.get<std::string>("<xmlattr>.type");
                     } catch (pt::ptree_bad_path&) {
@@ -400,6 +406,7 @@ int main(int argc, char** argv){
 
                     std::string typ;
 
+                    //get the type of output (binary or analog)
                     try {
                         typ = point.get<std::string>("<xmlattr>.type");
                     } catch (pt::ptree_bad_path&) {
