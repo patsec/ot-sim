@@ -105,7 +105,7 @@ public:
 
         return {};
     }
-/*
+
     // TODO: Finish WriteBinary function, currently uses dnp3 functions
     bool WriteBinary(std::string tag, bool status) {
         auto iter = binaryOutputs.find(tag);
@@ -121,26 +121,24 @@ public:
         
         // TODO: Learn about S7 equivalent of ICommandTaskResult, OperationType, CommandSet, ControlRelayOutputBlock
         // TODO: Replace this block of code with S7 method of writing binary
-            auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+            //auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
 
             if (point.sbo) {
-            opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-            opendnp3::ControlRelayOutputBlock crob(code);
+            //opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+            //opendnp3::ControlRelayOutputBlock crob(code);
 
-            master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+            //master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
             } else {
-            opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
-            opendnp3::ControlRelayOutputBlock crob(code);
+            //opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
+            //opendnp3::ControlRelayOutputBlock crob(code);
 
-            master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
+            //master->DirectOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
             }
 
         return true;
     }
     
     // TODO: Implement WriteAnalog function below
-
-    
     bool WriteAnalog(std::string tag, double value) {
         auto iter = analogOutputs.find(tag);
         if (iter == analogOutputs.end()) {
@@ -153,18 +151,18 @@ public:
         return false;
         }
 
-        auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
+        //auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
 
         if (point.sbo) {
-        auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
-        master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
+        //auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
+        //master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
         } else {
-        auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
-        master->DirectOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
+        //auto val = static_cast<opendnp3::AnalogOutputFloat32>(value);
+        //master->DirectOperate(opendnp3::CommandSet({ WithIndex(val, point.address) }), callback);
         }
 
         return true;
-    }*/
+    }
 
   void HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Update>& env);
 
