@@ -28,7 +28,5 @@ void Client::HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Upd
     }
 }
 
-// TODO: create dnp3::master process equivilant functions
-
 }
 }

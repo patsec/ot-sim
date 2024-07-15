@@ -281,7 +281,6 @@ int main(int argc, char** argv){
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
-                        //set the sbo boolean to be true because it is an output
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         //set output information
@@ -293,7 +292,6 @@ int main(int argc, char** argv){
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
 
-                        //set the sbo boolean to be true because it is an output
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         //set output information
@@ -350,7 +348,6 @@ int main(int argc, char** argv){
                 std::string cliId = device.get<std::string>("<xmlattr>.name", "s7-client");
                 std::uint16_t cliAddr = device.get<std::uint16_t>("address");
 
-                // TODO: Fix the linker error associated with this line of code
                 auto s7client = otsim::s7::Client::Create(cliId, pusher);
 
                 //create an object of the client class from the s7 folder, which links snap to msgbus
@@ -413,17 +410,14 @@ int main(int argc, char** argv){
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
-                        //set the sbo boolean to be true because it is an output
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddBinaryTag(address_read, tag_read, sbo);
- 
                     } else if(typ.compare("analog")== 0){
                         //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
-                        //set the sbo boolean to be true because it is an output
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddAnalogTag(address_read, tag_read, sbo);
