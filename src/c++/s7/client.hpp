@@ -1,5 +1,5 @@
-#ifndef OTSIM_S7_MASTER_HPP
-#define OTSIM_S7_MASTER_HPP
+#ifndef OTSIM_S7_CLIENT_HPP
+#define OTSIM_S7_CLIENT_HPP
 
 #include <condition_variable>
 #include <iostream>
@@ -186,4 +186,4 @@ private:
 } // namespace s7
 } // namespace otsim
 
-#endif // OTSIM_S7_MASTER_HPP
+#endif // OTSIM_S7_CLIENT_HPP
