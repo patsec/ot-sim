@@ -128,7 +128,6 @@ public:
         return true;
     }
     
-    // TODO: Implement WriteAnalog function below
     bool WriteAnalog(std::string tag, double value) {
         auto iter = analogOutputs.find(tag);
         if (iter == analogOutputs.end()) {

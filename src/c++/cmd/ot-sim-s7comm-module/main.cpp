@@ -44,7 +44,6 @@ public:
         return std::make_shared<Listener>(name, pusher);
     }
 
-
     //declaration sets the incoming name and pusher
     Listener(std::string name, Pusher pusher) : name(name), pusher(pusher) {
         thread = std::thread(std::bind(&Listener::Run, this));
@@ -256,7 +255,6 @@ int main(int argc, char** argv){
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
                         continue;
                     }
-
                 }
 
                 //loop through the outputs, getting the tag for each. if it is an output, the sbo value will be set to 'true'
@@ -280,7 +278,6 @@ int main(int argc, char** argv){
                         //get output information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
-
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         //set output information
@@ -291,7 +288,6 @@ int main(int argc, char** argv){
                         //get output information
                         p.tag = point.get<std::string>("tag");
                         p.address = point.get<std::uint16_t>("address");
-
                         p.sbo = point.get<bool>("sbo", 0) == 1;
 
                         //set output information
@@ -383,7 +379,6 @@ int main(int argc, char** argv){
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
 
                         s7client->AddAnalogTag(address_read, tag_read);
-
                     } else{
                         std::cerr << "ERROR: invalid type " << typ << " provided for S7COMM input" << std::endl;
                         continue;
@@ -409,7 +404,6 @@ int main(int argc, char** argv){
                         //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
-
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddBinaryTag(address_read, tag_read, sbo);
@@ -417,7 +411,6 @@ int main(int argc, char** argv){
                         //based on the xml, add tags that the s7client will communicate to the msgbus
                         std::string tag_read = point.get<std::string>("tag");
                         std::uint16_t address_read = point.get<std::uint16_t>("address");
-
                         auto sbo  = point.get<bool>("sbo", 0) == 1;
 
                         s7client->AddAnalogTag(address_read, tag_read, sbo);
