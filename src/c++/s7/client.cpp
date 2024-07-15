@@ -8,6 +8,8 @@
 namespace otsim {
 namespace s7 {
 
+Client::Client(std::string id, Pusher pusher) : id(id), pusher(pusher) {}
+
 void Client::HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Update>& env) {
     auto sender = otsim::msgbus::GetEnvelopeSender(env);
 
