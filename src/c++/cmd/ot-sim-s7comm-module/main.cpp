@@ -347,12 +347,6 @@ int main(int argc, char** argv){
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
-                /*
-                otsim::s7::ClientConfig config = {
-                    .id = device.get<std::string>("<xmlattr>.name", "s7-client"),
-                    .address = device.get<std::uint16_t>("address"),
-                };*/
-
                 std::string cliId = device.get<std::string>("<xmlattr>.name", "s7-client");
                 std::uint16_t cliAddr = device.get<std::uint16_t>("address");
 

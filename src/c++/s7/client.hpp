@@ -69,7 +69,7 @@ public:
         AnalogOutputPoint point = {.address = address, .tag = tag, .output = true, .sbo = sbo};
         analogOutputs[tag] = point;
     }
-        
+  
     std::string GetBinaryTag(std::uint16_t address, bool output = false) {
         if (output) {
         auto iter = binaryOutputTags.find(address);
@@ -123,12 +123,13 @@ public:
         // TODO: Replace this block of code with S7 method of writing binary
             //auto callback = [](const opendnp3::ICommandTaskResult&) -> void {};
 
+            //if it is an output
             if (point.sbo) {
             //opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
             //opendnp3::ControlRelayOutputBlock crob(code);
 
             //master->SelectAndOperate(opendnp3::CommandSet({ WithIndex(crob, point.address) }), callback);
-            } else {
+            } else { //if it's not an output
             //opendnp3::OperationType code = status ? opendnp3::OperationType::LATCH_ON : opendnp3::OperationType::LATCH_OFF;
             //opendnp3::ControlRelayOutputBlock crob(code);
 
@@ -165,7 +166,6 @@ public:
     }
 
   void HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Update>& env);
-
 
 private:
   std::string   id;
