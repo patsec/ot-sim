@@ -9,6 +9,7 @@
     <module name="io">ot-sim-io-module {{config_file}}</module>
     <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
     <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
+    <module name="s7comm">ot-sim-s7comm-module {{config_file}}</module>
     <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
     <module name="node-red">ot-sim-node-red-module {{config_file}}</module>
   </cpu>

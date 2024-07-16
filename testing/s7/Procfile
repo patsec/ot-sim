@@ -1,3 +1,0 @@
-broker: 
-dss: 
-device-1: ot-sim-cpu-module configs/device-s7.xml
