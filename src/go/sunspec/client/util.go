@@ -85,6 +85,10 @@ func modelData(c modbus.Client, m, a, l int) (map[string]*common.Register, error
 			Model:    m,
 		}
 
+		if p.Access == common.PointAccessRW {
+			r.Addr = a + pos
+		}
+
 		switch sf := p.Sf.(type) {
 		case nil:
 			// noop

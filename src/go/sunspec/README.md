@@ -52,7 +52,7 @@ attribute to denote static values? I vote first option... less typing in config.
 * [x] Figure out how to handle scaling config
 * [ ] Support mapping OT-sim tag names client-side
 * [ ] Support different scan rates for different models client-side
-* [ ] Support writes client-side (subscribe to updates)
+* [-] Support writes client-side (subscribe to updates)
 
 Server-side is "pretty much" done. Client side needs work 1) continuing to read
 available models, and 2) mapping model points to OT-sim tags. The client doesn't

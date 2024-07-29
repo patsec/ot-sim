@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -33,18 +34,16 @@ type SunSpecClient struct {
 	pusher *msgbus.Pusher
 	client modbus.Client
 
-	models    *common.Models
-	registers map[int]*common.Register
-	points    map[string]*common.Register
+	models *common.Models
+	points map[string]*common.Register
 }
 
 func New(name string) *SunSpecClient {
 	return &SunSpecClient{
-		name:      name,
-		period:    5 * time.Second,
-		models:    &common.Models{Settings: make(map[int]common.ModelSettings)},
-		registers: make(map[int]*common.Register),
-		points:    make(map[string]*common.Register),
+		name:   name,
+		period: 5 * time.Second,
+		models: &common.Models{Settings: make(map[int]common.ModelSettings)},
+		points: make(map[string]*common.Register),
 	}
 }
 
@@ -86,6 +85,10 @@ func (this *SunSpecClient) Run(ctx context.Context, pubEndpoint, pullEndpoint st
 	}
 
 	this.pusher = msgbus.MustNewPusher(pullEndpoint)
+	subscriber := msgbus.MustNewSubscriber(pubEndpoint)
+
+	subscriber.AddUpdateHandler(this.handleMsgBusUpdate)
+	subscriber.Start("RUNTIME")
 
 	var handler modbus.ClientHandler
 
@@ -209,6 +212,11 @@ func (this *SunSpecClient) Run(ctx context.Context, pubEndpoint, pullEndpoint st
 		}
 	}
 
+	go func() {
+		<-ctx.Done()
+		subscriber.Stop()
+	}()
+
 	return nil
 }
 
@@ -262,6 +270,56 @@ func (this SunSpecClient) process(data map[string]*common.Register) error {
 	}
 
 	return nil
+}
+
+func (this *SunSpecClient) handleMsgBusUpdate(env msgbus.Envelope) {
+	if env.Sender() == this.name {
+		return
+	}
+
+	update, err := env.Update()
+	if err != nil {
+		if !errors.Is(err, msgbus.ErrKindNotUpdate) {
+			this.log("[ERROR] getting update message from envelope: %v", err)
+		}
+
+		return
+	}
+
+	for _, point := range update.Updates {
+		if reg, ok := this.points[point.Tag]; ok {
+			if reg.Addr == 0 {
+				// Not a R/W point in SunSpec - this only gets initialized to a non-zero
+				// address in the `modelData` function if the SunSpec point is marked
+				// with R/W access.
+				continue
+			}
+
+			scaling := 0.0
+
+			if reg.ScaleRegister != "" {
+				p, ok := this.points[reg.ScaleRegister]
+				if !ok {
+					this.log("[ERROR] scaling factor %s does not exist", reg.ScaleRegister)
+					continue
+				}
+
+				scaling = p.InternalValue
+			}
+
+			data, err := reg.Bytes(point.Value, scaling)
+			if err != nil {
+				this.log("[ERROR] converting register value to bytes: %v", err)
+				continue
+			}
+
+			if _, err := this.client.WriteMultipleRegisters(uint16(reg.Addr), uint16(reg.Count), data); err != nil {
+				this.log("[ERROR] writing SunSpec point %s (addr: %d) to %f at %s: %v", reg.Name, uint16(reg.Addr), point.Value, this.endpoint, err)
+			}
+
+			this.log("writing SunSpec point %s (addr: %d) at %s --> %f", reg.Name, uint16(reg.Addr), this.endpoint, point.Value)
+		}
+	}
 }
 
 func (this SunSpecClient) log(format string, a ...any) {

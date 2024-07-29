@@ -21,7 +21,8 @@ type Register struct {
 	InternalValue  float64
 	InternalString string
 
-	Raw []byte // used for storing raw bytes until SF is known
+	Raw  []byte // used for storing raw bytes until SF is known
+	Addr int    // used for writing data
 }
 
 func (this *Register) Init() error {
