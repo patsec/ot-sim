@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -pthread -Wall -shared -Wl,-soname,libot-sim-msgbus.so -o libot-sim-msgbus.so CMakeFiles/ot-sim-msgbus.dir/metrics.cpp.o CMakeFiles/ot-sim-msgbus.dir/pusher.cpp.o CMakeFiles/ot-sim-msgbus.dir/subscriber.cpp.o  /usr/lib/x86_64-linux-gnu/libzmq.so 

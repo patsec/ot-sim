@@ -1,3 +1,0 @@
-/home/htoohey/repos/ot-sim/_deps/ser4cpp-subbuild/CMakeFiles/ser4cpp-populate.dir
-/home/htoohey/repos/ot-sim/_deps/ser4cpp-subbuild/CMakeFiles/edit_cache.dir
-/home/htoohey/repos/ot-sim/_deps/ser4cpp-subbuild/CMakeFiles/rebuild_cache.dir
