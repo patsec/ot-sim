@@ -47,5 +47,19 @@ attribute to denote static values? I vote first option... less typing in config.
 ## TODO
 
 * [x] Build out initial Model 1 (static data)
-* [ ] Add OT-sim msg bus status and update handlers
-* [ ] Figure out how to handle scaling config
+* [x] Add OT-sim msg bus status handler
+      * do we need an update handler?
+* [x] Figure out how to handle scaling config
+* [ ] Support mapping OT-sim tag names client-side
+* [ ] Support different scan rates for different models client-side
+* [ ] Support writes client-side (subscribe to updates)
+
+Server-side is "pretty much" done. Client side needs work 1) continuing to read
+available models, and 2) mapping model points to OT-sim tags. The client doesn't
+really need to know what models the server side is providing ahead of time since
+it can query the server for that, but configuration-wise users will need to know
+so they can assign tags to points. Alternatively, we could default to a
+well-defined method of automatically mapping points to tags. This could be as
+easy as the SunSpec point's name. If we find that point names are not unique
+across all SunSpec models, we could prefix the name with the model number. We
+can also do things like skip publishing scaling factors within OT-sim.
