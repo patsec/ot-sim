@@ -13,7 +13,7 @@ ADD .git /usr/local/src/ot-sim/.git
 ADD src/go /usr/local/src/ot-sim/src/go
 RUN make -C /usr/local/src/ot-sim/src/go install
 
-FROM python:3.11-bookworm as pybuild
+FROM python:3.11-bookworm AS pybuild
 
 ADD .git /usr/local/src/ot-sim/.git
 
@@ -26,6 +26,7 @@ ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update && apt install -y \
+    7zip \
     build-essential \
     cmake \
     git \
@@ -37,6 +38,11 @@ RUN apt update && apt install -y \
     python3-dev \
     python3-pip \
     wget
+
+# TODO: add TARGETARCH support for Snap7.
+RUN wget -O snap7.7z https://versaweb.dl.sourceforge.net/project/snap7/1.4.2/snap7-full-1.4.2.7z \
+  && 7zz -o/tmp x snap7.7z && rm snap7.7z \
+  && make -C /tmp/snap7-full-1.4.2/build/unix -f x86_64_linux.mk install LibInstall=/usr/local/lib
 
 ADD .git /usr/local/src/ot-sim/.git
 

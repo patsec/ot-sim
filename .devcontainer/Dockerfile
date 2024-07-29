@@ -68,7 +68,6 @@ RUN /root/install-node-red.sh \
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
 RUN cd /root/.node-red/nodes/ot-sim && npm install
 
-# TODO: add TARGETARCH support for Snap7.
 RUN wget -O snap7.7z https://versaweb.dl.sourceforge.net/project/snap7/1.4.2/snap7-full-1.4.2.7z \
   && 7zz -o/tmp x snap7.7z && rm snap7.7z \
   && make -C /tmp/snap7-full-1.4.2/build/unix -f x86_64_linux.mk install LibInstall=/usr/local/lib
