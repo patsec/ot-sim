@@ -195,10 +195,9 @@ int main(int argc, char** argv){
 
                 otsim::s7::ServerConfig config = {
                     .id = name,
-                    .address = device.get<std::uint16_t>("address", 1024),
+                    .address = device.get<std::uint16_t>("local-address", 1024),
                 };
 
-                
                 // TODO: FINISH XML for loop to get DB information for the server
                 /*
                 auto DBinputs = device.equal_range("DB");
