@@ -41,7 +41,7 @@
       <scaling>-2</scaling>
     </register>
   </modbus>
-  <s7comm name="s7comm-outstation" mode="server">
+  <s7comm name="s7comm-server" mode="server">
     <endpoint>127.0.0.1:20000</endpoint>
     <input type="binary">
       <address>0</address>

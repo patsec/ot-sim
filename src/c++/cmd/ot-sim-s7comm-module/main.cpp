@@ -194,8 +194,8 @@ int main(int argc, char** argv){
                 }
 
                 otsim::s7::ServerConfig config = {
-                    .id = device.get<std::string>("<xmlattr>.name", "s7-server"),
-                    .address = device.get<std::uint16_t>("address", 10),
+                    .id = name,
+                    .address = device.get<std::uint16_t>("address", 1024),
                 };
 
                 
