@@ -27,6 +27,7 @@ namespace s7 {
     metrics->Start(pusher, config.id);
     ts7server->Start();
 
+    
     while(running){
 
       //loop through all analog outputs, get their address and value, send that information to WriteAnalog where they will be pushed to the msgbus
@@ -177,7 +178,7 @@ namespace s7 {
     
   void Server::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
     auto sender = otsim::msgbus::GetEnvelopeSender(env);
-
+    
     //if the status sender is the current s7 device, return because the status does not need to be handled
     if (sender == config.id) {
       return;

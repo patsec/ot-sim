@@ -128,7 +128,7 @@ int main(int argc, char** argv){
             auto msgbus = v.second.get_child("message-bus");
             pubEndpoint = msgbus.get<std::string>("pub-endpoint", "tcp://127.0.0.1:5678");
             pullEndpoint = msgbus.get<std::string>("pull-endpoint", "tcp://127.0.0.1:1234");
-        } catch (pt::ptree_bad_path&) {}
+        } catch (pt::ptree_bad_path&) {std::cout<<"\nmessage bus pub/pull endpoint failure\n";}
 
         //loop through each branch of the s7comm tree
         auto devices = v.second.equal_range("s7comm");
@@ -195,10 +195,12 @@ int main(int argc, char** argv){
 
                 otsim::s7::ServerConfig config = {
                     .id = device.get<std::string>("<xmlattr>.name", "s7-server"),
-                    .address = device.get<std::uint16_t>("address"),
+                    .address = device.get<std::uint16_t>("address", 10),
                 };
 
+                
                 // TODO: FINISH XML for loop to get DB information for the server
+                /*
                 auto DBinputs = device.equal_range("DB");
 
                 //loop through each database listed in the XML
@@ -212,7 +214,7 @@ int main(int argc, char** argv){
 
                     //get DB size
                     dbSize = DBinput.get<uint16_t>("size");
-                }
+                }*/
 
                 //create a handler using the server class from the s7 folder, which links snap7 and msgbus
                 auto s7server = otsim::s7::Server::Create(config, pusher);
