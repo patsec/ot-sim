@@ -171,10 +171,10 @@ int main(int argc, char** argv){
             } else {
                 pusher = otsim::msgbus::Pusher::Create(pullEndpoint);
             }
-            
+
             //if the s7comm device is a server
             if (mode.compare("server") == 0){
-                std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl; //<-- not getting past here without seg faulting
+                std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
 
                 //create the server object
                 auto server = std::make_shared<TS7Server>(); 
