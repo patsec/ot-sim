@@ -43,19 +43,6 @@
   </modbus>
   <s7comm name="s7comm-server" mode="server">
     <endpoint>127.0.0.1:20000</endpoint>
-    <input type="binary">
-      <tag>line-650632.closed</tag>
-      <address>0</address>
-    </input>
-    <output type="binary">
-      <tag>line-650632.closed</tag>
-       <address>10</address>
-      <sbo>false</sbo>
-    </output>
-    <input type="analog">
-      <tag>line-650632.kW</tag>
-      <address>0</address>
-    </input>
   </s7comm>
   <io name="helics-federate">
     <broker-endpoint>localhost</broker-endpoint>

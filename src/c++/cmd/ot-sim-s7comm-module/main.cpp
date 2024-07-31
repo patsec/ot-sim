@@ -142,7 +142,6 @@ int main(int argc, char** argv){
             //each s7comm device will have a name and mode
             std::string name; //arbitrary device name
             std::string mode; //server or client
-
             //get name
             try {
                 name = device.get<std::string>("<xmlattr>.name");
@@ -156,7 +155,7 @@ int main(int argc, char** argv){
             } catch (pt::ptree_bad_path&) {
                 std::cerr << "ERROR: missing mode for S7COMM device" << std::endl;
             }
-
+            
             //if the device specifies a pub endpoint create a msgbus subscriber with that endpoint, otherwise, use the default
             if (device.get_child_optional("pub-endpoint")) {
                 auto endpoint = device.get<std::string>("pub-endpoint");
@@ -172,14 +171,13 @@ int main(int argc, char** argv){
             } else {
                 pusher = otsim::msgbus::Pusher::Create(pullEndpoint);
             }
-
+            
             //if the s7comm device is a server
             if (mode.compare("server") == 0){
-                std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
+                std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl; //<-- not getting past here without seg faulting
 
                 //create the server object
-                auto server = std::make_shared<TS7Server>();
-
+                auto server = std::make_shared<TS7Server>(); 
                 std::string address = "0.0.0.0";
 
                 //get the endpoint and set it

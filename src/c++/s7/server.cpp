@@ -11,7 +11,7 @@ namespace otsim {
 namespace s7 {
   
   //Constructor
-  Server::Server(ServerConfig config, Pusher pusher) {
+  Server::Server(ServerConfig config, Pusher pusher): config(config), pusher(pusher) {
 
     //create a Metrics Pusher and add counters for status', updates, and binary/analog writes
     metrics = otsim::msgbus::MetricsPusher::Create();
@@ -26,7 +26,6 @@ namespace s7 {
   void Server::Run(std::shared_ptr<TS7Server> ts7server){
     metrics->Start(pusher, config.id);
     ts7server->Start();
-
     
     while(running){
 
@@ -175,7 +174,6 @@ namespace s7 {
     }
   }
 
-    
   void Server::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus::Status>& env) {
     auto sender = otsim::msgbus::GetEnvelopeSender(env);
     
