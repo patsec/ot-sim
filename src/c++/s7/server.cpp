@@ -26,27 +26,67 @@ namespace s7 {
   void Server::Run(std::shared_ptr<TS7Server> ts7server){
     metrics->Start(pusher, config.id);
     ts7server->Start();
-    
+    running = true;
     while(running){
+      for (const auto& kv : binaryInputs) {
+        const std::uint16_t addr = kv.first;
+        const float   val  = kv.second.value;
+        const std::string   tag  = kv.second.tag;
+
+        try {
+          auto lock = std::unique_lock<std::mutex>(pointsMu);
+          auto point = points.at(tag);
+          std::cout << fmt::format("[{}] updated binary input {} to {}", config.id, addr, point.value) << std::endl;
+          WriteAnalog(addr, val);
+          metrics->IncrMetric("s7_analog_write_count");
+        } catch (const std::out_of_range&) {}
+      }
+
+      //loop through all analog outputs, get their address and value, send that information to WriteAnalog where they will be pushed to the msgbus
+      for (const auto& kv : analogInputs) {
+        const std::uint16_t addr = kv.first;
+        const float   val  = kv.second.value;
+        const std::string   tag  = kv.second.tag;
+
+        try {
+          auto lock = std::unique_lock<std::mutex>(pointsMu);
+          auto point = points.at(tag);
+          std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
+          WriteAnalog(addr, val);
+          metrics->IncrMetric("s7_analog_write_count");
+        } catch (const std::out_of_range&) {}
+      }
 
       //loop through all analog outputs, get their address and value, send that information to WriteAnalog where they will be pushed to the msgbus
       for (const auto& kv : analogOutputs) {
         const std::uint16_t addr = kv.first;
         const float   val  = kv.second.value;
+        const std::string   tag  = kv.second.tag;
 
-        WriteAnalog(addr, val);
-        metrics->IncrMetric("s7_analog_write_count");
+        try {
+          auto lock = std::unique_lock<std::mutex>(pointsMu);
+          auto point = points.at(tag);
+          std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
+          WriteAnalog(addr, val);
+          metrics->IncrMetric("s7_analog_write_count");
+        } catch (const std::out_of_range&) {}
       }
 
       //loop through all binary outputs, get their address and value, send that information to WriteBinary where they will be pushed to the msgbus
       for (const auto& kv : binaryOutputs) {
         const std::uint16_t addr = kv.first;
         const bool   val  = kv.second.value;
+        const std::string   tag  = kv.second.tag;
 
-        WriteAnalog(addr, val);
-        metrics->IncrMetric("s7_binary_write_count");
+        try {
+          auto lock = std::unique_lock<std::mutex>(pointsMu);
+          auto point = points.at(tag);
+          std::cout << fmt::format("[{}] updated binary output {} to {}", config.id, addr, point.value) << std::endl;
+          WriteAnalog(addr, val);
+          metrics->IncrMetric("s7_binary_write_count");
+        } catch (const std::out_of_range&) {}
       }
-      
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
   }
 

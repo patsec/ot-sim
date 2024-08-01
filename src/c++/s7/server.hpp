@@ -35,6 +35,16 @@ public:
 
     void Run(std::shared_ptr<TS7Server> ts7server);
 
+    bool Enable() {
+        running.store(true);
+        return true;
+    }
+
+    bool Disable() {
+        running.store(false);
+        return false;
+    }
+
     bool AddBinaryInput(BinaryInputPoint point);
     bool AddBinaryOutput(BinaryOutputPoint point);
     bool AddAnalogInput(AnalogInputPoint point);
