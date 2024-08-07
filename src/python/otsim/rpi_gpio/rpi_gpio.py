@@ -63,7 +63,8 @@ class RPiGPIO:
     self.subscriber.start('RUNTIME')
 
     # run GPIO monitor in a thread
-    self.monitor_thread = threading.Thread(target=self.monitor, daemon=True).start()
+    self.monitor_thread = threading.Thread(target=self.monitor, daemon=True)
+    self.monitor_thread.start()
 
 
   def stop(self: RPiGPIO):
