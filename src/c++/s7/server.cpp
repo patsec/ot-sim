@@ -37,7 +37,8 @@ namespace s7 {
           auto lock = std::unique_lock<std::mutex>(pointsMu);
           auto point = points.at(tag);
           std::cout << fmt::format("[{}] updated binary input {} to {}", config.id, addr, point.value) << std::endl;
-          WriteAnalog(addr, val);
+
+          WriteAnalog(addr, point.value);
           metrics->IncrMetric("s7_analog_write_count");
         } catch (const std::out_of_range&) {}
       }
@@ -52,7 +53,7 @@ namespace s7 {
           auto lock = std::unique_lock<std::mutex>(pointsMu);
           auto point = points.at(tag);
           std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
-          WriteAnalog(addr, val);
+          WriteAnalog(addr, point.value);
           metrics->IncrMetric("s7_analog_write_count");
         } catch (const std::out_of_range&) {}
       }
@@ -67,7 +68,7 @@ namespace s7 {
           auto lock = std::unique_lock<std::mutex>(pointsMu);
           auto point = points.at(tag);
           std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
-          WriteAnalog(addr, val);
+          WriteAnalog(addr, point.value);
           metrics->IncrMetric("s7_analog_write_count");
         } catch (const std::out_of_range&) {}
       }
@@ -82,7 +83,7 @@ namespace s7 {
           auto lock = std::unique_lock<std::mutex>(pointsMu);
           auto point = points.at(tag);
           std::cout << fmt::format("[{}] updated binary output {} to {}", config.id, addr, point.value) << std::endl;
-          WriteAnalog(addr, val);
+          WriteAnalog(addr, point.value);
           metrics->IncrMetric("s7_binary_write_count");
         } catch (const std::out_of_range&) {}
       }

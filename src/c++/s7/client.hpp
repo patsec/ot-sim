@@ -119,11 +119,7 @@ public:
         }
 
         // TODO: 
-        if (point.sbo){
-            
-        } else{
-
-        }
+        
 
         return true;
     }
@@ -140,12 +136,8 @@ public:
         return false;
         }
 
-        // TODO: 
-        if (point.sbo){
-            
-        } else{
-
-        }
+        // TODO:
+    
 
         return true;
     }

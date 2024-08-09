@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: otsim
+Version: 0.0.1
+Summary: OT-sim Python modules
+Home-page: UNKNOWN
+License: GPLv3 License
+Platform: Linux
+Classifier: License :: OSI Approved :: GPLv3 License
+Classifier: Development Status :: 4 - Beta
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+
+UNKNOWN
+

@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:1234</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:5678</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="io">ot-sim-io-module {{config_file}}</module>
+    <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+    <module name="s7comm">ot-sim-s7comm-module {{config_file}}</module>
+    <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
+    <module name="node-red">ot-sim-node-red-module {{config_file}}</module>
+  </cpu>
+  <node-red>
+    <executable>node-red</executable>
+    <settings-path>/etc/node-red.js</settings-path>
+    <theme>dark</theme>
+    <flow-path>config/single-device/node-red-hmi.json</flow-path>
+    <!--
+    <authentiation>
+      <editor username="admin" password="admin"></editor>
+      <ui username="admin" password="admin"></ui>
+    </authentication>
+    -->
+    <endpoint host="0.0.0.0" port="1880"></endpoint>
+  </node-red>
+  <telnet name="SEL-Telnet">
+    <endpoint>:23</endpoint>
+    <banner>default</banner>
+  </telnet>
+  <modbus name="modbus-outstation" mode="server">
+    <endpoint>127.0.0.1:5502</endpoint>
+    <register type="coil">
+      <address>0</address>
+      <tag>line-650632.closed</tag>
+    </register>
+    <register type="input">
+      <address>30000</address>
+      <tag>line-650632.kW</tag>
+      <scaling>-2</scaling>
+    </register>
+  </modbus>
+  <s7comm name="s7comm-client" mode="client">
+    <endpoint>127.0.0.1:20000</endpoint>
+    <input type="binary">
+      <tag>line-650632.closed</tag>
+      <address>0</address>
+    </input>
+    <output type="binary">
+      <tag>line-650632.closed</tag>
+       <address>10</address>
+      <sbo>false</sbo>
+    </output>
+    <input type="analog">
+      <tag>line-650632.kW</tag>
+      <address>0</address>
+    </input>
+  </s7comm>
+  <io name="helics-federate">
+    <broker-endpoint>localhost</broker-endpoint>
+    <federate-name>ot-sim-io</federate-name>
+    <subscription>
+      <key>OpenDSS/line-650632.kW</key>
+      <type>double</type>
+      <tag>line-650632.kW</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/line-650632.kVAR</key>
+      <type>double</type>
+      <tag>line-650632.kVAR</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/line-650632.closed</key>
+      <type>boolean</type>
+      <tag>line-650632.closed</tag>
+    </subscription>
+    <subscription>
+      <key>OpenDSS/switch-671692.closed</key>
+      <type>boolean</type>
+      <tag>switch-671692.closed</tag>
+    </subscription>
+    <endpoint name="OpenDSS/updates">
+      <tag key="line-650632.closed">line-650632.closed</tag>
+    </endpoint>
+  </io>
+</ot-sim>

@@ -51,6 +51,10 @@ public:
 
     ~Listener() {};
 
+    void runThread(){
+        thread = std::thread(std::bind(&Listener::Run, this));
+    }
+
     //primary loop, which continually publishes on 5 second intervals
     void Run() {
         while (true) {
@@ -296,8 +300,10 @@ int main(int argc, char** argv){
                         continue;
                     }
                 }
-
+                std::cout << fmt::format("starting S7comm server {}", name) << std::endl;
                 //start the server and add it to the vector of servers
+                sub->Start("RUNTIME");
+                subscribers.push_back(sub);
                 s7server->Run(server);
                 servers.push_back(server);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
@@ -307,7 +313,8 @@ int main(int argc, char** argv){
 
                 //create a listener for publishing purposes
                 auto listener = Listener::Create(name, pusher);
-
+                listener->runThread();
+                listener->Run();
                 /*
                 set the connection type for the device based on what is provided in the xml.
                 if nothing is provided in the xml, set the connection type of the client to be
@@ -419,6 +426,9 @@ int main(int argc, char** argv){
                     }
                 }
                 
+                std::cout << fmt::format("starting S7comm client {}", cliId) << std::endl;
+                sub->Start("RUNTIME");
+                subscribers.push_back(sub);
                 //connect
                 client->ConnectTo(ip_address.c_str(), rack, slot);
                 clients.push_back(client);
@@ -431,7 +441,6 @@ int main(int argc, char** argv){
             //push back the subscriber created for this s7comm device
             sub->Start("RUNTIME");
             subscribers.push_back(sub);
-
         } //end of S7COMM loop
     } //end of BOOST_FOREACH loop
 
