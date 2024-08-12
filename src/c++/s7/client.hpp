@@ -30,6 +30,8 @@ public:
     Client(std::string id, Pusher pusher);
     ~Client() {};
 
+    //void Run(std::shared_ptr<TS7Client> ts7client);
+
     std::string ID() { return id; }
     std::uint16_t Address() { return address; }
     

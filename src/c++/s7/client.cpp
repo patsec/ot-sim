@@ -10,6 +10,11 @@ namespace s7 {
 
 Client::Client(std::string id, Pusher pusher) : id(id), pusher(pusher) {}
 
+/*
+void Server::Run(std::shared_ptr<TS7Client> ts7client, ){
+    ts7client->
+}*/
+
 void Client::HandleMsgBusUpdate(const otsim::msgbus::Envelope<otsim::msgbus::Update>& env) {
     auto sender = otsim::msgbus::GetEnvelopeSender(env);
 

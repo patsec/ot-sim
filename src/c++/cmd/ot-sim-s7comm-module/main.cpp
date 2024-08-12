@@ -313,8 +313,10 @@ int main(int argc, char** argv){
 
                 //create a listener for publishing purposes
                 auto listener = Listener::Create(name, pusher);
-                listener->runThread();
-                listener->Run();
+
+                std::cout << fmt::format("configuring S7COMM client {}", name) << std::endl;
+                //listener->Run();
+                
                 /*
                 set the connection type for the device based on what is provided in the xml.
                 if nothing is provided in the xml, set the connection type of the client to be
@@ -339,22 +341,22 @@ int main(int argc, char** argv){
 
                 auto remote_tsap = device.get<std::uint16_t>("remote-tsap", 13.00); //get remote TSAP, defaults to 13.00 
 
-                client->SetConnectionParams(ip_address.c_str(), local_tsap, remote_tsap); 
-
+                client->SetConnectionParams(ip_address.c_str(), local_tsap, remote_tsap);
+                
                 /*
-                declare where the client will connect. for S7 CPUs the default should always be rack 0 slot 2
+                declare where the client will connect. for S7 CPUs the default is rack 0 slot 2
                 */
                 auto rack = device.get<std::uint16_t>("rack", 0);
                 auto slot = device.get<std::uint16_t>("slot", 2);
 
                 std::string cliId = device.get<std::string>("<xmlattr>.name", "s7-client");
-                std::uint16_t cliAddr = device.get<std::uint16_t>("address");
+                std::uint16_t cliAddr = device.get<std::uint16_t>("address", 0);
 
                 auto s7client = otsim::s7::Client::Create(cliId, pusher);
 
                 //create an object of the client class from the s7 folder, which links snap to msgbus
                 s7client->BuildConfig(cliId, cliAddr);
-
+                
                 //add the s7client to subscriber as a handler. the s7client will call handlemsgbusupdate with one input (an envelope)
                 sub->AddHandler(std::bind(&otsim::s7::Client::HandleMsgBusUpdate, s7client, std::placeholders::_1));
 
@@ -425,13 +427,14 @@ int main(int argc, char** argv){
                         continue;
                     }
                 }
-                
+
                 std::cout << fmt::format("starting S7comm client {}", cliId) << std::endl;
                 sub->Start("RUNTIME");
                 subscribers.push_back(sub);
                 //connect
-                client->ConnectTo(ip_address.c_str(), rack, slot);
-                clients.push_back(client);
+                client->ConnectTo(ip_address.c_str(), rack, slot); 
+                clients.push_back(client); //<------ THIS LINE IS NEVER REACHED
+                //listener->Run();
                 listeners.push_back(listener);
             } else {
                 std::cerr << "ERROR: invalid mode provided for S7COMM config" << std::endl;
