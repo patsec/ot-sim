@@ -180,7 +180,7 @@ int main(int argc, char** argv){
             if (mode.compare("server") == 0){
                 std::cout << fmt::format("configuring S7COMM server {}", name) << std::endl;
 
-                auto listener = Listener::Create(name, pusher);
+                //auto listener = Listener::Create(name, pusher);
 
                 //create the server object
                 auto server = std::make_shared<TS7Server>(); 
@@ -308,7 +308,7 @@ int main(int argc, char** argv){
                 subscribers.push_back(sub);
                 s7server->Run(server);
                 servers.push_back(server);
-                listeners.push_back(listener);
+                //listeners.push_back(listener);
             } else if (mode.compare("client") == 0){ //if the s7comm device is a client
 
                 //create the client object

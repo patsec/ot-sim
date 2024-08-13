@@ -69,15 +69,15 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg \
 
 WORKDIR /root
 
-ADD install-node-red.sh .
+#ADD install-node-red.sh .
 
 # needed by nod-red install script
 ARG TARGETARCH
-RUN /root/install-node-red.sh \
-  && rm /root/install-node-red.sh
+#RUN /root/install-node-red.sh \
+#  && rm /root/install-node-red.sh
 
-ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
-RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
+#ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+#RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
@@ -116,15 +116,15 @@ RUN wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v
 
 WORKDIR /root
 
-ADD install-node-red.sh .
+#ADD install-node-red.sh .
 
 # needed by nod-red install script
-ARG TARGETARCH
-RUN /root/install-node-red.sh \
-  && rm /root/install-node-red.sh
+#ARG TARGETARCH
+#RUN /root/install-node-red.sh \
+  #&& rm /root/install-node-red.sh
 
-ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
-RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
+#ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+#RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
