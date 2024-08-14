@@ -42,7 +42,7 @@
     </register>
   </modbus>
   <s7comm name="s7comm-server" mode="server">
-    <endpoint>127.0.0.1:20000</endpoint>
+    <endpoint>0.0.0.0:20000</endpoint>
     <input type="binary">
       <tag>line-650632.closed</tag>
       <address>0</address>

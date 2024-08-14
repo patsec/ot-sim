@@ -25,7 +25,7 @@ namespace s7 {
   //start the snap7 server created in otstim-s7comm-module main.cpp
   void Server::Run(std::shared_ptr<TS7Server> ts7server){
     metrics->Start(pusher, config.id);
-    ts7server->Start();
+    //ts7server->Start();
     running = true;
     while(running){
       for (const auto& kv : binaryInputs) {

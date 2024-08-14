@@ -185,16 +185,19 @@ int main(int argc, char** argv){
                 //create the server object
                 auto server = std::make_shared<TS7Server>(); 
                 std::string address = "0.0.0.0";
+                std::string ip;
 
                 //get the endpoint and set it
                 if (device.get_child_optional("endpoint")) {
                     auto endpoint = device.get<std::string>("endpoint");
 
-                    std::string ip = endpoint.substr(0, endpoint.find(":"));
+                    ip = endpoint.substr(0, endpoint.find(":"));
                     address = ip;
 
-                    //set the ip address that the server will start to when started (doesn't start until the end of this loop)
-                    server->StartTo(ip.c_str());
+                    std::cout<<"S7 server IP: " << ip << std::endl;
+                }else{
+                    std::cout<<"S7 server IP: 0.0.0.0\n";
+                    ip = address;
                 }
 
                 otsim::s7::ServerConfig config = {
@@ -304,6 +307,7 @@ int main(int argc, char** argv){
                 }
                 std::cout << fmt::format("starting S7comm server {}", name) << std::endl;
                 //start the server and add it to the vector of servers
+                server->StartTo(ip.c_str());
                 sub->Start("RUNTIME");
                 subscribers.push_back(sub);
                 s7server->Run(server);
@@ -460,10 +464,6 @@ int main(int argc, char** argv){
     //threads can exit.
     for (auto &sub : subscribers) {
         sub->Stop();
-    }
-
-    for (auto &server : servers) {
-        server->Stop();
     }
 
     return 0;
