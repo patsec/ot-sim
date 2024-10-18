@@ -38,6 +38,7 @@ type Tailscale struct {
 	authKey  string
 	hostname string
 	dns      bool
+	routes   bool
 
 	pullEndpoint string
 	pusher       *msgbus.Pusher
@@ -64,6 +65,8 @@ func (this *Tailscale) Configure(e *etree.Element) error {
 			this.hostname = child.Text()
 		case "accept-dns":
 			this.dns, _ = strconv.ParseBool(child.Text())
+		case "accept-routes":
+			this.routes, _ = strconv.ParseBool(child.Text())
 		}
 	}
 
@@ -225,6 +228,7 @@ func (this Tailscale) up(ctx context.Context) error {
 		"--authkey=" + this.authKey,
 		"--hostname=" + this.hostname,
 		"--accept-dns=" + strconv.FormatBool(this.dns),
+		"--accept-routes=" + strconv.FormatBool(this.routes),
 	}
 
 	this.log("initializing Tailscale")
