@@ -115,6 +115,8 @@ func (this *SunSpecServer) Configure(e *etree.Element) error {
 					switch sf := p.Sf.(type) {
 					case int:
 						r.Scaling = float64(sf)
+					case float64:
+						r.Scaling = sf
 					case string:
 						r.ScaleRegister = sf
 					default:
