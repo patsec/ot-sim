@@ -42,13 +42,11 @@
       <scaling>-2</scaling>
     </register>
   </modbus>
-  <dnp3 name="dnp3-outstation" mode="server">
-    <endpoint>127.0.0.1:20000</endpoint>
-    <cold-restart-delay>15</cold-restart-delay>
-    <outstation name="dnp3-outstation">
-      <local-address>1024</local-address>
-      <remote-address>1</remote-address>
-      <warm-restart-delay>5</warm-restart-delay>
+  <dnp3 name="dnp3-master" mode="client">
+    <endpoint>127.0.0.1:20001</endpoint>
+    <master>
+      <local-address>1</local-address>
+      <remote-address>1024</remote-address>
       <input type="binary">
         <address>0</address>
         <tag>line-650632.closed</tag>
@@ -71,7 +69,7 @@
         <evar>Group32Var6</evar>
         <class>Class1</class>
       </input>
-    </outstation>
+    </master>
   </dnp3>
   <io name="helics-federate">
     <broker-endpoint>localhost</broker-endpoint>
