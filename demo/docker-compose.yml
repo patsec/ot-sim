@@ -1,0 +1,42 @@
+services:
+  broker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: test
+    image: ot-sim:demo
+    command:
+      - python3
+      - testing/e2e/helics/broker.py
+    working_dir: /usr/local/src/ot-sim
+  opendss:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: test
+    image: ot-sim:demo
+    entrypoint: ["/docker-entrypoint.sh"]
+    command:
+      - python3
+      - testing/e2e/helics/opendss-federate.py
+    working_dir: /usr/local/src/ot-sim
+    volumes:
+      - ./opendss-entrypoint.sh:/docker-entrypoint.sh
+  ot-sim:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: test
+    image: ot-sim:demo
+    entrypoint: ["/docker-entrypoint.sh"]
+    command:
+      - ot-sim-cpu-module
+      - config/single-device/device.xml
+    working_dir: /usr/local/src/ot-sim
+    volumes:
+      - ./ot-sim-entrypoint.sh:/docker-entrypoint.sh
+    ports:
+      - 1223:23
+      - 1880:1880
+      - 5502:5502
+      - 20000:20000
