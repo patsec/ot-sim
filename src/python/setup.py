@@ -5,25 +5,24 @@ import platform
 from setuptools import setup, find_packages
 
 REQUIRES = [
+  'helics~=3.6.1',
   'numpy',
   'pandas',
   'pyzmq',
   'requests',
-  'RPi.GPIO',
   'windpowerlib',
 ]
 
 SCRIPTS = [
-    'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
-    'ot-sim-rpi-gpio-module = otsim.rpi_gpio.rpi_gpio:main',
-    'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',
-    'ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main',
+  'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
+  'ot-sim-io-module = otsim.io.io:main',
+  'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',
+  'ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main',
 ]
 
-if platform.machine() == 'x86_64':
-    # HELICS won't build on ARM...
-    REQUIRES.append('helics~=3.6.1')
-    SCRIPTS.append('ot-sim-io-module = otsim.io.io:main')
+if platform.machine() == 'arm64':
+  REQUIRES.append('RPi.GPIO')
+  SCRIPTS.append('ot-sim-rpi-gpio-module = otsim.rpi_gpio.rpi_gpio:main')
 
 ENTRIES = {
   'console_scripts' : SCRIPTS,
@@ -50,6 +49,6 @@ setup(
 
   package_data = {
     # Include mako template files found in all packages.
-    "": ["**/*.mako"]
+    '': ["**/*.mako"]
   }
 )

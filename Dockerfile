@@ -15,7 +15,7 @@ ADD src/go /usr/local/src/ot-sim/src/go
 RUN git  -C /usr/local/src/ot-sim submodule update --init --recursive -- src/go/sunspec/common/models
 RUN make -C /usr/local/src/ot-sim/src/go install
 
-FROM python:3.11-bookworm as pybuild
+FROM python:3.11-bookworm AS pybuild
 
 ADD .git /usr/local/src/ot-sim/.git
 
