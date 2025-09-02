@@ -3,41 +3,44 @@ on:
   - workflow_call
 jobs:
   e2e:
-    name: Run end-to-end tests
-    runs-on: ubuntu-20.04
+    name: Run End-to-End Tests
+    runs-on: ubuntu-latest
+    container: debian:bookworm # OT-sim I/O module segfaults in ubuntu-latest directly
     permissions:
       contents: read
     env:
       GOPATH: /go
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-        with:
-          lfs: true
-      - name: Install build dependencies
+      - name: Install Build Dependencies
         run: |
-          sudo apt update
-          sudo apt install -y git wget build-essential cmake libboost-dev libczmq-dev libxml2-dev libzmq5-dev pkg-config python3-dev python3-pip
-          sudo python3 -m pip install opendssdirect.py~=0.8.4
+          apt update
+          apt install -y git git-lfs wget build-essential cmake libboost-dev libczmq-dev libxml2-dev libzmq5-dev pkg-config python3-dev python3-pip
+          python3 -m pip install --break-system-packages opendssdirect.py~=0.8.4
           wget -O /tmp/go.tgz https://golang.org/dl/go1.22.1.linux-amd64.tar.gz \
-            && sudo tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz \
-            && sudo ln -s /usr/local/go/bin/* /usr/local/bin
+            && tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz \
+            && ln -s /usr/local/go/bin/* /usr/local/bin
           echo "/go/bin" >> $GITHUB_PATH
-          sudo mkdir -p /go/src /go/bin
-          sudo chmod -R 777 /go
+          mkdir -p /go/src /go/bin
+          chmod -R 777 /go
           wget -O /tmp/hivemind.gz https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz \
             && gunzip --stdout /tmp/hivemind.gz > /usr/local/bin/hivemind \
             && chmod +x /usr/local/bin/hivemind \
             && rm /tmp/hivemind.gz
-      - name: Build code
+      - name: Check Out Repo
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Build Code
         run: |
+          chown -R root:root /$GITHUB_WORKSPACE
           go version
           cmake -S . -B ./build -DBUILD_E2E=ON
-          sudo cmake --build ./build -j $(nproc) --target install
-          sudo make -C ./src/go install
-          sudo python3 -m pip install ./src/python
-          sudo ldconfig
-      - name: Run tests
+          cmake --build ./build -j $(nproc) --target install
+          git submodule update --init --recursive -- src/go/sunspec/common/models
+          make -C ./src/go install
+          python3 -m pip install --break-system-packages ./src/python
+          ldconfig
+      - name: Run Tests
         working-directory: testing/e2e
         run: |
           hivemind &> /tmp/test.log &
