@@ -1,4 +1,4 @@
-FROM golang:1.22.1-bookworm AS gobuild
+FROM golang:1.25.0-bookworm AS gobuild
 
 ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -8,9 +8,11 @@ RUN apt update && apt install -y \
   make \
   pkg-config
 
-ADD .git /usr/local/src/ot-sim/.git
+ADD .git        /usr/local/src/ot-sim/.git
+ADD .gitmodules /usr/local/src/ot-sim/.gitmodules
 
 ADD src/go /usr/local/src/ot-sim/src/go
+RUN git  -C /usr/local/src/ot-sim submodule update --init --recursive -- src/go/sunspec/common/models
 RUN make -C /usr/local/src/ot-sim/src/go install
 
 FROM python:3.11-bookworm as pybuild
