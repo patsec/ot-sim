@@ -1,0 +1,172 @@
+apiVersion: phenix.sandia.gov/v1
+kind: Image
+metadata:
+  name: ot-sim
+spec:
+  format: qcow2
+  mirror: http://ftp.us.debian.org/debian/
+  components:
+  - main
+  - restricted
+  - universe
+  - multiverse
+  packages:
+  - curl
+  - dbus
+  - ifupdown
+  - init
+  - initramfs-tools
+  - iproute2
+  - iputils-ping
+  - isc-dhcp-client
+  - less
+  - linux-headers-generic
+  - linux-image-generic
+  - net-tools
+  - netbase
+  - openssh-server
+  - tcpdump
+  - vim
+  release: bookworm
+  overlays:
+  - /workspace/minimega
+  script_order:
+  - POSTBUILD_NO_ROOT_PASSWD
+  - POSTBUILD_PHENIX_HOSTNAME
+  - POSTBUILD_PHENIX_BASE
+  - INSTALL_OT-SIM
+  - POSTBUILD_APT_CLEANUP
+  scripts:
+    INSTALL_OT-SIM: |
+      apt update && apt install -y \
+        libczmq4 libsodium23 libxml2 libzmq5 python3-pip
+
+      apt install -y \
+        build-essential cmake git \
+        libboost-dev libczmq-dev libxml2-dev libzmq5-dev \
+        pkg-config python3-dev wget
+
+      # Golang
+      wget --no-check-certificate -O go.tgz https://golang.org/dl/go1.25.0.linux-amd64.tar.gz \
+        && tar -C /usr/local -xzf go.tgz && rm go.tgz \
+        && ln -s /usr/local/go/bin/* /usr/local/bin \
+        && export GOROOT=/usr/local/go
+
+      # ot-sim
+      git clone https://github.com/patsec/ot-sim.git /opt/ot-sim
+      cd /opt/ot-sim
+      cmake -S . -B build && cmake --build build --target install -j$(nproc) && ldconfig
+      git submodule update --init --recursive -- src/go/sunspec/common/models
+      make -C src/go install
+      python3 -m pip install --break-system-packages src/python
+
+      cd /
+
+      # Node-RED
+      wget -O installer.sh \
+        https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered
+
+      bash ./installer.sh --confirm-root --confirm-install --no-init --skip-pi \
+        && rm installer.sh
+
+      cd /root/.node-red
+      npm install \
+        zeromq@5.3.1 \
+        node-red-dashboard \
+        node-red-contrib-modbus \
+        @node-red-contrib-themes/theme-collection
+
+      mkdir -p /root/.node-red/nodes/ot-sim
+      cp -a /opt/ot-sim/src/js/node-red/* /root/.node-red/nodes/ot-sim
+
+      cd /root/.node-red/nodes/ot-sim
+      npm install
+
+      cd /
+
+      rm -rf /usr/local/go
+      find /usr/local/bin -xtype l -delete
+
+      apt purge -y \
+        build-essential cmake git \
+        libboost-dev libczmq-dev libxml2-dev libzmq5-dev \
+        pkg-config python3-dev wget
+
+      apt clean
+      apt autoremove -y
+
+      cat > /etc/systemd/system/ot-sim.service <<EOF
+      [Unit]
+      Description=ot-sim CPU module
+      ConditionFileNotEmpty=/etc/ot-sim/config.xml
+      [Service]
+      ExecStart=/usr/local/bin/ot-sim-cpu-module /etc/ot-sim/config.xml
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+      mkdir -p /etc/systemd/system/multi-user.target.wants
+      ln -s /etc/systemd/system/ot-sim.service /etc/systemd/system/multi-user.target.wants/ot-sim.service
+    POSTBUILD_APT_CLEANUP: |
+      apt clean || apt-get clean || echo "unable to clean apt cache"
+    POSTBUILD_NO_ROOT_PASSWD: |
+      sed -i 's/nullok_secure/nullok/' /etc/pam.d/common-auth
+      sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+      sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+      sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+      sed -i 's/PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+      passwd -d root
+    POSTBUILD_PHENIX_BASE: |
+      cat > /etc/systemd/system/phenix.service <<EOF
+      [Unit]
+      Description=phenix startup service
+      After=network.target systemd-hostnamed.service
+      [Service]
+      Environment=LD_LIBRARY_PATH=/usr/local/lib
+      ExecStart=/usr/local/bin/phenix-start.sh
+      RemainAfterExit=true
+      StandardOutput=journal
+      Type=oneshot
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+      mkdir -p /etc/systemd/system/multi-user.target.wants
+      ln -s /etc/systemd/system/phenix.service /etc/systemd/system/multi-user.target.wants/phenix.service
+      mkdir -p /usr/local/bin
+      cat > /usr/local/bin/phenix-start.sh <<EOF
+      #!/bin/bash
+      for file in /etc/phenix/startup/*; do
+        echo \$file
+        bash \$file
+      done
+      EOF
+      chmod +x /usr/local/bin/phenix-start.sh
+      mkdir -p /etc/phenix/startup
+      cat > /etc/systemd/system/miniccc.service <<EOF
+      [Unit]
+      Description=miniccc Agent
+      [Service]
+      ExecStart=/usr/local/bin/miniccc -serial /dev/virtio-ports/cc
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+      mkdir -p /etc/systemd/system/multi-user.target.wants
+      ln -s /etc/systemd/system/miniccc.service /etc/systemd/system/multi-user.target.wants/miniccc.service
+    POSTBUILD_PHENIX_HOSTNAME: |
+      echo "phenix" > /etc/hostname
+      sed -i 's/127.0.1.1 .*/127.0.1.1 ot-sim/' /etc/hosts
+      cat > /etc/motd <<EOF
+       _______ _________     _______ _________ _______
+      (  ___  )\__   __/    (  ____ \\__   __/(       )
+      | (   ) |   ) (       | (    \/   ) (   | () () |
+      | |   | |   | | _____ | (_____    | |   | || || |
+      | |   | |   | |(_____)(_____  )   | |   | |(_)| |
+      | |   | |   | |             ) |   | |   | |   | |
+      | (___) |   | |       /\____) |___) (___| )   ( |
+      (_______)   )_(       \_______)\_______/|/     \|
+
+      EOF
+      echo "\nBuilt with love using phenix image on $(date)\n\n" >> /etc/motd
+  size: 10G
+  variant: minbase
+
