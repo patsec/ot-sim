@@ -1,11 +1,40 @@
-name: Publish Docker Image
+name: Build ot-sim Images
 on:
   - push
 jobs:
   e2e:
     uses: ./.github/workflows/e2e.yml
-  build:
-    name: Multi-Arch Docker Image Build
+  build-qcow:
+    name: Build QCOW2 VM Image
+    if: github.ref_name == github.event.repository.default_branch
+    needs:
+      - e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-docker-action@v4
+      - uses: oras-project/setup-oras@v1
+      - name: Create minimega Overlay
+        run: |
+          mkdir -p minimega/usr/local/bin
+          docker create --name minimega ghcr.io/sandia-minimega/minimega:master
+          docker cp minimega:/opt/minimega/bin/miniccc minimega/usr/local/bin/miniccc
+      - name: ot-sim Image Build
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            ghcr.io/activeshadow/sceptre-phenix/phenix:main \
+            phenix --store.endpoint=bolt:///workspace/store.bdb config create /workspace/config/phenix-image.yml
+          docker run --rm --privileged \
+            -v ${{ github.workspace }}:/workspace \
+            ghcr.io/activeshadow/sceptre-phenix/phenix:main \
+            phenix --store.endpoint=bolt:///workspace/store.bdb image build -x -c -o /workspace ot-sim
+      - name: Push Image to Registry
+        run: |
+          oras login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+          oras push "ghcr.io/${{ github.repository }}/ot-sim.qc2:${{ github.ref_name }},${GITHUB_SHA:0:7}" ot-sim.qc2
+  build-docker:
+    name: Build Architecture-specific Docker Images
     needs:
       - e2e
     strategy:
@@ -65,10 +94,11 @@ jobs:
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
-  merge:
-    runs-on: ubuntu-latest
+  merge-docker:
+    name: Create Multi-Architecture Docker Image
     needs:
-      - build
+      - build-docker
+    runs-on: ubuntu-latest
     steps:
       - name: Download Digests
         uses: actions/download-artifact@v4
