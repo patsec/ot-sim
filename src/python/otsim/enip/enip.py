@@ -93,7 +93,9 @@ class EthernetIP:
             print(f"error reading tag '{tag}' from device '{self.outstation}': {val.error}")
             continue
 
-          if val.type == BOOL:
+          if isinstance(val.value, dict):
+            val = val.value.get('Data', 0.0)
+          elif val.type == BOOL:
             val = 1.0 if val.value else 0.0
           else:
             val = float(val.value)
