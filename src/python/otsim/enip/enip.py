@@ -47,11 +47,15 @@ class EthernetIP:
 
     target = LogixDriver(self.outstation)
 
-    while not target.open():
-      print(f"unable to connect to '{self.outstation}' - retrying in 5 seconds")
-      time.sleep(5)
+    while True:
+      try:
+        target.open()
+        break
+      except Exception as e:
+        print(f"unable to connect to '{self.outstation}': {e} - retrying in 2 seconds")
+        time.sleep(2)
 
-    tags = target.get_tag_list()
+    tags = [t['tag_name'] for t in target.get_tag_list()]
     target.close()
 
     if not self.tags:
@@ -59,7 +63,7 @@ class EthernetIP:
         self.tags[tag]  = tag
         self.alias[tag] = tag
     else:
-      for tag in tags:
+      for tag in self.tags:
         if tag in tags:
           print(f"confirmed tag '{tag}' found on device '{self.outstation}'")
         else:
