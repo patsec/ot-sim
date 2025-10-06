@@ -8,12 +8,14 @@ REQUIRES = [
   'helics~=3.6.1',
   'numpy',
   'pandas',
+  'pycomm3',
   'pyzmq',
   'requests',
   'windpowerlib',
 ]
 
 SCRIPTS = [
+  'ot-sim-ethernet-ip-module = otsim.enip.enip:main',
   'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
   'ot-sim-io-module = otsim.io.io:main',
   'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',
