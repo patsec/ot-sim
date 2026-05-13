@@ -35,6 +35,8 @@ class IO(HelicsFederate):
       return DataType.boolean
     elif typ == 'double':
       return DataType.double
+    elif typ == 'vector':
+      return DataType.vector
     else:
       return None
 
@@ -184,13 +186,16 @@ class IO(HelicsFederate):
       tag = self.tags[k]
 
       if not tag: continue
+      if isinstance(v, list):
+        for i, x in enumerate(v):
+          points.append({'tag': f'{tag}_{i}', 'value': float(x), 'ts': 0})
+      else:
+        value = float(v)
 
-      value = float(v)
+        if not full and self.sent.get(tag) == value: continue
 
-      if not full and self.sent.get(tag) == value: continue
-
-      self.sent[tag] = value
-      points.append({'tag': tag, 'value': value, 'ts': 0})
+        self.sent[tag] = value
+        points.append({'tag': tag, 'value': value, 'ts': 0})
 
     self.metrics.incr_metric_by('helics_sub_count', len(data))
 
