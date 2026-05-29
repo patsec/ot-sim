@@ -1,6 +1,6 @@
 module.exports = function(RED) {
   "use strict";
-  var zmq = require('zeromq');
+  var zmq = require('zeromq/v5-compat');
 
   function OTsimIn(config) {
     RED.nodes.createNode(this, config);
