@@ -1,13 +1,26 @@
 name: Build ot-sim Images
 on:
   - push
+  - workflow_dispatch
+permissions:
+  contents: read
+  packages: write
 jobs:
+  prepare:
+    name: Prepare Shared Variables
+    runs-on: ubuntu-latest
+    outputs:
+      repo_lc: ${{ steps.repo_name.outputs.repo_lc }}
+    steps:
+      - id: repo_name
+        run: echo "repo_lc=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
   e2e:
     uses: ./.github/workflows/e2e.yml
   build-qcow:
     name: Build QCOW2 VM Image
     if: github.ref_name == github.event.repository.default_branch
     needs:
+      - prepare
       - e2e
     runs-on: ubuntu-latest
     steps:
@@ -32,10 +45,11 @@ jobs:
       - name: Push Image to Registry
         run: |
           oras login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-          oras push "ghcr.io/${{ github.repository }}/ot-sim.qc2:${{ github.ref_name }},${GITHUB_SHA:0:7}" ot-sim.qc2
+          oras push "ghcr.io/${{ needs.prepare.outputs.repo_lc }}.qc2:${{ github.ref_name }},${GITHUB_SHA:0:7}" ot-sim.qc2
   build-docker:
     name: Build Architecture-specific Docker Images
     needs:
+      - prepare
       - e2e
     strategy:
       fail-fast: false
@@ -68,7 +82,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/ot-sim
+          images: ghcr.io/${{ needs.prepare.outputs.repo_lc }}
       - name: Checkout Code
         uses: actions/checkout@v5
         with:
@@ -81,7 +95,7 @@ jobs:
           target: prod
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=ghcr.io/${{ github.repository }}/ot-sim,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/${{ needs.prepare.outputs.repo_lc }},push-by-digest=true,name-canonical=true,push=true
       - name: Export Digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
@@ -97,6 +111,7 @@ jobs:
   merge-docker:
     name: Create Multi-Architecture Docker Image
     needs:
+      - prepare
       - build-docker
     runs-on: ubuntu-latest
     steps:
@@ -118,7 +133,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/ot-sim
+          images: ghcr.io/${{ needs.prepare.outputs.repo_lc }}
           tags: |
             type=ref,event=branch
             type=sha,format=short,prefix=,suffix=
@@ -126,7 +141,7 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/${{ github.repository }}/ot-sim@sha256:%s ' *)
+            $(printf 'ghcr.io/${{ needs.prepare.outputs.repo_lc }}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/ot-sim:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ghcr.io/${{ needs.prepare.outputs.repo_lc }}:${{ steps.meta.outputs.version }}
