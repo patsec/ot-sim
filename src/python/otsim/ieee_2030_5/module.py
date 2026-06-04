@@ -1,7 +1,3 @@
-import logging, signal, sys, threading, time, typing
-
-import sys, typing, signal
-import xml.etree.ElementTree as ET
 
 """
 The cilent performs two primary actions:
@@ -18,9 +14,11 @@ The cilent performs two primary actions:
     - send / receive data with 2030.5 server
 """
 
+import sys, typing
 import xml.etree.ElementTree as ET
 
-import argparse
+import OpenSSL
+import threading
 import json
 import logging
 import re
@@ -30,24 +28,56 @@ import sys
 from http.client import HTTPConnection, HTTPSConnection
 from pathlib import Path
 from typing import Optional, Tuple
+from constants import TypeConstants
+from client_helper.client import IEEE2030_5_Client
+
+import client_helper.models as m
+import time 
+
+import msgbus.envelope as envelope
+from msgbus.envelope import Envelope, Point
+from msgbus.pusher import Pusher
+from msgbus.subscriber import Subscriber
+
+# HACK for generating random device names for testing
+import datetime
 
 class IEEE20305Client():
+    
     def __init__(self, pub: str, pull: str, el: ET.Element):
+        self.name = el.get('name', default='ot-sim-20305-client')
+        
         self.pub = pub
         self.pull = pull
         
-        self.device_id = el.findtext('device-id')
+        # self.device_id = el.findtext('device-id')
+        # HACK for generating random device names for testing
+        self.device_id = str(hash(datetime.datetime.now()))
+        
         self.cert_dir = Path(el.findtext('certificate-directory'))
         self.server_address = el.findtext('server-address')
         self.server_port = el.findtext('server-port')
         
+        self.polling_rate = int(el.findtext('polling-rate-seconds'))
+        
+        self.readings = []
+        for elm in el.findall('reading'):
+            reading = {
+                "description": elm.findtext('description'),
+                "type": elm.findtext('reading-type'),
+                "tag": elm.findtext('tag'),
+                "mrid": "",
+            }
+            self.readings.append(reading)
+
+        self.subscriber = Subscriber(pub)
+        self.pusher = Pusher(pull)
+        
+        self.running = False
+        self.subscriber.add_update_handler(self.listen_msgbus)
         
     def log(self, msg):
         print(f'[IEEE 2030.5 Client] {msg}', flush=True)
-
-# -----------------------------------------------------------------------
-# Step 1 & 2: Key + CSR generation (uses the openssl CLI)
-# -----------------------------------------------------------------------
 
     def generate_private_key(self, device_id: str, output_dir: Path) -> Path:
         """Generate an EC (prime256v1) private key and return its path."""
@@ -66,7 +96,6 @@ class IEEE20305Client():
         self.log(f"  -> {str(key_file)}")
         return key_file
 
-
     def generate_csr(self, device_id: str, key_file: Path, output_dir: Path) -> Path:
         """Generate a CSR with *device_id* as the Common Name."""
         csr_file = output_dir / f"{device_id}.csr"
@@ -84,11 +113,6 @@ class IEEE20305Client():
             raise RuntimeError(f"openssl req failed: {result.stderr}")
         self.log(f"  -> {str(csr_file)}")
         return csr_file
-
-
-    # -----------------------------------------------------------------------
-    # Step 3: Submit CSR to server
-    # -----------------------------------------------------------------------
 
     def submit_csr(self, device_id: str, csr_file: Path,
                 server: str, port: int,
@@ -130,11 +154,6 @@ class IEEE20305Client():
         finally:
             conn.close()
 
-
-    # -----------------------------------------------------------------------
-    # Step 4: Save certificates
-    # -----------------------------------------------------------------------
-
     def save_certificates(self, device_id: str, cert_data: dict,
                         output_dir: Path) -> Tuple[Path, Path]:
         """Write signed cert and CA cert to *output_dir*."""
@@ -148,11 +167,6 @@ class IEEE20305Client():
         self.log(f"CA cert saved:     {ca_file}")
         return cert_file, ca_file
 
-
-    # -----------------------------------------------------------------------
-    # Step 5: Register via DMZ
-    # -----------------------------------------------------------------------
-
     def _ssl_ctx(self, cert_file: Path, key_file: Path, ca_file: Path,
                 include_client_cert: bool = True) -> ssl.SSLContext:
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -163,10 +177,8 @@ class IEEE20305Client():
             ctx.load_cert_chain(certfile=str(cert_file), keyfile=str(key_file))
         return ctx
 
-
     def _is_certificate_unknown(self, exc: ssl.SSLError) -> bool:
         return "CERTIFICATE_UNKNOWN" in str(exc).upper()
-
 
     def register_device(self, cert_file: Path, key_file: Path, ca_file: Path,
                         server: str, port: int, sfdi: int) -> str:
@@ -209,11 +221,6 @@ class IEEE20305Client():
                 conn.close()
 
         raise RuntimeError("Registration failed without a usable TLS mode")
-
-
-    # -----------------------------------------------------------------------
-    # Step 6: Verify registration
-    # -----------------------------------------------------------------------
 
     def verify_registration(self, cert_file: Path, key_file: Path, ca_file: Path,
                             server: str, port: int,
@@ -268,46 +275,149 @@ class IEEE20305Client():
         self.log("Could not fetch registration")
         return False, None
     
-    def initialize_device(self):
+    def initialize_client(self):
         # 1. Create key
-        key_file = self.generate_private_key(self.device_id, self.cert_dir)
-
+        self.key = self.generate_private_key(self.device_id, self.cert_dir)
         # 2. Create CSR
-        csr_file = self.generate_csr(self.device_id, key_file, self.cert_dir)
-
+        self.csr_file = self.generate_csr(self.device_id, self.key, self.cert_dir)
         # 3. Submit CSR to server
-        cert_data = self.submit_csr(self.device_id, csr_file, self.server_address, self.server_port, True)
-
+        cert_data = self.submit_csr(self.device_id, self.csr_file, self.server_address, self.server_port, True)
         # 4. Save certs
-        cert_file, ca_file = self.save_certificates(self.device_id, cert_data, self.cert_dir)
-
+        self.cert, self.ca_cert = self.save_certificates(self.device_id, cert_data, self.cert_dir)
         # 5. Register via DMZ
-        device_url = self.register_device(cert_file, key_file, ca_file, self.server_address, self.server_port, cert_data["sfdi"])
-        
+        self.device_url = self.register_device(self.cert, self.key, self.ca_cert, self.server_address, self.server_port, cert_data["sfdi"])
         # 6. Verify registration
-        verified, server_pin = self.verify_registration(cert_file, key_file, ca_file, self.server_address, self.server_port, device_url)
+        verified, self.pin = self.verify_registration(self.cert, self.key, self.ca_cert, self.server_address, self.server_port, self.device_url)
         
-        self.log(f"""SUMMARY
-Key file: {key_file}
-CSR file: {csr_file}
-Certificate file: {cert_file}
-Certificate Authority file: {ca_file}
-Device URL: {device_url}
-Server PIN: {server_pin}
-Verified? {verified}
-Certificate data: {cert_data}\nEND SUMMARY""")
-
-
-    def run_client_loop(self):
+        self.lfdi = cert_data["lfdi"]
+        self.sfdi = cert_data["sfdi"]
         
+        self.log(f"""\nSUMMARY
+Device ID:                   {self.device_id}
+LFDI:                        {self.lfdi}
+SFDI:                        {self.sfdi}
+Key file:                    {self.key}
+CSR file:                    {self.csr_file}
+Certificate file:            {self.cert}
+Certificate Authority file:  {self.ca_cert}
+Device URL:                  {self.device_url}
+Server PIN:                  {self.pin}
+Verified?                    {verified}
+Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
+        
+        # Create client & query device capability, required before using client
+        client = IEEE2030_5_Client(
+            cafile=self.ca_cert,
+            server_hostname=self.server_address,
+            keyfile=self.key,
+            certfile=self.cert,
+            server_ssl_port=self.server_port,
+            debug=True
+        )
+        client.device_capability()
+        
+        return client
+        
+    def new_uuid(self, client):
+        return client.new_uuid().replace("-", "")
+
+    def build_mirror_usage_points(self, client):
+        mup_mrid = self.new_uuid(client)
+        mirror_readings = []
+        for (i, reading) in enumerate(self.readings):
+            
+            mRID = self.new_uuid(client)
+            reading_type = ""
+            match reading["type"]:
+                case "active-power":
+                    reading_type = TypeConstants.ACTIVE_POWER
+                case "reactive-power":
+                    reading_type = TypeConstants.REACTIVE_POWER
+                case "apparent-power":
+                    reading_type = TypeConstants.APPARENT_POWER
+                case "voltage":
+                    reading_type = TypeConstants.VOLTAGE
+                case "current":
+                    reading_type = TypeConstants.CURRENT
+                case "frequency":
+                    reading_type = TypeConstants.FREQUENCY
+                case "energy-exported":
+                    reading_type = TypeConstants.ENERGY_EXPORTED
+                case "percentage":
+                    reading_type = TypeConstants.PERCENTAGE
+                case _:
+                    self.log(f"Type not supported")
+                    sys.exit()
+                    
+            mirror_readings.append(
+                m.MirrorMeterReading(
+                    mRID=mRID,
+                    description=reading["description"],
+                    ReadingType=reading_type
+                )
+            )
+            
+            reading["mrid"] = mRID
+            self.readings[i] = reading
+            
+        status, mup_href = client.create_mirror_usage_point(
+            m.MirrorUsagePoint(
+                mRID=mup_mrid,
+                deviceLFDI=self.lfdi,
+                MirrorMeterReading=mirror_readings
+            )
+        )
+
+        assert status == 201, f"MUP creation failed with status {status}"
+        
+        return (mup_mrid, mup_href)
+
+    def connect_to_existing_mirror_usage_points(self, client):
         pass
     
+    def listen_20305(self):
+        while self.running:
+            try: 
+                controls = self.client.der_control_list()
+                if controls: 
+                    self.log(controls)
+                    points = [...]
+                    env = envelope.new_update_envelope(self.name, {'updates': points})
+                    self.pusher.push('RUNTIME', env)
+            except Exception as e:
+                self.log(f'2030.5 poll error: {e}')
+            time.sleep(self.polling_rate)
+    
+    # On update received from zmq
+    def listen_msgbus(self, env: Envelope):
+        update = envelope.update_from_envelope(env)
+        if not update:
+            return
+        for point in update['updates']:
+            reading = next((r for r in self.readings if r['tag'] == point['tag']), None)
+            if reading is None:
+                continue
+        mmr = m.MirrorMeterReading(
+            mRID=reading['mrid'],
+            Reading=m.Reading(value=int(point))
+        )
+        self.client.create_mirror_meter_reading(self.mup_href, mmr)
+            
+
     def start(self):
-        self.initialize_device()
-        self.run_client_loop()
+        self.subscriber.start('RUNTIME')
+
+        self.client = self.initialize_client()
+        self.mup_mrid, self.mup_href = self.build_mirror_usage_points(self.client)
+        
+        self.running = True
+        self.poll_thread = threading.Thread(target=self.listen_20305, daemon=True)
+        self.poll_thread.start()
     
     def stop(self):
-        pass
+        self.running = False
+        self.poll_thread.join(self.polling_rate)
+        self.subscriber.stop()
 
 def main():
     if len(sys.argv) < 2:
@@ -334,16 +444,15 @@ def main():
         device.start()
         devices.append(device)
 
-    # waiter = threading.Event()
+    waiter = threading.Event()
 
-    # def handler(*_):
-    #     waiter.set()
+    def handler(*_):
+        waiter.set()
 
-    # signal.signal(signal.SIGINT, handler)
-    # waiter.wait()
+    waiter.wait()
 
-    # for device in devices:
-    #     device.stop()
+    for device in devices:
+        device.stop()
 
 # HACK 
 if __name__ == '__main__':
