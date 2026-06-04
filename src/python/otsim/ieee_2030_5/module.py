@@ -359,34 +359,31 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
             
             reading["mrid"] = mRID
             self.readings[i] = reading
-            
-        status, mup_href = client.create_mirror_usage_point(
-            m.MirrorUsagePoint(
-                mRID=mup_mrid,
-                deviceLFDI=self.lfdi,
-                MirrorMeterReading=mirror_readings
-            )
-        )
-
-        assert status == 201, f"MUP creation failed with status {status}"
         
+        mup = m.MirrorUsagePoint(mRID=mup_mrid,
+                                 deviceLFDI=self.lfdi,
+                                 MirrorMeterReading=mirror_readings)
+        status, mup_href = client.create_mirror_usage_point(mup)
+        assert status == 201, f"MUP creation failed with status {status}"
+
         return (mup_mrid, mup_href)
 
     def connect_to_existing_mirror_usage_points(self, client):
         pass
     
     def listen_20305(self):
-        while self.running:
-            try: 
-                controls = self.client.der_control_list()
-                if controls: 
-                    self.log(controls)
-                    points = [...]
-                    env = envelope.new_update_envelope(self.name, {'updates': points})
-                    self.pusher.push('RUNTIME', env)
-            except Exception as e:
-                self.log(f'2030.5 poll error: {e}')
-            time.sleep(self.polling_rate)
+        # while self.running:
+        #     try: 
+        #         controls = self.client.der_control_list()
+        #         if controls: 
+        #             self.log(controls)
+        #             points = [...]
+        #             env = envelope.new_update_envelope(self.name, {'updates': points})
+        #             self.pusher.push('RUNTIME', env)
+        #     except Exception as e:
+        #         self.log(f'2030.5 poll error: {e}')
+        #     time.sleep(self.polling_rate)
+        pass
     
     # On update received from zmq
     def listen_msgbus(self, env: Envelope):
@@ -397,11 +394,14 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
             reading = next((r for r in self.readings if r['tag'] == point['tag']), None)
             if reading is None:
                 continue
-        mmr = m.MirrorMeterReading(
-            mRID=reading['mrid'],
-            Reading=m.Reading(value=int(point))
-        )
-        self.client.create_mirror_meter_reading(self.mup_href, mmr)
+            self.log(f"Received update for {reading['description']} with value {point['value']}")
+            
+            mmr = m.MirrorMeterReading(
+                mRID=reading['mrid'],
+                description=reading['description'],
+                Reading=m.Reading(value=int(point['value']))
+            )
+            self.client.create_mirror_meter_reading(self.mup_href, mmr)
             
 
     def start(self):
@@ -409,6 +409,8 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
 
         self.client = self.initialize_client()
         self.mup_mrid, self.mup_href = self.build_mirror_usage_points(self.client)
+        self.log(f"mrid {self.mup_mrid}, mup {self.mup_href}")
+        
         
         self.running = True
         self.poll_thread = threading.Thread(target=self.listen_20305, daemon=True)
