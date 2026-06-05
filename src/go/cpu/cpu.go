@@ -3,9 +3,7 @@ package cpu
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
@@ -37,16 +35,16 @@ type CPU struct {
 	elasticEndpoint string
 	elasticIndex    string
 	lokiEndpoint    string
+	metricsEnabled  bool
+	metricsEndpoint string
 
 	pusher *msgbus.Pusher
-
-	logFile io.Writer
 }
 
 func New(name string) *CPU {
 	return &CPU{
-		name:    name,
-		logFile: os.Stdout,
+		name:            name,
+		metricsEndpoint: "127.0.0.1:9100",
 	}
 }
 
@@ -117,6 +115,20 @@ func (this *CPU) Configure(e *etree.Element) error {
 					this.lokiEndpoint = child.Text()
 				}
 			}
+		case "metrics":
+			enabled, err := strconv.ParseBool(child.SelectAttrValue("enabled", "false"))
+			if err != nil {
+				return fmt.Errorf("parsing 'enabled' attribute for metrics: %w", err)
+			}
+
+			this.metricsEnabled = enabled
+
+			for _, child := range child.ChildElements() {
+				switch child.Tag {
+				case "endpoint":
+					this.metricsEndpoint = child.Text()
+				}
+			}
 		case "module":
 			mod := &module{
 				name:    child.SelectAttrValue("name", child.Text()),
@@ -168,38 +180,45 @@ func (this *CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) erro
 	}
 
 	var (
-		logErrors     = make(chan error)
-		healthErrors  = make(chan error)
-		metricsErrors = make(chan error)
+		runtimeHandlers = []MsgBusHandler{logger}
+		runtimeErrors   = make(chan error)
+
+		logHandlers = []MsgBusHandler{logger}
+		logErrors   = make(chan error)
+
+		healthHandlers []MsgBusHandler
+		healthErrors   chan error
 	)
 
-	var (
-		logHandlers     = []MsgBusHandler{logger}
-		healthHandlers  = []MsgBusHandler{metricsHandler}
-		runtimeHandlers = []MsgBusHandler{logger}
-	)
+	if this.metricsEnabled {
+		healthHandlers = append(healthHandlers, metricsHandler)
+		healthErrors = make(chan error)
+
+		startMetricsServer(this.metricsEndpoint)
+	}
 
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
+			case err := <-runtimeErrors:
+				log.Printf("[CPU] [ERROR] error processing runtime: %v\n", err)
+				go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, runtimeErrors)
 			case err := <-logErrors:
 				log.Printf("[CPU] [ERROR] processing logs: %v\n", err)
 				go MonitorMsgBusChannel(ctx, pubEndpoint, "LOG", logHandlers, logErrors)
 			case err := <-healthErrors:
-				log.Printf("[CPU] [ERROR] processing health updates: %v\n", err)
+				log.Printf("[CPU] [ERROR] processing metrics: %v\n", err)
 				go MonitorMsgBusChannel(ctx, pubEndpoint, "HEALTH", healthHandlers, healthErrors)
-			case err := <-metricsErrors:
-				log.Printf("[CPU] [ERROR] error processing metrics: %v\n", err)
-				go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, metricsErrors)
 			}
 		}
 	}()
 
+	go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, runtimeErrors)
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "LOG", logHandlers, logErrors)
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "HEALTH", healthHandlers, healthErrors)
-	go MonitorMsgBusChannel(ctx, pubEndpoint, "RUNTIME", runtimeHandlers, metricsErrors)
+
 	go MonitorMsgBusChannel(ctx, pubEndpoint, "INTERNAL", []MsgBusHandler{this.internalHandler}, nil)
 
 	return nil
