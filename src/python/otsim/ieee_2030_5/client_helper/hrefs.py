@@ -5,7 +5,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Any, List, NamedTuple, Optional, Union
 
-import client_helper.models as m
+from . import models as m
 
 EDEV = "edev"
 DCAP = "dcap"

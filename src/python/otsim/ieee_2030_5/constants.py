@@ -1,8 +1,8 @@
-from client_helper.models.constants import (
+from .client_helper.models.constants import (
     AccumlationBehaviourType, CommodityType, FlowDirectionType,
     KindType, UomType
 )
-from client_helper.models import ReadingType
+from .client_helper.models import ReadingType
 
 class TypeConstants(object):
 

@@ -11,13 +11,14 @@ from http.client import HTTPSConnection
 from os import PathLike
 from pathlib import Path
 from threading import Timer
-from typing import Dict, Optional, Tuple, Any
+from types import SimpleNamespace
+from typing import Dict, List, Optional, Tuple, Any
 
 import werkzeug.middleware.lint
 import xsdata
 
-import client_helper.utils as utils
-import client_helper.utils.tls_wrapper as tls
+from .. import utils
+from ..utils import tls_wrapper as tls
 
 _log = logging.getLogger(__name__)
 _log_req_resp = logging.getLogger(__name__ + ".request")
@@ -63,6 +64,7 @@ class IEEE2030_5_Client:
         self._dcap_timer: Optional[Timer] = None
         self._disconnect: bool = False
         self._tls = tls.OpensslWrapper
+        self._conn_lock = threading.Lock()
 
         IEEE2030_5_Client.clients.add(self)
 
@@ -75,7 +77,7 @@ class IEEE2030_5_Client:
     def _build_ssl_context(self, include_client_cert: bool) -> ssl.SSLContext:
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_OPTIONAL
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
         ssl_context.load_verify_locations(cafile=self._ca)
         if include_client_cert:
             ssl_context.load_cert_chain(certfile=self._cert, keyfile=self._key)
@@ -88,27 +90,15 @@ class IEEE2030_5_Client:
                                port=self._server_ssl_port,
                                context=self._ssl_context)
 
-    def _retry_without_client_cert(self, exc: ssl.SSLError) -> bool:
-        if not self._using_client_cert:
-            return False
-        if "CERTIFICATE_UNKNOWN" not in str(exc).upper():
-            return False
-
-        _log.warning("Server rejected the presented client cert; retrying without a client cert")
-        self._http_conn.close()
-        self._http_conn = self._new_http_conn(include_client_cert=False)
-        return True
-
     def register_end_device(self) -> str:
         lfid = utils.get_lfdi_from_cert(self._cert)
         sfid = utils.get_sfdi_from_lfdi(lfid)
-        response = self.__post__(dcap.EndDeviceListLink.href,
+        if not self._device_cap:
+            self.device_capability()
+        response = self.__post__(self._device_cap.EndDeviceListLink.href,
                                  data=f'<EndDevice xmlns="urn:ieee:std:2030.5:ns"><sFDI>{sfid}</sFDI></EndDevice>')
-        print(response)
-
         if response.status in (200, 201):
             return response.headers.get("Location")
-
         raise werkzeug.exceptions.Forbidden()
 
     def get(self, href):
@@ -134,6 +124,45 @@ class IEEE2030_5_Client:
             self.end_devices()
 
         return self._end_devices.EndDevice[index]
+
+    def end_device_by_href(self, href: str) -> Any:
+        """Fetch a specific EndDevice resource by its canonical href.
+
+        Preferred over end_device(index) in long-running loops — the index
+        is a position in a cached list and can drift if the list changes.
+        """
+        return self.__get_request__(href)
+
+    def function_set_assignment_for_device(self, device: Any,
+                                           fsa_index: int = 0) -> Any:
+        """Navigate directly from a device object to a FunctionSetAssignments item."""
+        fsa_list = self.__get_request__(device.FunctionSetAssignmentsListLink.href)
+        return fsa_list.FunctionSetAssignments[fsa_index]
+
+    def der_program_list_for_device(self, device: Any,
+                                    fsa_index: int = 0) -> Any:
+        fsa = self.function_set_assignment_for_device(device, fsa_index)
+        return self.__get_request__(fsa.DERProgramListLink.href)
+
+    def der_control_list_for_device(self, device: Any,
+                                    fsa_index: int = 0,
+                                    derp_index: int = 0) -> Any:
+        derp_list = self.der_program_list_for_device(device, fsa_index)
+        derp = derp_list.DERProgram[derp_index]
+        link = getattr(derp, "DERControlListLink", None)
+        if link is None or getattr(link, "href", None) is None:
+            return None
+        return self.__get_request__(link.href)
+
+    def default_der_control_for_device(self, device: Any,
+                                       fsa_index: int = 0,
+                                       derp_index: int = 0) -> Any:
+        derp_list = self.der_program_list_for_device(device, fsa_index)
+        derp = derp_list.DERProgram[derp_index]
+        link = getattr(derp, "DefaultDERControlLink", None)
+        if link is None or getattr(link, "href", None) is None:
+            return None
+        return self.__get_request__(link.href)
 
     def self_device(self) -> Any:
         if not self._device_cap:
@@ -219,44 +248,74 @@ class IEEE2030_5_Client:
     @staticmethod
     def select_active_control(controls: Any,
                               default_control: Any,
-                              current_time: Optional[int] = None) -> Any:
+                              current_time: Optional[int] = None,
+                              device_category_bitmap: Optional[int] = None,
+                              controls_with_primacy: Optional[List[Tuple[Any, int]]] = None,
+                              ) -> Any:
+        """Select the highest-priority currently-active DERControl.
+
+        Preferred call: pass controls_with_primacy=[(ctrl, program_primacy), ...]
+        from der_controls_across_programs() so that multi-program primacy ordering
+        is respected (§11.9.1: lower primacy value = higher priority).
+
+        Legacy call: pass controls= (DERControlList or list) for single-program use.
+        primacy defaults to 0 in that case.
+        """
+        # EventStatus codes that mean the event is NOT active (§11.9.1)
+        _INACTIVE = {0, 2, 3, 4}  # Scheduled=0, Cancelled=2, CancelledWithRand=3, Superseded=4
+
         if current_time is None:
             current_time = int(time.time())
 
-        control_items = []
-        if controls is None:
-            control_items = []
-        elif isinstance(controls, list):
-            control_items = controls
+        # Build a uniform list of (control, primacy) pairs
+        if controls_with_primacy is not None:
+            pairs = controls_with_primacy
         else:
-            control_items = getattr(controls, "DERControl", []) or []
+            if controls is None:
+                control_items: List[Any] = []
+            elif isinstance(controls, list):
+                control_items = controls
+            else:
+                control_items = getattr(controls, "DERControl", []) or []
+            pairs = [(c, 0) for c in control_items]
 
-        active_controls = []
-        for control in control_items:
+        active: List[Tuple[Any, int]] = []
+        for control, primacy in pairs:
             status = getattr(getattr(control, "EventStatus", None), "currentStatus", None)
-            if status in (2, 3, 4):
+            if status in _INACTIVE:
                 continue
+
+            # deviceCategory bitmap filtering: skip events whose category mask doesn't
+            # include this device's category bits.
+            event_cat = getattr(control, "deviceCategory", None)
+            if event_cat is not None and device_category_bitmap is not None:
+                event_bits = (int.from_bytes(event_cat, 'big')
+                              if isinstance(event_cat, bytes) else int(event_cat))
+                if not (event_bits & device_category_bitmap):
+                    continue
 
             interval = getattr(control, "interval", None)
             if interval is None:
+                # No time window — active if server explicitly marked it Active (status=1)
                 if status == 1:
-                    active_controls.append(control)
+                    active.append((control, primacy))
                 continue
 
             start = getattr(interval, "start", None)
             duration = getattr(interval, "duration", None)
             if start is None or duration is None:
                 continue
-
             if start <= current_time < (start + duration):
-                active_controls.append(control)
+                active.append((control, primacy))
 
-        if active_controls:
-            active_controls.sort(key=lambda ctl: (
-                getattr(ctl, "creationTime", 0) or 0,
-                getattr(getattr(ctl, "interval", None), "start", 0) or 0,
-            ), reverse=True)
-            return active_controls[0]
+        if active:
+            # Sort: primacy ascending (lower = more authoritative),
+            # then creationTime descending (newer wins within same primacy).
+            active.sort(key=lambda pair: (
+                pair[1],
+                -(getattr(pair[0], "creationTime", 0) or 0),
+            ))
+            return active[0][0]
 
         return default_control
 
@@ -293,9 +352,151 @@ class IEEE2030_5_Client:
             return self.__post__(endpoint, body, headers=headers)
 
     def create_mirror_usage_point(self, mirror_usage_point: Any) -> Tuple[int, str]:
+        """Post a MirrorUsagePoint to the server.
+
+        The server matches on deviceLFDI: if this device already has a MUP it
+        returns 200 + existing Location; if not it creates one and returns 201.
+        Either way the caller gets the canonical MUP href in the return value.
+        No client-side href caching needed — the server handles idempotency.
+        """
         data = utils.dataclass_to_xml(mirror_usage_point)
         resp = self.__post__(self._device_cap.MirrorUsagePointListLink.href, data=data)
-        return resp.status, resp.headers['Location']
+        location = resp.headers.get('Location') or ''
+        return resp.status, location
+
+    def post_event_response(self, reply_to: str, subject_mrid: bytes,
+                            lfdi_hex: str, status: int = 1) -> None:
+        """POST a DERControlResponse to acknowledge a DERControl event (§11.9.1).
+
+        status: 1=Received, 2=Started execution, 3=Completed.
+        Only sent when the control carries a replyTo URL (requires subscriptions
+        to be implemented server-side). Failures are swallowed so the control
+        loop is not interrupted.
+        """
+        from .. import models as m
+        response_obj = m.DERControlResponse(
+            createdDateTime=int(time.time()),
+            endDeviceLFDI=bytes.fromhex(lfdi_hex),
+            status=status,
+            subject=subject_mrid,
+        )
+        try:
+            data = utils.dataclass_to_xml(response_obj)
+            self.__post__(reply_to, data=data,
+                          headers={'Content-Type': 'application/sep+xml'})
+        except Exception as exc:
+            _log.warning("DERControlResponse POST to %s failed: %s", reply_to, exc)
+
+    def put_der_capability(self, device: Any, capability: Any) -> int:
+        """PUT DERCapability to the device's DER resource (§10.4)."""
+        der_list_link = getattr(device, 'DERListLink', None)
+        if not der_list_link:
+            _log.warning("EndDevice has no DERListLink — skipping DERCapability PUT")
+            return 0
+        try:
+            der_list = self.__get_request__(der_list_link.href)
+            ders = getattr(der_list, 'DER', []) or []
+            if not ders:
+                _log.warning("DERList is empty — skipping DERCapability PUT")
+                return 0
+            cap_link = getattr(ders[0], 'DERCapabilityLink', None)
+            if not cap_link:
+                _log.warning("DER has no DERCapabilityLink — skipping PUT")
+                return 0
+            resp = self.__put__(cap_link.href, data=utils.dataclass_to_xml(capability))
+            return resp.status
+        except Exception as exc:
+            _log.warning("DERCapability PUT failed: %s", exc)
+            return 0
+
+    def put_der_settings(self, device: Any, settings: Any) -> int:
+        """PUT DERSettings to the device's DER resource (§10.4)."""
+        der_list_link = getattr(device, 'DERListLink', None)
+        if not der_list_link:
+            return 0
+        try:
+            der_list = self.__get_request__(der_list_link.href)
+            ders = getattr(der_list, 'DER', []) or []
+            if not ders:
+                return 0
+            settings_link = getattr(ders[0], 'DERSettingsLink', None)
+            if not settings_link:
+                return 0
+            resp = self.__put__(settings_link.href, data=utils.dataclass_to_xml(settings))
+            return resp.status
+        except Exception as exc:
+            _log.warning("DERSettings PUT failed: %s", exc)
+            return 0
+
+    def put_der_availability(self, device: Any, availability: Any) -> int:
+        """PUT DERAvailability to the device's DER resource (§10.4)."""
+        der_list_link = getattr(device, 'DERListLink', None)
+        if not der_list_link:
+            return 0
+        try:
+            der_list = self.__get_request__(der_list_link.href)
+            ders = getattr(der_list, 'DER', []) or []
+            if not ders:
+                return 0
+            avail_link = getattr(ders[0], 'DERAvailabilityLink', None)
+            if not avail_link:
+                return 0
+            resp = self.__put__(avail_link.href, data=utils.dataclass_to_xml(availability))
+            return resp.status
+        except Exception as exc:
+            _log.warning("DERAvailability PUT failed: %s", exc)
+            return 0
+
+    def der_controls_across_programs(self, device: Any,
+                                     fsa_index: int = 0
+                                     ) -> Tuple[List[Tuple[Any, int]], Optional[Any]]:
+        """Return all timed DERControls across every DERProgram, with primacy.
+
+        Returns (controls_with_primacy, best_default_control) where:
+        - controls_with_primacy: list of (DERControl, program.primacy) from all programs
+        - best_default_control: DefaultDERControl from the highest-priority program
+          (lowest primacy value), None if none exist
+
+        Use with select_active_control(controls_with_primacy=...) for correct
+        multi-program, primacy-aware event selection per §11.9.1.
+        """
+        timed: List[Tuple[Any, int]] = []
+        best_default = None
+        best_primacy = float('inf')
+        try:
+            # Some callers may pass href strings or stale 404 payloads here.
+            # Normalize to a real EndDevice object before traversing FSA links.
+            if isinstance(device, str):
+                href_candidate = device if device.startswith('/edev_') else '/edev_0'
+                resolved = self.__get_request__(href_candidate)
+                if not isinstance(resolved, str):
+                    device = resolved
+            if isinstance(device, str) or getattr(device, 'FunctionSetAssignmentsListLink', None) is None:
+                end_devices = self.end_devices()
+                for ed in (getattr(end_devices, 'EndDevice', []) or []):
+                    if getattr(ed, 'FunctionSetAssignmentsListLink', None) is not None:
+                        device = ed
+                        break
+
+            fsa = self.function_set_assignment_for_device(device, fsa_index)
+            derp_list = self.__get_request__(fsa.DERProgramListLink.href)
+            for program in (getattr(derp_list, 'DERProgram', []) or []):
+                primacy = int(getattr(program, 'primacy', 0) or 0)
+
+                ctrl_link = getattr(program, 'DERControlListLink', None)
+                if ctrl_link and getattr(ctrl_link, 'href', None):
+                    ctrl_list = self.__get_request__(ctrl_link.href)
+                    for ctrl in (getattr(ctrl_list, 'DERControl', []) or []):
+                        timed.append((ctrl, primacy))
+
+                if primacy < best_primacy:
+                    default_link = getattr(program, 'DefaultDERControlLink', None)
+                    if default_link and getattr(default_link, 'href', None):
+                        best_default = self.__get_request__(default_link.href)
+                        best_primacy = primacy
+        except Exception as exc:
+            _log.warning("der_controls_across_programs failed: %s", exc)
+        return timed, best_default
 
     def create_mirror_meter_reading(self, mirror_usage_point_href: str,
                                     mirror_meter_reading: Any) -> Tuple[int, str]:
@@ -306,16 +507,6 @@ class IEEE2030_5_Client:
     def post(self, url: str, data: Any, headers: Optional[Dict[str, str]] = None):
         response = self.__post__(url, data, headers=headers)
 
-    def __post__(self, url: str, data=None, headers: Optional[Dict[str, str]] = None):
-        if not headers:
-            headers = {'Content-Type': 'text/xml'}
-
-        self.http_conn.request(method="POST", headers=headers, url=url, body=data)
-        response = self._http_conn.getresponse()
-        # response_data = response.read().decode("utf-8")
-
-        return response
-
     def __get_request__(self, url: str, body=None, headers: dict = None):
         if headers is None:
             headers = {"Connection": "keep-alive", "keep-alive": "timeout=30, max=1000"}
@@ -323,16 +514,15 @@ class IEEE2030_5_Client:
         if self._debug:
             print(f"----> GET REQUEST")
             print(f"url: {url} body: {body}")
-        try:
-            self.http_conn.request(method="GET", url=url, body=body, headers=headers)
+        with self._conn_lock:
+            try:
+                self.http_conn.request(method="GET", url=url, body=body, headers=headers)
+            except http.client.CannotSendRequest:
+                self._http_conn.close()
+                _log.debug("Reconnecting to server for GET")
+                self.http_conn.request(method="GET", url=url, body=body, headers=headers)
             response = self._http_conn.getresponse()
-        except ssl.SSLError as exc:
-            if not self._retry_without_client_cert(exc):
-                raise
-            self.http_conn.request(method="GET", url=url, body=body, headers=headers)
-            response = self._http_conn.getresponse()
-        response_data = response.read().decode("utf-8")
-        print(response.headers)
+            response_data = response.read().decode("utf-8")
 
         response_obj = None
         try:
@@ -365,19 +555,17 @@ class IEEE2030_5_Client:
         if self._debug:
             _log_req_resp.debug(f"----> PUT REQUEST\nurl: {url}\nbody: {data}")
 
-        try:
-            self.http_conn.request(method="PUT", headers=headers, url=url, body=data)
-        except http.client.CannotSendRequest as ex:
-            self.http_conn.close()
-            _log.debug("Reconnecting to server")
-            self.http_conn.request(method="PUT", headers=headers, url=url, body=data)
-        except ssl.SSLError as exc:
-            if not self._retry_without_client_cert(exc):
-                raise
-            self.http_conn.request(method="PUT", headers=headers, url=url, body=data)
+        with self._conn_lock:
+            try:
+                self.http_conn.request(method="PUT", headers=headers, url=url, body=data)
+            except http.client.CannotSendRequest:
+                self.http_conn.close()
+                _log.debug("Reconnecting to server")
+                self.http_conn.request(method="PUT", headers=headers, url=url, body=data)
 
-        response = self._http_conn.getresponse()
-        return response
+            response = self._http_conn.getresponse()
+            body = response.read().decode("utf-8")
+        return SimpleNamespace(status=response.status, headers=response.headers, body=body)
 
     def __post__(self, url: str, data=None, headers: Optional[Dict[str, str]] = None):
         if not headers:
@@ -386,20 +574,19 @@ class IEEE2030_5_Client:
         if self._debug:
             _log_req_resp.debug(f"----> POST REQUEST\nurl: {url}\nbody: {data}")
 
-        try:
-            self.http_conn.request(method="POST", headers=headers, url=url, body=data)
+        with self._conn_lock:
+            try:
+                self.http_conn.request(method="POST", headers=headers, url=url, body=data)
+            except http.client.CannotSendRequest:
+                self.http_conn.close()
+                _log.debug("Reconnecting to server for POST")
+                self.http_conn.request(method="POST", headers=headers, url=url, body=data)
             response = self._http_conn.getresponse()
-        except ssl.SSLError as exc:
-            if not self._retry_without_client_cert(exc):
-                raise
-            self.http_conn.request(method="POST", headers=headers, url=url, body=data)
-            response = self._http_conn.getresponse()
-        response_data = response.read().decode("utf-8")
-        # response_data = response.read().decode("utf-8")
+            response_data = response.read().decode("utf-8")
         if response_data and self._debug:
             _log_req_resp.debug(f"<---- POST RESPONSE\n{response_data}")
 
-        return response
+        return SimpleNamespace(status=response.status, headers=response.headers, body=response_data)
 
 
 # noinspection PyTypeChecker

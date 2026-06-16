@@ -7,7 +7,7 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 
 
-from client_helper.utils import CADoesNotExist, CertExistsError, PrivateKeyDeosntExist, TLSWrap
+from . import CADoesNotExist, CertExistsError, PrivateKeyDeosntExist, TLSWrap
 
 class CryptographyWrapper(TLSWrap):
     @staticmethod

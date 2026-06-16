@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from client_helper.utils import TLSWrap
+from . import TLSWrap
 import logging
 
 _log = logging.getLogger(__name__)

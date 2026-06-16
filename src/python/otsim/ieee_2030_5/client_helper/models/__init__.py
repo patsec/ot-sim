@@ -1,4 +1,4 @@
-from client_helper.models.Config import (
+from .Config import (
     TypeName,
     CompoundFields,
     Config,
@@ -12,11 +12,11 @@ from client_helper.models.Config import (
     Substitution,
     Substitutions,
 )
-from client_helper.models.derforecasts import (DERFlexibility, DERForecast, DERForecastLink,
+from .derforecasts import (DERFlexibility, DERForecast, DERForecastLink,
                                              ForecastNumericType, ForecastParameter,
                                              ForecastParameterSet, ForecastParameterSetList)
-from client_helper.models.enums import CurveType, DeviceCategoryType, PrimacyType
-from client_helper.models.sep import (
+from .enums import CurveType, DeviceCategoryType, PrimacyType
+from .sep import (
     DER, IEEE_802_15_4, AbstractDevice, AccountBalance, AccountBalanceLink, AccountingUnit,
     ActiveBillingPeriodListLink, ActiveCreditRegisterListLink, ActiveDERControlListLink,
     ActiveEndDeviceControlListLink, ActiveFlowReservationListLink, ActivePower,

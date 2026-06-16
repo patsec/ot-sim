@@ -11,6 +11,8 @@ REQUIRES = [
   'pyzmq',
   'requests',
   'windpowerlib',
+  'werkzeug',
+  'xsdata'
 ]
 
 SCRIPTS = [
@@ -18,6 +20,7 @@ SCRIPTS = [
   'ot-sim-io-module = otsim.io.io:main',
   'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',
   'ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main',
+  'ot-sim-ieee-20305-client-output-module = otsim.ieee_2030_5.client:main',
 ]
 
 if platform.machine() == 'arm64':

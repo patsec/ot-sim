@@ -13,7 +13,7 @@ from xsdata.formats.dataclass.parsers.handlers import LxmlEventHandler
 
 # SEP 2.0 model package is available — xsdata context auto-discovers all
 # annotated dataclasses in client_helper.models.sep at parse time.
-import client_helper.models  # noqa: F401 — registers all SEP types with XmlContext
+from .. import models  # noqa: F401 — registers all SEP types with XmlContext
 
 __xml_context__ = XmlContext()
 __parser_config__ = ParserConfig(fail_on_unknown_attributes=True, fail_on_unknown_properties=True)
@@ -24,8 +24,7 @@ __config__ = SerializerConfig(xml_declaration=False, pretty_print=True)
 __serializer__ = XmlSerializer(config=__config__)
 __ns_map__ = {None: "urn:ieee:std:2030.5:ns"}
 
-import client_helper.types_ as t
-import client_helper.utils as tls
+from .. import types_ as t
 
 
 class PrivateKeyDeosntExist(Exception):
@@ -86,7 +85,7 @@ def get_lfdi_from_cert(path: Path) -> t.Lfdi:
     """
 
     # 160 / 4 == 40
-    fp = tls.OpensslWrapper.tls_get_fingerprint_from_cert(path)
+    fp = OpensslWrapper.tls_get_fingerprint_from_cert(path)
     fp = fp.replace(":", "")
     lfdi = t.Lfdi(fp[:40])
     return lfdi
@@ -101,7 +100,7 @@ def get_sfdi_from_lfdi(lfdi: t.Lfdi) -> int:
     Returns:
 
     """
-    from client_helper.certs import sfdi_from_lfdi
+    from ..certs import sfdi_from_lfdi
     return sfdi_from_lfdi(lfdi)
 
 
@@ -204,7 +203,7 @@ class TLSWrap:
         raise NotImplementedError()
 
 
-from client_helper.utils.tls_wrapper import OpensslWrapper
-from client_helper.utils.cryptography_wrapper import CryptographyWrapper
+from .tls_wrapper import OpensslWrapper
+from .cryptography_wrapper import CryptographyWrapper
 
 __all__ = ['OpensslWrapper', 'CryptographyWrapper', 'uuid_2030_5']

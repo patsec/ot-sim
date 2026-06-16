@@ -12,9 +12,9 @@ from cryptography.hazmat.backends import default_backend
 
 __all__ = ['TLSRepository']
 
-from client_helper.types_ import Lfdi, PathStr
-from client_helper.utils.tls_wrapper import OpensslWrapper, TLSWrap
-from client_helper.utils.cryptography_wrapper import CryptographyWrapper
+from .types_ import Lfdi, PathStr
+from .utils.tls_wrapper import OpensslWrapper, TLSWrap
+from .utils.cryptography_wrapper import CryptographyWrapper
 
 _log = logging.getLogger(__name__)
 
@@ -210,7 +210,7 @@ class TLSRepository:
         return sfdi_from_lfdi(lfdi_)
 
     def fingerprint(self, device_id: str, without_colan: bool = True) -> str:
-        if os.environ.get('client_CERT_FROM_COMBINED_FILE'):
+        if os.environ.get('CLIENT_CERT_FROM_COMBINED_FILE'):
             # _log.debug("Using hash from combined file.")
             value = Path(self.__get_combined_file__(device_id)).read_text()
             value = hashlib.sha256(value.encode('utf-8')).hexdigest()
