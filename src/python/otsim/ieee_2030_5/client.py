@@ -19,7 +19,6 @@ from otsim.ieee_2030_5.constants import TypeConstants
 import otsim.ieee_2030_5.client_helper.models as m
 import time
 
-import otsim.msgbus.envelope as envelope
 from otsim.msgbus.envelope import Envelope
 from otsim.msgbus.pusher import Pusher
 from otsim.msgbus.subscriber import Subscriber

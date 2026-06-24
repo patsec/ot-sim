@@ -9,7 +9,7 @@ from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.xml import XmlParser
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
-from xsdata.formats.dataclass.parsers.handlers import LxmlEventHandler
+from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 
 # SEP 2.0 model package is available — xsdata context auto-discovers all
 # annotated dataclasses in client_helper.models.sep at parse time.
@@ -19,7 +19,7 @@ __xml_context__ = XmlContext()
 __parser_config__ = ParserConfig(fail_on_unknown_attributes=True, fail_on_unknown_properties=True)
 __xml_parser__ = XmlParser(config=__parser_config__,
                            context=__xml_context__,
-                           handler=LxmlEventHandler)
+                           handler=XmlEventHandler)
 __config__ = SerializerConfig(xml_declaration=False, pretty_print=True)
 __serializer__ = XmlSerializer(config=__config__)
 __ns_map__ = {None: "urn:ieee:std:2030.5:ns"}

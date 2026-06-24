@@ -12,7 +12,8 @@ REQUIRES = [
   'requests',
   'windpowerlib',
   'werkzeug',
-  'xsdata'
+  'xsdata',
+  'cryptography'
 ]
 
 SCRIPTS = [
