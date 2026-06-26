@@ -575,27 +575,29 @@ class IEEE20305Client():
             conn = HTTPSConnection(server, port, context=ctx)
         else:
             conn = HTTPConnection(server, port)
+        while True:
+            try:
+                conn.request(
+                    "POST", "/api/csr/submit",
+                    body=payload,
+                    headers={"Content-Type": "application/json",
+                            "Content-Length": str(len(payload))},
+                )
+                resp = conn.getresponse()
+                body = resp.read().decode("utf-8")
 
-        try:
-            conn.request(
-                "POST", "/api/csr/submit",
-                body=payload,
-                headers={"Content-Type": "application/json",
-                        "Content-Length": str(len(payload))},
-            )
-            resp = conn.getresponse()
-            body = resp.read().decode("utf-8")
+                if resp.status != 200:
+                    raise RuntimeError(f"Server returned {resp.status}: {body}")
 
-            if resp.status != 200:
-                raise RuntimeError(f"Server returned {resp.status}: {body}")
-
-            data = json.loads(body)
-            if not data.get("success"):
-                raise RuntimeError(f"Server error: {data.get('error')}")
-            self.log(f"Certificate signed - LFDI={data['lfdi']} SFDI={data['sfdi']}")
-            return data
-        finally:
-            conn.close()
+                data = json.loads(body)
+                if not data.get("success"):
+                    raise RuntimeError(f"Server error: {data.get('error')}")
+                self.log(f"Certificate signed - LFDI={data['lfdi']} SFDI={data['sfdi']}")
+                return data
+            except Exception:
+                continue
+            finally:
+                conn.close()
 
     def save_certificates(self, device_id: str, cert_data: dict,
                         output_dir: Path) -> Tuple[Path, Path]:
@@ -937,7 +939,7 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
                             })
 
                         if update_points:
-                            runtime_update = envelope.new_update_envelope(self.name, {'updates': update_points})
+                            runtime_update = Envelope.new_update_envelope(self.name, {'updates': update_points})
                             self.pusher.push('RUNTIME', runtime_update)
                         elif not self._logged_missing_setpoint_tags:
                             self.log('Skipping control output publish because selected control has no publishable setpoint value')
@@ -969,7 +971,7 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
     
     # On update received from zmq
     def listen_msgbus(self, env: Envelope):
-        update = envelope.update_from_envelope(env)
+        update = Envelope.update_from_envelope(env)
         if not update:
             return
         for point in update['updates']:
