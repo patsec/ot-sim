@@ -1,0 +1,7 @@
+[console_scripts]
+ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main
+ot-sim-io-module = otsim.io.io:main
+ot-sim-rpi-gpio-module = otsim.rpi_gpio.rpi_gpio:main
+ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main
+ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main
+

@@ -17,6 +17,10 @@ set(OPENDNP3_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/opendnp3/cpp/lib/include
 )
 
+set(SNAP7_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/deps/snap7
+)
+
 set(OTSIM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -33,9 +37,11 @@ add_subdirectory(deps/json)
 add_subdirectory(deps/opendnp3)
 
 add_subdirectory(dnp3)
+add_subdirectory(s7)
 add_subdirectory(msgbus)
 
 add_subdirectory(cmd/ot-sim-dnp3-module)
+add_subdirectory(cmd/ot-sim-s7comm-module)
 
 if(BUILD_E2E)
   add_subdirectory(cmd/ot-sim-e2e-dnp3-master)

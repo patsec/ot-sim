@@ -8,7 +8,6 @@
     <module name="backplane">ot-sim-message-bus {{config_file}}</module>
     <module name="io">ot-sim-io-module {{config_file}}</module>
     <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
-    <module name="dnp3">ot-sim-dnp3-module {{config_file}}</module>
     <module name="s7comm">ot-sim-s7comm-module {{config_file}}</module>
     <module name="telnet">ot-sim-telnet-module {{config_file}}</module>
     <module name="node-red">ot-sim-node-red-module {{config_file}}</module>
@@ -42,37 +41,21 @@
       <scaling>-2</scaling>
     </register>
   </modbus>
-  <dnp3 name="dnp3-outstation" mode="server">
-    <endpoint>127.0.0.1:20000</endpoint>
-    <cold-restart-delay>15</cold-restart-delay>
-    <outstation name="dnp3-outstation">
-      <local-address>1024</local-address>
-      <remote-address>1</remote-address>
-      <warm-restart-delay>5</warm-restart-delay>
-      <input type="binary">
-        <address>0</address>
-        <tag>line-650632.closed</tag>
-        <svar>Group1Var1</svar>
-        <evar>Group2Var1</evar>
-        <class>Class1</class>
-      </input>
-      <output type="binary">
-        <address>10</address>
-        <tag>line-650632.closed</tag>
-        <svar>Group10Var2</svar>
-        <evar>Group11Var2</evar>
-        <class>Class1</class>
-        <sbo>false</sbo>
-      </output>
-      <input type="analog">
-        <address>0</address>
-        <tag>line-650632.kW</tag>
-        <svar>Group30Var6</svar>
-        <evar>Group32Var6</evar>
-        <class>Class1</class>
-      </input>
-    </outstation>
-  </dnp3>
+  <s7comm name="s7comm-client" mode="client">
+    <input type="binary">
+      <tag>line-650632.closed</tag>
+      <address>0</address>
+    </input>
+    <output type="binary">
+      <tag>line-650632.closed</tag>
+       <address>10</address>
+      <sbo>false</sbo>
+    </output>
+    <input type="analog">
+      <tag>line-650632.kW</tag>
+      <address>0</address>
+    </input>
+  </s7comm>
   <io name="helics-federate">
     <broker-endpoint>localhost</broker-endpoint>
     <federate-name>ot-sim-io</federate-name>

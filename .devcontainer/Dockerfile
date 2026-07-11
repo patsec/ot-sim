@@ -4,7 +4,7 @@ ENV TZ=America/Denver
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update && apt install -y \
-  bash-completion build-essential cmake curl git git-lfs mbpoll sudo tmux tree vim wget xz-utils \
+  7zip bash-completion build-essential cmake curl git git-lfs mbpoll sudo tmux tree vim wget xz-utils \
   cmake libboost-dev libczmq-dev libxml2-dev libzmq3-dev pkg-config python3-dev python3-pip
 
 ARG USERNAME=vscode
@@ -67,5 +67,9 @@ RUN /root/install-node-red.sh \
 
 ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
 RUN cd /root/.node-red/nodes/ot-sim && npm install
+
+RUN wget -O snap7.7z https://versaweb.dl.sourceforge.net/project/snap7/1.4.2/snap7-full-1.4.2.7z \
+  && 7zz -o/tmp x snap7.7z && rm snap7.7z \
+  && make -C /tmp/snap7-full-1.4.2/build/unix -f x86_64_linux.mk install LibInstall=/usr/local/lib
 
 RUN python3 -m pip install --break-system-packages opendssdirect.py~=0.8.4

@@ -1,0 +1,7 @@
+RPi.GPIO
+helics~=3.4.0
+numpy
+pandas
+pyzmq
+requests
+windpowerlib

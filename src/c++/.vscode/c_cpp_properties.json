@@ -8,6 +8,7 @@
                 "${workspaceFolder}/deps/fmt/include",
                 "${workspaceFolder}/deps/json/single_include",
                 "${workspaceFolder}/deps/opendnp3/cpp/lib/include",
+                "${workspaceFolder}/deps/snap7",
                 "/usr/include/**",
                 "/usr/local/include/**"
             ],
