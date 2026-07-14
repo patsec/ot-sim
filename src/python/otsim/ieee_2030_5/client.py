@@ -19,6 +19,7 @@ from otsim.ieee_2030_5.constants import TypeConstants
 import otsim.ieee_2030_5.client_helper.models as m
 import time
 
+from otsim.msgbus import envelope
 from otsim.msgbus.envelope import Envelope
 from otsim.msgbus.pusher import Pusher
 from otsim.msgbus.subscriber import Subscriber
@@ -93,8 +94,9 @@ class IEEE20305Client():
         self.pusher = Pusher(pull)
         
         self.running = False
-        self.log("adding update handler for listen_msgbus")
-        self.subscriber.add_update_handler(self.listen_msgbus)
+        self.log("adding msgbus update and status listeners")
+        self.subscriber.add_update_handler(self.listen_msgbus_updates)
+        self.subscriber.add_status_handler(self.listen_msgbus_status)
         
     def log(self, msg):
         print(f'[IEEE 2030.5 Client] {msg}', flush=True)
@@ -939,7 +941,7 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
                             })
 
                         if update_points:
-                            runtime_update = Envelope.new_update_envelope(self.name, {'updates': update_points})
+                            runtime_update = envelope.new_update_envelope(self.name, {'updates': update_points})
                             self.pusher.push('RUNTIME', runtime_update)
                         elif not self._logged_missing_setpoint_tags:
                             self.log('Skipping control output publish because selected control has no publishable setpoint value')
@@ -970,11 +972,21 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
             time.sleep(self.polling_rate)
     
     # On update received from zmq
-    def listen_msgbus(self, env: Envelope):
-        update = Envelope.update_from_envelope(env)
+    def listen_msgbus_updates(self, env: Envelope):
+        update = envelope.update_from_envelope(env)
         if not update:
             return
-        for point in update['updates']:
+        self._apply_points(update['updates'])
+
+    # On status received from zmq
+    def listen_msgbus_status(self, env: Envelope):
+        status = envelope.status_from_envelope(env)
+        if not status:
+            return
+        self._apply_points(status['measurements'])
+
+    def _apply_points(self, points) -> None:
+        for point in points:
             normalized_tag = self._normalize_tag(point.get('tag'))
             reading = self.readings_by_tag.get(normalized_tag)
             if reading is None:
@@ -984,17 +996,12 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
             except (TypeError, ValueError):
                 continue
             self.local_state[normalized_tag] = value
-            
+
 
     def start(self):
         self.subscriber.start('RUNTIME')
 
         self.client = self.initialize_client()
-        # get template for device type 
-        # query for update point & readings, create both if they don't exist 
-        # 
-        
-        # device 1 -> active power, reactive power, etc. (mup)
         
         self.mup_mrid, self.mup_href = self.build_mirror_usage_points(self.client)
         self.log(f"mrid {self.mup_mrid}, mup {self.mup_href}")
