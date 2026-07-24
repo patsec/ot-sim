@@ -179,9 +179,7 @@ class IEEE20305Client():
                 self.log(f"Unsupported reading type '{name}', defaulting to ACTIVE_POWER")
                 base_type = TypeConstants.ACTIVE_POWER
         
-        if multiplier != 0:
-            return replace(base_type, powerOfTenMultiplier=multiplier)
-        return base_type
+        return replace(base_type, powerOfTenMultiplier=multiplier)
 
     @staticmethod
     def _scale_curve_axis(value: Any, multiplier: Any) -> Optional[float]:
