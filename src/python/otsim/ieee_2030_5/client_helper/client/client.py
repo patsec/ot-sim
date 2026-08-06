@@ -483,7 +483,7 @@ class IEEE2030_5_Client:
             for program in (getattr(derp_list, 'DERProgram', []) or []):
                 primacy = int(getattr(program, 'primacy', 0) or 0)
 
-                ctrl_link = getattr(program, 'DERControlListLink', None)
+                ctrl_link = getattr(program, 'ActiveDERControlListLink', None)
                 if ctrl_link and getattr(ctrl_link, 'href', None):
                     ctrl_list = self.__get_request__(ctrl_link.href)
                     for ctrl in (getattr(ctrl_list, 'DERControl', []) or []):
