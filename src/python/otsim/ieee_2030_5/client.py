@@ -990,10 +990,11 @@ Full certificate data:\n{cert_data}\nEND SUMMARY\n""")
             if reading is None:
                 continue
             try:
-                value = int(round(float(point.get('value', 0))))
+                value = float(point.get('value', 0))
             except (TypeError, ValueError):
                 continue
-            self.local_state[normalized_tag] = value
+            multiplier = reading.get('power_of_ten_multiplier', 0)
+            self.local_state[normalized_tag] = int(round(value / (10 ** multiplier)))
 
 
     def start(self):
