@@ -32,7 +32,7 @@ bin/go-jsonschema:
 
 all: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module \
 		 bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
-		 bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+		 bin/ot-sim-serial-ip-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 
 clean:
 	$(RM) bin/ot-sim-cpu-module
@@ -40,6 +40,7 @@ clean:
 	$(RM) bin/ot-sim-modbus-module
 	$(RM) bin/ot-sim-mqtt-module
 	$(RM) bin/ot-sim-node-red-module
+	$(RM) bin/ot-sim-serial-ip-module
 	$(RM) bin/ot-sim-sunspec-module
 	$(RM) bin/ot-sim-tailscale-module
 	$(RM) bin/ot-sim-telnet-module
@@ -79,6 +80,12 @@ bin/ot-sim-node-red-module: $(NODERED_SOURCES)
 	mkdir -p bin
 	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-node-red-module cmd/ot-sim-node-red-module/main.go
 
+SERIALIP_SOURCES := $(shell find serialip \( -name '*.go' \))
+
+bin/ot-sim-serial-ip-module: $(SERIALIP_SOURCES)
+	mkdir -p bin
+	GOOS=linux go build -a -ldflags="-s -w" -trimpath -o bin/ot-sim-serial-ip-module cmd/ot-sim-serial-ip-module/main.go
+
 SUNSPEC_SOURCES := $(shell find sunspec \( -name '*.go' \))
 
 bin/ot-sim-sunspec-module: $(SUNSPEC_SOURCES) $(MSGBUS_SOURCES)
@@ -99,13 +106,14 @@ bin/ot-sim-telnet-module: $(TELNET_SOURCES) $(MSGBUS_SOURCES)
 
 .PHONY: install
 install: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module \
-				 bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
-				 bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+				 bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-serial-ip-module \
+				 bin/ot-sim-sunspec-module bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 	cp bin/ot-sim-cpu-module       $(prefix)/bin/ot-sim-cpu-module
 	cp bin/ot-sim-logic-module     $(prefix)/bin/ot-sim-logic-module
 	cp bin/ot-sim-modbus-module    $(prefix)/bin/ot-sim-modbus-module
 	cp bin/ot-sim-mqtt-module      $(prefix)/bin/ot-sim-mqtt-module
 	cp bin/ot-sim-node-red-module  $(prefix)/bin/ot-sim-node-red-module
+	cp bin/ot-sim-serial-ip-module $(prefix)/bin/ot-sim-serial-ip-module
 	cp bin/ot-sim-sunspec-module   $(prefix)/bin/ot-sim-sunspec-module
 	cp bin/ot-sim-tailscale-module $(prefix)/bin/ot-sim-tailscale-module
 	cp bin/ot-sim-telnet-module    $(prefix)/bin/ot-sim-telnet-module
