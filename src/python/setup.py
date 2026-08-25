@@ -20,7 +20,7 @@ SCRIPTS = [
   'ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main',
 ]
 
-if platform.machine() == 'arm64':
+if platform.machine() == 'arm64' or platform.machine() == 'aarch64':
   REQUIRES.append('RPi.GPIO')
   SCRIPTS.append('ot-sim-rpi-gpio-module = otsim.rpi_gpio.rpi_gpio:main')
 
