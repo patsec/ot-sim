@@ -32,6 +32,8 @@ class PowerOutput:
     self.conditions = None
     self.emer_stop  = 0 # not in emergency stop mode
 
+    self.power_output = 0.0
+
     if self.target_mw:
       assert(self.turbine.nominal_power)
       self.target_mw = (self.turbine.nominal_power / 1e6) / self.target_mw
@@ -137,12 +139,10 @@ class PowerOutput:
 
 
   def update_power_output(self: PowerOutput):
-    output = 0.0
-
     if not self.emer_stop:
       weather = pd.DataFrame(
         [self.conditions],
-        index=pd.date_range('1/1/2022', periods=1, freq='H'),
+        index=pd.date_range('1/1/2022', periods=1, freq='h'),
         columns=[np.array(self.weather_data_columns), np.array(self.weather_data_heights)],
       )
 
@@ -152,23 +152,32 @@ class PowerOutput:
       if self.target_mw:
         output = output / self.target_mw
 
+      self.power_output = output
+
     # `output` could be zero for a while if this module starts up before the
     # anemometer module does.
-    if not self.initialized and output:
+    if not self.initialized and self.power_output:
       self.initialized = True
 
-    # Prevent initial values of zero from messing up any physical system
-    # simulator the device this module is part of is connected to.
-    if self.initialized:
-      points = [{'tag': self.output_tag, 'value': output, 'ts': 0}]
+    try:
+      if self.emer_stop:
+        if self.power_output == 0.0:
+          return
+        else:
+          self.power_output = 0.0
 
-      env = envelope.new_status_envelope(self.name, {'measurements': points})
-      self.pusher.push('RUNTIME', env)
+      # Prevent initial values of zero from messing up any physical system
+      # simulator the device this module is part of is connected to.
+      if self.initialized:
+        points = [{'tag': self.output_tag, 'value': self.power_output, 'ts': 0}]
 
-      env = envelope.new_update_envelope(self.name, {'updates': points})
-      self.pusher.push('RUNTIME', env)
+        env = envelope.new_status_envelope(self.name, {'measurements': points})
+        self.pusher.push('RUNTIME', env)
 
-    self.conditions = None
+        env = envelope.new_update_envelope(self.name, {'updates': points})
+        self.pusher.push('RUNTIME', env)
+    finally:
+      self.conditions = None
 
 
 def main():
