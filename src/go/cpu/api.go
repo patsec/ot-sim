@@ -25,6 +25,7 @@ const (
 	API_WS_PONG_WAIT   = 60 * time.Second
 	API_WS_PING_PERIOD = (API_WS_PONG_WAIT * 9) / 10
 	API_WS_PUB_PERIOD  = 5 * time.Second
+	API_HTML_DIR       = "/var/www/html"
 )
 
 type APIServer struct {
@@ -66,6 +67,13 @@ func (this *APIServer) Start(endpoint, cert, key, ca string) error {
 	api.HandleFunc("/modules", this.handleModules).Methods("GET")
 	api.HandleFunc("/modules/{name}", this.handleEnableModule).Methods("POST")
 	api.HandleFunc("/modules/{name}", this.handleDisableModule).Methods("DELETE")
+
+	// Check to see if the defined HTML directory exists on disk. If so, use a
+	// static file server for the directory.
+	stat, err := os.Stat(API_HTML_DIR)
+	if err == nil && stat.IsDir() {
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir(API_HTML_DIR)))
+	}
 
 	server := http.Server{Addr: endpoint, Handler: router}
 
