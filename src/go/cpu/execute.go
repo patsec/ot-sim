@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -17,6 +18,10 @@ import (
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/util"
+)
+
+const (
+	EXEC_DEFAULT_VENV = "/opt/venv"
 )
 
 type module struct {
@@ -66,8 +71,34 @@ func init() {
 // StartModule starts the process for another module and monitors it to make
 // sure it doesn't die, restarting it if it does.
 func StartModule(ctx context.Context, mod *module) error {
+	// Reset PATH env variable just in case it's modified with a working
+	// directory below. This way, the PATH doesn't grow unnecessarily with
+	// possible duplicates.
+	defer os.Setenv("PATH", os.Getenv("PATH"))
+
 	mod.init(ctx)
 
+	// Update the PATH to include a default Python virtual environment at
+	// `/opt/venv` that users can install Python executables to if they don't
+	// want to chance breaking system packages.
+	os.Setenv("PATH", fmt.Sprintf("%s%c%s", filepath.Join(EXEC_DEFAULT_VENV, "bin"), filepath.ListSeparator, os.Getenv("PATH")))
+
+	if mod.workDir != "" {
+		dir := filepath.Clean(mod.workDir)
+		venv := filepath.Join(dir, ".venv")
+
+		stat, err := os.Stat(venv)
+		if err == nil && stat.IsDir() {
+			log.Printf("[CPU] activating Python Virtual Environment for module %s\n", mod.name)
+			// Update the PATH to include the virtual environment's bin
+			// directory so exec.LookPath finds executables here too.
+			os.Setenv("PATH", fmt.Sprintf("%s%c%s", filepath.Join(venv, "bin"), filepath.ListSeparator, os.Getenv("PATH")))
+		}
+	}
+
+	// The call to exec.Command made below also makes a call to exec.LookPath,
+	// but we do it explicitly here so we can error out early and with a useful
+	// error message.
 	exePath, err := exec.LookPath(mod.path)
 	if err != nil {
 		return fmt.Errorf("module executable does not exist at %s", mod.path)

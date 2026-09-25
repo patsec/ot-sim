@@ -21,7 +21,7 @@ PATH := $(GOBIN):$(PATH)
 export GOBIN
 
 .PHONY: install-build-deps
-install-build-deps: bin/go-jsonschema bin/xsdgen
+install-build-deps: bin/go-jsonschema
 
 .PHONY: remove-build-deps
 remove-build-deps:
@@ -31,8 +31,8 @@ bin/go-jsonschema:
 	go install github.com/atombender/go-jsonschema@latest
 
 all: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module \
-		 bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
-		 bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+		bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
+		bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 
 clean:
 	$(RM) bin/ot-sim-cpu-module
@@ -99,8 +99,8 @@ bin/ot-sim-telnet-module: $(TELNET_SOURCES) $(MSGBUS_SOURCES)
 
 .PHONY: install
 install: bin/ot-sim-cpu-module bin/ot-sim-logic-module bin/ot-sim-modbus-module \
-				 bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
-				 bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
+		bin/ot-sim-mqtt-module bin/ot-sim-node-red-module bin/ot-sim-sunspec-module \
+		bin/ot-sim-tailscale-module bin/ot-sim-telnet-module
 	cp bin/ot-sim-cpu-module       $(prefix)/bin/ot-sim-cpu-module
 	cp bin/ot-sim-logic-module     $(prefix)/bin/ot-sim-logic-module
 	cp bin/ot-sim-modbus-module    $(prefix)/bin/ot-sim-modbus-module
