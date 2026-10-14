@@ -3,6 +3,7 @@ package cpu
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 
@@ -67,10 +68,16 @@ func metricsHandler(topic, msg string) error {
 	return nil
 }
 
-func init() {
+func startMetricsServer(endpoint string) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
-	server := http.Server{Addr: ":9100", Handler: mux}
-	go server.ListenAndServe()
+	server := http.Server{Addr: endpoint, Handler: mux}
+	go func() {
+		log.Printf("[CPU] starting metrics server at %s/metrics\n", server.Addr)
+
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("[CPU] [ERROR] starting metrics server: %v\n", err)
+		}
+	}()
 }
