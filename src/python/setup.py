@@ -7,6 +7,7 @@ from setuptools import setup, find_packages
 REQUIRES = [
   'helics~=3.6.1',
   'numpy',
+  'opendssdirect.py~=0.8.4',
   'pandas',
   'pyzmq',
   'requests',
@@ -16,6 +17,7 @@ REQUIRES = [
 SCRIPTS = [
   'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
   'ot-sim-io-module = otsim.io.io:main',
+  'ot-sim-opendss-module = otsim.opendss.opendss:main',
   'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',
   'ot-sim-wind-turbine-power-output-module = otsim.wind_turbine.power_output.power_output:main',
 ]

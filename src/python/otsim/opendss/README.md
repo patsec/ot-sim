@@ -1,0 +1,36 @@
+```
+<opendss name="OpenDSS">
+  <broker-endpoint>127.0.0.1</broker-endpoint>
+  <federate-name>OpenDSS</federate-name>
+  <federate-log-level>SUMMARY</federate-log-level>
+  <start-time>1</start-time>
+  <end-time>3600</end-time>
+  <real-time>true</real-time>
+  <case>
+    <file>/path/to/case.dss</file>
+    <mode>daily</mode>
+    <step-size>60</step-size>
+  </case>
+  <publication>
+    <key>line-650632.kW</key>
+    <type>double</type>
+  </publication>
+  <publication>
+    <key>line-650632.kVAR</key>
+    <type>double</type>
+  </publication>
+  <publication>
+    <key>line-650632.kVA</key>
+    <type>complex</type>
+  </publication>
+  <publication>
+    <key>line-650632.closed</key>
+    <type>boolean</type>
+  </publication>
+  <publication>
+    <key>switch-671692.closed</key>
+    <type>boolean</type>
+  </publication>
+  <endpoint name="updates" />
+</opendss>
+```

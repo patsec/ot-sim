@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ot-sim>
+  <message-bus>
+    <pull-endpoint>tcp://127.0.0.1:7890</pull-endpoint>
+    <pub-endpoint>tcp://127.0.0.1:2345</pub-endpoint>
+  </message-bus>
+  <cpu>
+    <module name="backplane">ot-sim-message-bus {{config_file}}</module>
+    <module name="opendss">ot-sim-opendss-module {{config_file}}</module>
+  </cpu>
+  <opendss name="OpenDSS">
+    <broker-endpoint>127.0.0.1</broker-endpoint>
+    <federate-name>OpenDSS</federate-name>
+    <federate-log-level>SUMMARY</federate-log-level>
+    <start-time>1</start-time>
+    <end-time>3600</end-time>
+    <real-time>true</real-time>
+    <case>
+      <file>helics/data/IEEE13/IEEE13Nodeckt.dss</file>
+      <mode>daily</mode>
+      <step-size>60</step-size>
+    </case>
+    <publication>
+      <key>line-650632.kW</key>
+      <type>double</type>
+    </publication>
+    <publication>
+      <key>line-650632.kVAR</key>
+      <type>double</type>
+    </publication>
+    <publication>
+      <key>line-650632.kVA</key>
+      <type>complex</type>
+    </publication>
+    <publication>
+      <key>line-650632.closed</key>
+      <type>boolean</type>
+    </publication>
+    <publication>
+      <key>switch-671692.closed</key>
+      <type>boolean</type>
+    </publication>
+    <endpoint name="updates" />
+  </opendss>
+</ot-sim>
