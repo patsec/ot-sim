@@ -31,6 +31,8 @@ class IO(HelicsFederate):
       return DataType.boolean
     elif typ == 'double':
       return DataType.double
+    elif typ == 'complex':
+      return DataType.complex
     else:
       return None
 
@@ -171,7 +173,14 @@ class IO(HelicsFederate):
 
       if not tag: continue
 
-      points.append({'tag': tag, 'value': float(v), 'ts': 0})
+      typ = self.subs[k].type
+
+      if typ == DataType.complex:
+        points.append({'tag': f'{tag}.real', 'value': v.real, 'ts': 0})
+        points.append({'tag': f'{tag}.imag', 'value': v.imag, 'ts': 0})
+      else:
+        points.append({'tag': tag, 'value': float(v), 'ts': 0})
+
       self.metrics.incr_metric('helics_sub_count')
 
     if len(points) > 0:
