@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 REQUIRES = [
   'helics~=3.6.1',
   'numpy',
-  'opendssdirect.py~=0.8.4',
+  'opendssdirect.py~=0.9.4',
   'pandas',
   'pyzmq',
   'requests',

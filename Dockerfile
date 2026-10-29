@@ -126,7 +126,7 @@ COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
 COPY --from=build   /usr/local /usr/local
 
-RUN python3 -m pip install --break-system-packages opendssdirect.py~=0.8.4
+RUN python3 -m pip install --break-system-packages opendssdirect.py~=0.9.4
 
 RUN ldconfig
 

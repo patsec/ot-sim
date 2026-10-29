@@ -3,9 +3,8 @@ from __future__ import annotations
 import json, signal, sys, threading, time, typing
 
 import xml.etree.ElementTree as ET
-import opendssdirect         as dss
 
-from collections import defaultdict
+from opendssdirect import dss
 
 from otsim.helics_helper   import DataType, Endpoint, HelicsFederate, Publication, Subscription
 from otsim.msgbus.metrics  import MetricsPusher
@@ -84,10 +83,10 @@ class OpenDSS(HelicsFederate):
     case = el.find('case')
 
     case_file = case.findtext('file')
-    dss.run_command(f'Redirect {case_file}')
+    dss(f'Redirect {case_file}')
 
     mode = case.findtext('mode', default='daily')
-    dss.run_command(f'set mode={mode}') # load profile mode
+    dss(f'set mode={mode}') # load profile mode
 
     # initial solve
     dss.Solution.StepSize(0)
@@ -131,13 +130,12 @@ class OpenDSS(HelicsFederate):
 
   def action_publications(self: OpenDSS, data: typing.Dict, ts: int):
     for topic in data.keys():
-      # topic = line-650632.kW
+      # topic = line|650632|kW
       # kind  = line
       # name  = 650632
       # field = kW
 
-      name, field = topic.split('.', 1)
-      kind, name  = name.split('-', 1)
+      kind, name, field = topic.split('|')
 
       if kind == 'bus':
         dss.Circuit.SetActiveBus(name)
@@ -224,7 +222,7 @@ class OpenDSS(HelicsFederate):
           data[topic] = S / 1000.0
           continue
         if field == 'closed':
-          data[topic] = not dss.CktElement.IsOpen(0, 0)
+          data[topic] = not dss.CktElement.IsOpen(1, 1)
           continue
 
       elif kind == 'switch':
@@ -232,7 +230,7 @@ class OpenDSS(HelicsFederate):
         dss.Circuit.SetActiveElement(name)
 
         if field == 'closed':
-          data[topic] = not dss.CktElement.IsOpen(0, 0)
+          data[topic] = not dss.CktElement.IsOpen(1, 1)
           continue
       elif kind == 'regulator':
         dss.Circuit.SetActiveClass('regcontrol')
@@ -257,8 +255,7 @@ class OpenDSS(HelicsFederate):
         assert topic is not None
         assert value is not None
 
-        name, field = topic.split('.', 1)
-        kind, name  = name.split('-', 1)
+        kind, name, field = topic.split('|')
 
         if kind == 'switch':
           dss.Circuit.SetActiveClass("line")
