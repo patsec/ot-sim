@@ -17,43 +17,43 @@ from otsim.msgbus.envelope import MetricKind
 
 
 # OT-sim's exit status for "do not restart this module" (src/go/util/exit.go).
-EXIT_NO_RESTART = 101
+EXIT_NO_RESTART: typing.Final[int] = 101
 
 # Seconds to wait before exiting after an unexpected failure, since the CPU
 # module restarts a module right away.
-RESTART_PAUSE = 5.0
+RESTART_PAUSE: typing.Final[float] = 5.0
 
-RUNTIME_TOPIC = b'RUNTIME'
-HEALTH_TOPIC  = b'HEALTH'
+RUNTIME_TOPIC: typing.Final[bytes] = b'RUNTIME'
+HEALTH_TOPIC:  typing.Final[bytes] = b'HEALTH'
 
-DEFAULT_PUB_ENDPOINT  = 'tcp://127.0.0.1:5678'
-DEFAULT_PULL_ENDPOINT = 'tcp://127.0.0.1:1234'
+DEFAULT_PUB_ENDPOINT:  typing.Final[str] = 'tcp://127.0.0.1:5678'
+DEFAULT_PULL_ENDPOINT: typing.Final[str] = 'tcp://127.0.0.1:1234'
 
-DEFAULT_PORT = 47808
+DEFAULT_PORT: typing.Final[int] = 47808
 
 # Object and device instance numbers are 22 bits, and 4194303 is the wildcard.
-MAX_INSTANCE = 4194302
+MAX_INSTANCE: typing.Final[int] = 4194302
 
 # The largest magnitude a BACnet Real (IEEE 754 single) holds. HELICS gives the
 # I/O module -1e49 for a value no federate has published yet, which does not fit
 # and is not a measurement.
-REAL_MAX = 3.4028234663852886e38
+REAL_MAX: typing.Final[float] = 3.4028234663852886e38
 
 # Seconds between pushes of this module's metrics (same as the other modules).
-METRICS_PERIOD = 5.0
+METRICS_PERIOD: typing.Final[float] = 5.0
 
-ANALOG  = ('analog-input', 'analog-output', 'analog-value')
-BINARY  = ('binary-input', 'binary-output', 'binary-value')
-MULTI   = ('multi-state-value',)
-INPUTS  = ('analog-input', 'binary-input')
-OUTPUTS = ('analog-output', 'binary-output')  # always commandable (ASHRAE 135, clause 19.2)
+ANALOG:  typing.Final[typing.Tuple[str, ...]] = ('analog-input', 'analog-output', 'analog-value')
+BINARY:  typing.Final[typing.Tuple[str, ...]] = ('binary-input', 'binary-output', 'binary-value')
+MULTI:   typing.Final[typing.Tuple[str, ...]] = ('multi-state-value',)
+INPUTS:  typing.Final[typing.Tuple[str, ...]] = ('analog-input', 'binary-input')
+OUTPUTS: typing.Final[typing.Tuple[str, ...]] = ('analog-output', 'binary-output')  # always commandable (ASHRAE 135, clause 19.2)
 
-OBJECT_TYPES = ANALOG + BINARY + MULTI
+OBJECT_TYPES: typing.Final[typing.Tuple[str, ...]] = ANALOG + BINARY + MULTI
 
-DEVICE_SETTINGS = ('instance', 'name', 'description', 'vendor-name', 'model-name')
-OBJECT_SETTINGS = ('instance', 'tag', 'name', 'description', 'units', 'cov-increment', 'commandable', 'min', 'max', 'state', 'override-tag')
+DEVICE_SETTINGS: typing.Final[typing.Tuple[str, ...]] = ('instance', 'name', 'description', 'vendor-name', 'model-name')
+OBJECT_SETTINGS: typing.Final[typing.Tuple[str, ...]] = ('instance', 'tag', 'name', 'description', 'units', 'cov-increment', 'commandable', 'min', 'max', 'state', 'override-tag')
 
-ENDPOINT = re.compile(r'^(?P<ip>\d+\.\d+\.\d+\.\d+)/(?P<prefix>\d+)(?::(?P<port>\d+))?$')
+ENDPOINT: typing.Final[typing.Pattern[str]] = re.compile(r'^(?P<ip>\d+\.\d+\.\d+\.\d+)/(?P<prefix>\d+)(?::(?P<port>\d+))?$')
 
 
 class ConfigError(ValueError):
