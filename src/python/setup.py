@@ -5,6 +5,7 @@ import platform
 from setuptools import setup, find_packages
 
 REQUIRES = [
+  'bacpypes3~=0.0.110',
   'helics~=3.6.1',
   'numpy',
   'pandas',
@@ -14,6 +15,7 @@ REQUIRES = [
 ]
 
 SCRIPTS = [
+  'ot-sim-bacnet-module = otsim.bacnet.bacnet:main',
   'ot-sim-ground-truth-module = otsim.ground_truth.ground_truth:main',
   'ot-sim-io-module = otsim.io.io:main',
   'ot-sim-wind-turbine-anemometer-module = otsim.wind_turbine.anemometer.anemometer:main',

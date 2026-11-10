@@ -20,7 +20,8 @@ modules interact with the simulation environment &mdash; management signals, as
 well as production messages, are passed over the message bus.
 
 The current set of OT-sim modules are categorized as CPU, protocol &mdash;
-Modbus and DNP3 are currently supported &mdash; I/O &mdash; acting as a
+Modbus, DNP3, and BACnet/IP (server only) are currently supported &mdash; I/O
+&mdash; acting as a
 [HELICS](https://helics.org) federate, and logic. OT devices can include devices
 such as PLCs, protection relays, IEDs, RTUs, FEPs, etc. These devices are
 virtual representations and “walk the walk” when it comes to protocol

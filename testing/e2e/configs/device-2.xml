@@ -8,7 +8,29 @@
     <module name="backplane">ot-sim-message-bus {{config_file}}</module>
     <module name="io">ot-sim-io-module {{config_file}}</module>
     <module name="modbus">ot-sim-modbus-module {{config_file}}</module>
+    <module name="bacnet">ot-sim-bacnet-module {{config_file}}</module>
   </cpu>
+  <bacnet name="bacnet-server" mode="server">
+    <endpoint>127.0.0.1/8:47808</endpoint>
+    <device>
+      <instance>2</instance>
+      <name>ot-sim-device-2</name>
+    </device>
+    <object type="analog-input">
+      <instance>0</instance>
+      <tag>line-650632.kW</tag>
+      <units>kilowatts</units>
+    </object>
+    <object type="binary-output">
+      <instance>0</instance>
+      <tag>switch-671692.closed</tag>
+      <name>switch-671692.close</name>
+    </object>
+    <object type="binary-input">
+      <instance>0</instance>
+      <tag>switch-671692.closed</tag>
+    </object>
+  </bacnet>
   <modbus name="modbus-outstation" mode="server">
     <endpoint>127.0.0.1:5502</endpoint>
     <register type="coil">
@@ -46,6 +68,7 @@
     </subscription>
     <endpoint name="OpenDSS/updates">
       <tag key="line-650632.closed">line-650632.closed</tag>
+      <tag key="switch-671692.closed">switch-671692.closed</tag>
     </endpoint>
   </io>
 </ot-sim>

@@ -40,9 +40,14 @@ jobs:
           make -C ./src/go install
           python3 -m pip install --break-system-packages ./src/python
           ldconfig
+      - name: Run BACnet Module Tests
+        run: |
+          python3 -m pip install --break-system-packages pytest
+          python3 -m pytest testing/bacnet
       - name: Run Tests
         working-directory: testing/e2e
         run: |
           hivemind &> /tmp/test.log &
           sleep 15 # give devices time to propagate data
           ot-sim-e2e-dnp3-master || (cat /tmp/test.log ; exit 1)
+          python3 bacnet-client.py || (cat /tmp/test.log ; exit 1)
