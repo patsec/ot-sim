@@ -28,6 +28,7 @@ ENV TZ=Etc/UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update && apt install -y \
+    7zip \
     build-essential \
     cmake \
     git \
@@ -39,6 +40,11 @@ RUN apt update && apt install -y \
     python3-dev \
     python3-pip \
     wget
+
+# TODO: add TARGETARCH support for Snap7.
+RUN wget -O snap7.7z https://versaweb.dl.sourceforge.net/project/snap7/1.4.2/snap7-full-1.4.2.7z \
+  && 7zz -o/tmp x snap7.7z && rm snap7.7z \
+  && make -C /tmp/snap7-full-1.4.2/build/unix -f x86_64_linux.mk install LibInstall=/usr/local/lib
 
 ADD .git /usr/local/src/ot-sim/.git
 
@@ -65,15 +71,15 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg \
 
 WORKDIR /root
 
-ADD install-node-red.sh .
+#ADD install-node-red.sh .
 
 # needed by nod-red install script
 ARG TARGETARCH
-RUN /root/install-node-red.sh \
-  && rm /root/install-node-red.sh
+#RUN /root/install-node-red.sh \
+#  && rm /root/install-node-red.sh
 
-ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
-RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
+#ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+#RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
@@ -112,15 +118,15 @@ RUN wget -O overmind.gz https://github.com/DarthSim/overmind/releases/download/v
 
 WORKDIR /root
 
-ADD install-node-red.sh .
+#ADD install-node-red.sh .
 
 # needed by nod-red install script
-ARG TARGETARCH
-RUN /root/install-node-red.sh \
-  && rm /root/install-node-red.sh
+#ARG TARGETARCH
+#RUN /root/install-node-red.sh \
+  #&& rm /root/install-node-red.sh
 
-ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
-RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
+#ADD ./src/js/node-red /root/.node-red/nodes/ot-sim
+#RUN cd /root/.node-red/nodes/ot-sim && npm install && cd /root
 
 COPY --from=gobuild /usr/local /usr/local
 COPY --from=pybuild /usr/local /usr/local
