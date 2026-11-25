@@ -3,11 +3,16 @@ package msgbus
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	zmq "github.com/pebbe/zmq4"
 )
 
+// Pusher is safe to use from more than one goroutine. ZeroMQ sockets are not,
+// so sends are serialized to keep the frames of each message together.
 type Pusher struct {
+	mu sync.Mutex
+
 	ctx    *zmq.Context
 	socket *zmq.Socket
 }
@@ -43,11 +48,14 @@ func NewPusher(endpoint string) (*Pusher, error) {
 	return &Pusher{ctx: ctx, socket: socket}, nil
 }
 
-func (this Pusher) Push(topic string, env Envelope) error {
+func (this *Pusher) Push(topic string, env Envelope) error {
 	body, err := json.Marshal(env)
 	if err != nil {
 		return fmt.Errorf("marshaling Envelope for topic %s: %w", topic, err)
 	}
+
+	this.mu.Lock()
+	defer this.mu.Unlock()
 
 	if _, err := this.socket.SendMessage(topic, string(body)); err != nil {
 		return fmt.Errorf("sending Envelope to topic %s: %w", topic, err)
@@ -56,8 +64,11 @@ func (this Pusher) Push(topic string, env Envelope) error {
 	return nil
 }
 
-func (this Pusher) PushString(topic, format string, a ...any) error {
+func (this *Pusher) PushString(topic, format string, a ...any) error {
 	msg := fmt.Sprintf(format, a...)
+
+	this.mu.Lock()
+	defer this.mu.Unlock()
 
 	if _, err := this.socket.SendMessage(topic, msg); err != nil {
 		return fmt.Errorf("sending string to topic %s: %w", topic, err)

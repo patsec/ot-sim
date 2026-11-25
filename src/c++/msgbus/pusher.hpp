@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <functional>
+#include <mutex>
 
 #include "envelope.hpp"
 #include "cppzmq/zmq.hpp"
@@ -29,6 +30,8 @@ public:
     std::stringstream msg;
     msg << j;
 
+    auto lock = std::unique_lock<std::mutex>(socketMu);
+
     socket.send(zmq::message_t(topic), zmq::send_flags::sndmore);
     socket.send(zmq::message_t(msg.str()), zmq::send_flags::none);
   }
@@ -36,6 +39,10 @@ public:
 private:
   zmq::context_t ctx;
   zmq::socket_t socket;
+
+  // Modules push from more than one thread and ZeroMQ sockets are not thread
+  // safe, so sends are serialized to keep the frames of each message together.
+  std::mutex socketMu;
 };
 
 } // namespace msgbus
