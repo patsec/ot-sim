@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-import enum, uuid
+import enum, os, uuid
 
 from collections import OrderedDict, defaultdict
 from typing      import NamedTuple, List, Dict
 
 import helics as h
+
+
+# Per-step and per-value lines are only logged when OTSIM_DEBUG is set. A
+# federate with thousands of subscriptions otherwise spends its time logging.
+DEBUG = os.environ.get('OTSIM_DEBUG', '').lower() in ('1', 't', 'true')
 
 
 class HelicsException(h.HelicsException):
@@ -286,18 +291,21 @@ class HelicsFederate(object):
 
         for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
             while granted_time < t:
-                self.log(f'requesting time {t}', helper=True)
+                if DEBUG:
+                    self.log(f'requesting time {t}', helper=True)
 
                 granted_time = h.helicsFederateRequestTime(self._federate, t)
 
-                self.log(f'granted time {granted_time}', helper=True)
+                if DEBUG:
+                    self.log(f'granted time {granted_time}', helper=True)
 
                 self.current_time = granted_time
 
             self.action_pre_request_time()
 
             if len(self.publications) > 0:
-                self.log('calling user-defined action_publications', helper=True)
+                if DEBUG:
+                    self.log('calling user-defined action_publications', helper=True)
 
                 # User defined action
                 self.action_publications(self.values.send, self.current_time)
@@ -305,7 +313,8 @@ class HelicsFederate(object):
             self._publish()
 
             if len(self.endpoints) > 0:
-                self.log('calling user-defined action_endpoints_send', helper=True)
+                if DEBUG:
+                    self.log('calling user-defined action_endpoints_send', helper=True)
 
                 # User defined action
                 self.action_endpoints_send(self.messages.send, self.current_time)
@@ -314,7 +323,8 @@ class HelicsFederate(object):
             self._endpoints_recv()
 
             if len(self.endpoints) > 0:
-                self.log('calling user-defined action_endpoints_recv', helper=True)
+                if DEBUG:
+                    self.log('calling user-defined action_endpoints_recv', helper=True)
 
                 # User defined action
                 self.action_endpoints_recv(self.messages.recv, self.current_time)
@@ -322,7 +332,8 @@ class HelicsFederate(object):
             self._subscribe()
 
             if len(self.subscriptions) > 0:
-                self.log('calling user-defined action_subscriptions', helper=True)
+                if DEBUG:
+                    self.log('calling user-defined action_subscriptions', helper=True)
 
                 # User defined action
                 self.action_subscriptions(self.values.recv, self.current_time)
@@ -330,11 +341,13 @@ class HelicsFederate(object):
             self.action_post_request_time()
 
         while granted_time < self.end_time:
-            self.log(f'requesting time {self.end_time}', helper=True)
+            if DEBUG:
+                self.log(f'requesting time {self.end_time}', helper=True)
 
             granted_time = h.helicsFederateRequestTime(self._federate, self.end_time)
 
-            self.log(f'granted time {granted_time}', helper=True)
+            if DEBUG:
+                self.log(f'granted time {granted_time}', helper=True)
 
             self.current_time = granted_time
 
@@ -388,7 +401,8 @@ class HelicsFederate(object):
 
                 self.messages.recv[e.name].append(message)
             else:
-                self.log(f'endpoint {e} has no message', helper=True)
+                if DEBUG:
+                    self.log(f'endpoint {e} has no message', helper=True)
 
     def _publish(self):
         for p, pub in self._publications.items():
@@ -396,10 +410,11 @@ class HelicsFederate(object):
 
             if d == None: continue
 
-            self.log(
-                f'publishing value {repr(d)} of type {p.type} to topic {p.name} at time {self.current_time}',
-                helper=True
-            )
+            if DEBUG:
+                self.log(
+                    f'publishing value {repr(d)} of type {p.type} to topic {p.name} at time {self.current_time}',
+                    helper=True
+                )
 
             if p.type == DataType.string:
                 h.helicsPublicationPublishString(pub, d)
@@ -449,10 +464,11 @@ class HelicsFederate(object):
 
             self.values.recv[s.name] = d
 
-            self.log(
-                f'got subscribed value {self.values.recv[s.name]} of type {s.type} for topic {s.name} at time {self.current_time}',
-                helper=True
-            )
+            if DEBUG:
+                self.log(
+                    f'got subscribed value {d} of type {s.type} for topic {s.name} at time {self.current_time}',
+                    helper=True
+                )
 
     def cleanup(self):
         self.log('starting cleanup', helper=True)
