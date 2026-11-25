@@ -12,6 +12,7 @@ import (
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
 	"github.com/patsec/ot-sim/sunspec/common"
+	"github.com/patsec/ot-sim/util"
 
 	"actshad.dev/mbserver"
 	"github.com/beevik/etree"
@@ -366,7 +367,9 @@ func (this *SunSpecServer) handleMsgBusStatus(env msgbus.Envelope) {
 		this.RUnlock()
 
 		if ok {
-			this.log("setting tag %s to value %f", point.Tag, point.Value)
+			if util.Debug {
+				this.log("setting tag %s to value %f", point.Tag, point.Value)
+			}
 
 			this.Lock()
 			this.tags[point.Tag] = point.Value

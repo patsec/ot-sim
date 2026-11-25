@@ -11,6 +11,7 @@ import (
 
 	mbutil "github.com/patsec/ot-sim/modbus/util"
 	"github.com/patsec/ot-sim/msgbus"
+	"github.com/patsec/ot-sim/util"
 
 	"actshad.dev/mbserver"
 	"github.com/beevik/etree"
@@ -255,7 +256,10 @@ func (this *ModbusServer) handleMsgBusStatus(env msgbus.Envelope) {
 	this.tagsMu.Lock()
 
 	for _, point := range status.Measurements {
-		this.log("setting tag %s to value %f", point.Tag, point.Value)
+		if util.Debug {
+			this.log("setting tag %s to value %f", point.Tag, point.Value)
+		}
+
 		this.tags[point.Tag] = point.Value
 	}
 

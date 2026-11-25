@@ -12,6 +12,7 @@ import (
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
+	"github.com/patsec/ot-sim/util"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -445,7 +446,10 @@ func (this *Logic) handleMsgBusStatus(env msgbus.Envelope) {
 
 	for _, point := range status.Measurements {
 		if v, ok := this.tagToVar[point.Tag]; ok {
-			this.log("setting tag %s to value %f\n", point.Tag, point.Value)
+			if util.Debug {
+				this.log("setting tag %s to value %f", point.Tag, point.Value)
+			}
+
 			this.env[v] = point.Value
 		}
 	}
@@ -471,7 +475,10 @@ func (this *Logic) handleMsgBusUpdate(env msgbus.Envelope) {
 
 	for _, point := range update.Updates {
 		if v, ok := this.tagToVar[point.Tag]; ok {
-			this.log("setting tag %s to value %f\n", point.Tag, point.Value)
+			if util.Debug {
+				this.log("setting tag %s to value %f", point.Tag, point.Value)
+			}
+
 			this.env[v] = point.Value
 		}
 	}
