@@ -248,6 +248,14 @@ class HelicsFederate(object):
                 self._federate, s.name, ""
             )
 
+            # Only flag the input as updated when its value changed, so
+            # _subscribe can skip the ones that did not.
+            h.helicsInputSetOption(
+                self._subscriptions[s],
+                h.helics_handle_option_only_update_on_change,
+                True
+            )
+
     def _setup_endpoints(self):
         for e in self.endpoints:
             self.log(f'setting up endpoint {e}', helper=True)
@@ -441,6 +449,11 @@ class HelicsFederate(object):
 
     def _subscribe(self):
         for s, sub in self._subscriptions.items():
+            # Reading thousands of unchanged inputs on every step is slow, so
+            # after the first read keep the value until HELICS has a new one.
+            if self.values.recv.get(s.name) is not None and not h.helicsInputIsUpdated(sub):
+                continue
+
             if s.type == DataType.boolean:
                 d = h.helicsInputGetBoolean(sub)
             elif s.type == DataType.string:
