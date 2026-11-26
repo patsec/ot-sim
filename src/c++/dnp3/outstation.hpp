@@ -27,8 +27,8 @@ struct OutstationRestartConfig {
   std::uint16_t warm {};
   std::uint16_t cold {};
 
-  std::atomic<bool> coldRestart;
-  std::atomic<bool> warmRestart;
+  std::atomic<bool> coldRestart {};
+  std::atomic<bool> warmRestart {};
 
   ColdRestartFunc coldRestarter;
 
