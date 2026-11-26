@@ -22,6 +22,12 @@ import (
 
 const (
 	EXEC_DEFAULT_VENV = "/opt/venv"
+
+	// A module that exits sooner than RESTART_DELAY_MAX after it started is
+	// restarted after a delay that starts at RESTART_DELAY_MIN and doubles each
+	// time, up to RESTART_DELAY_MAX. One that ran longer restarts at once.
+	RESTART_DELAY_MIN = 1 * time.Second
+	RESTART_DELAY_MAX = 60 * time.Second
 )
 
 type module struct {
@@ -130,6 +136,8 @@ func StartModule(ctx context.Context, mod *module) error {
 			lokiURL = fmt.Sprintf("%s/loki/api/v1/push", e)
 		}
 
+		var delay time.Duration
+
 		for {
 			// Not using `exec.CommandContext` here since we're catching the context
 			// being canceled below in order to gracefully terminate the child
@@ -152,6 +160,8 @@ func StartModule(ctx context.Context, mod *module) error {
 				log.Printf("[CPU] [ERROR] starting %s module: %v\n", mod.name, err)
 				return
 			}
+
+			started := time.Now()
 
 			go func() {
 				scanner := bufio.NewScanner(stdout)
@@ -249,8 +259,22 @@ func StartModule(ctx context.Context, mod *module) error {
 					}
 				}
 
-				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting\n", mod.name, err)
-				continue
+				delay = restartDelay(delay, time.Since(started))
+
+				log.Printf("[CPU] [ERROR] %s module died (%v)... restarting in %v\n", mod.name, err, delay)
+
+				select {
+				case <-time.After(delay):
+					continue
+				case <-mod.canceler:
+					log.Printf("[CPU] %s module has been disabled\n", mod.name)
+					mod.canceler = nil
+
+					return
+				case <-ctx.Done():
+					log.Printf("[CPU] %s module has stopped\n", mod.name)
+					return
+				}
 			case <-mod.canceler:
 				log.Printf("[CPU] disabling %s module\n", mod.name)
 				cmd.Process.Signal(syscall.SIGTERM)
@@ -286,6 +310,20 @@ func StartModule(ctx context.Context, mod *module) error {
 	}()
 
 	return nil
+}
+
+// restartDelay returns how long to wait before restarting a module that ran
+// for uptime, given the delay used before its last restart.
+func restartDelay(last, uptime time.Duration) time.Duration {
+	if uptime >= RESTART_DELAY_MAX {
+		return 0
+	}
+
+	if last == 0 {
+		return RESTART_DELAY_MIN
+	}
+
+	return min(2*last, RESTART_DELAY_MAX)
 }
 
 func buildElasticBulk(name, typ string, values [][]string) []byte {
