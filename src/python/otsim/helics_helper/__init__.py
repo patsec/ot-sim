@@ -83,15 +83,16 @@ class HelicsFederate(object):
     federate_info_core_init_string: str = "--federates=1"
     federate_info_core_type:        str = "zmq"
 
-    federate_info_time_delta: float = 0.01
-    federate_info_real_time:  bool  = True
-    federate_info_log_level:  str   = "none"
+    federate_info_time_delta:      float = 0.01
+    federate_info_real_time:       bool  = True
+    federate_info_uninterruptible: bool  = True
+    federate_info_log_level:       str   = "none"
 
     federate_name: str = ""
 
-    start_time: int = -1
-    end_time:   int = -1
-    step_time:  int =  1
+    start_time: int   = -1
+    end_time:   int   = -1
+    step_time:  float =  1
 
     def __init__(self, **kwargs):
         self.current_time = -1
@@ -189,6 +190,16 @@ class HelicsFederate(object):
             self._federate_info,
             h.helics_flag_realtime,
             self.federate_info_real_time
+        )
+
+        # The run loop only acts on the times it requests, so being granted
+        # earlier times when other federates publish just adds extra rounds.
+        self.log(f'setting federate uninterruptible to {self.federate_info_uninterruptible}', helper=True)
+
+        h.helicsFederateInfoSetFlagOption(
+            self._federate_info,
+            h.helics_flag_uninterruptible,
+            self.federate_info_uninterruptible
         )
 
         log_level: int = 0
@@ -297,7 +308,14 @@ class HelicsFederate(object):
 
         granted_time = -1
 
-        for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
+        step  = self.step_time
+        steps = int((self.end_time - self.start_time) / step + 1e-9) + 1
+
+        for n in range(steps):
+            # HELICS time has nanosecond resolution, so round to it for granted
+            # times to compare equal to requested ones.
+            t = round(self.start_time + n * step, 9)
+
             while granted_time < t:
                 if DEBUG:
                     self.log(f'requesting time {t}', helper=True)
@@ -446,6 +464,9 @@ class HelicsFederate(object):
                 raise HelicsException(
                     "Unknown type of data for publication {}".format(p)
                 )
+
+            # Only publish values again once they are set again.
+            self.values.send[p.name] = None
 
     def _subscribe(self):
         for s, sub in self._subscriptions.items():

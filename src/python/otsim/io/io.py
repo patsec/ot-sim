@@ -14,10 +14,6 @@ from otsim.msgbus.pusher     import Pusher
 from otsim.msgbus.subscriber import Subscriber
 
 
-# A status message carries every subscribed value on each Nth step.
-FULL_STATUS_STEPS = 60
-
-
 class IO(HelicsFederate):
   def get_tag(key: str, tag: str) -> str:
     if tag: return tag
@@ -82,6 +78,17 @@ class IO(HelicsFederate):
     real_time = el.findtext('real-time', default='true')
 
     HelicsFederate.federate_info_real_time = real_time.lower() in ['true', 'yes', '1']
+
+    step  = float(el.findtext('step-time', default=1))
+    delta = HelicsFederate.federate_info_time_delta
+
+    # HELICS cannot grant times closer together than the time delta.
+    assert step >= delta, f'step-time {step} is less than the minimum of {delta} seconds'
+
+    HelicsFederate.step_time = step
+
+    self.full_status_steps = int(el.findtext('full-status-steps', default=60))
+    assert self.full_status_steps > 0, f'full-status-steps {self.full_status_steps} must be greater than 0'
 
     for s in el.findall('subscription'):
       key = s.findtext('key')
@@ -175,9 +182,9 @@ class IO(HelicsFederate):
 
     points: typing.List[Point] = []
 
-    # Every value goes out once a minute and only the changed ones in between,
-    # so thousands of steady tags are not sent to every module each second.
-    full = self.steps % FULL_STATUS_STEPS == 0
+    # Every value goes out on each Nth step and only the changed ones in
+    # between, so thousands of steady tags are not sent to every module.
+    full = self.steps % self.full_status_steps == 0
     self.steps += 1
 
     for k, v in data.items():
