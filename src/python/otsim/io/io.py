@@ -14,6 +14,10 @@ from otsim.msgbus.pusher     import Pusher
 from otsim.msgbus.subscriber import Subscriber
 
 
+# A status message carries every subscribed value on each Nth step.
+FULL_STATUS_STEPS = 60
+
+
 class IO(HelicsFederate):
   def get_tag(key: str, tag: str) -> str:
     if tag: return tag
@@ -31,6 +35,8 @@ class IO(HelicsFederate):
       return DataType.boolean
     elif typ == 'double':
       return DataType.double
+    elif typ == 'vector':
+      return DataType.vector
     else:
       return None
 
@@ -40,6 +46,11 @@ class IO(HelicsFederate):
     self.mutex = threading.Lock()
     # map updated tags --> values
     self.updated: typing.Dict[str, float] = {}
+
+    # map ot-sim tags --> last value sent in a status message
+    self.sent: typing.Dict[str, float] = {}
+    # number of status rounds so far
+    self.steps = 0
 
     # map HELICS topics --> ot-sim tags
     self.tags: typing.Dict[str, str] = {}
@@ -166,13 +177,32 @@ class IO(HelicsFederate):
 
     points: typing.List[Point] = []
 
+    # Every value goes out once a minute and only the changed ones in between,
+    # so thousands of steady tags are not sent to every module each second.
+    full = self.steps % FULL_STATUS_STEPS == 0
+    self.steps += 1
+
     for k, v in data.items():
       tag = self.tags[k]
 
       if not tag: continue
+      if isinstance(v, list):
+        for i, x in enumerate(v):
+          value = float(x)
 
-      points.append({'tag': tag, 'value': float(v), 'ts': 0})
-      self.metrics.incr_metric('helics_sub_count')
+          if not full and self.sent.get(f'{tag}_{i}') == value: continue
+
+          self.sent[f'{tag}_{i}'] = value
+          points.append({'tag': f'{tag}_{i}', 'value': value, 'ts': 0})
+      else:
+        value = float(v)
+
+        if not full and self.sent.get(tag) == value: continue
+
+        self.sent[tag] = value
+        points.append({'tag': tag, 'value': value, 'ts': 0})
+
+    self.metrics.incr_metric_by('helics_sub_count', len(data))
 
     if len(points) > 0:
       env = envelope.new_status_envelope(self.name, {'measurements': points})
