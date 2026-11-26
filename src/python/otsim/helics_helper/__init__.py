@@ -275,10 +275,6 @@ class HelicsFederate(object):
         else:
             print(f'[{self.module_name}] {msg}', flush=True)
 
-    def debug(self, msg):
-        if DEBUG:
-            self.log(msg, helper=True)
-
     def enter_execution_mode(self):
         self.log('entering execution mode', helper=True)
 
@@ -303,18 +299,21 @@ class HelicsFederate(object):
 
         for t in range(self.start_time, self.end_time + self.step_time, self.step_time):
             while granted_time < t:
-                self.debug(f'requesting time {t}')
+                if DEBUG:
+                    self.log(f'requesting time {t}', helper=True)
 
                 granted_time = h.helicsFederateRequestTime(self._federate, t)
 
-                self.debug(f'granted time {granted_time}')
+                if DEBUG:
+                    self.log(f'granted time {granted_time}', helper=True)
 
                 self.current_time = granted_time
 
             self.action_pre_request_time()
 
             if len(self.publications) > 0:
-                self.debug('calling user-defined action_publications')
+                if DEBUG:
+                    self.log('calling user-defined action_publications', helper=True)
 
                 # User defined action
                 self.action_publications(self.values.send, self.current_time)
@@ -322,7 +321,8 @@ class HelicsFederate(object):
             self._publish()
 
             if len(self.endpoints) > 0:
-                self.debug('calling user-defined action_endpoints_send')
+                if DEBUG:
+                    self.log('calling user-defined action_endpoints_send', helper=True)
 
                 # User defined action
                 self.action_endpoints_send(self.messages.send, self.current_time)
@@ -331,7 +331,8 @@ class HelicsFederate(object):
             self._endpoints_recv()
 
             if len(self.endpoints) > 0:
-                self.debug('calling user-defined action_endpoints_recv')
+                if DEBUG:
+                    self.log('calling user-defined action_endpoints_recv', helper=True)
 
                 # User defined action
                 self.action_endpoints_recv(self.messages.recv, self.current_time)
@@ -339,7 +340,8 @@ class HelicsFederate(object):
             self._subscribe()
 
             if len(self.subscriptions) > 0:
-                self.debug('calling user-defined action_subscriptions')
+                if DEBUG:
+                    self.log('calling user-defined action_subscriptions', helper=True)
 
                 # User defined action
                 self.action_subscriptions(self.values.recv, self.current_time)
@@ -347,11 +349,13 @@ class HelicsFederate(object):
             self.action_post_request_time()
 
         while granted_time < self.end_time:
-            self.debug(f'requesting time {self.end_time}')
+            if DEBUG:
+                self.log(f'requesting time {self.end_time}', helper=True)
 
             granted_time = h.helicsFederateRequestTime(self._federate, self.end_time)
 
-            self.debug(f'granted time {granted_time}')
+            if DEBUG:
+                self.log(f'granted time {granted_time}', helper=True)
 
             self.current_time = granted_time
 
@@ -405,7 +409,8 @@ class HelicsFederate(object):
 
                 self.messages.recv[e.name].append(message)
             else:
-                self.debug(f'endpoint {e} has no message')
+                if DEBUG:
+                    self.log(f'endpoint {e} has no message', helper=True)
 
     def _publish(self):
         for p, pub in self._publications.items():
