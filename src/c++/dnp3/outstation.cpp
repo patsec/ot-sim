@@ -89,6 +89,13 @@ void Outstation::Run() {
 
     opendnp3::UpdateBuilder builder;
 
+    std::set<std::string> changed;
+
+    {
+      auto lock = std::unique_lock<std::mutex>(pointsMu);
+      changed.swap(changedTags);
+    }
+
     for (const auto& kv : binaryInputs) {
       const std::uint16_t addr = kv.first;
       const std::string   tag  = kv.second.tag;
@@ -99,7 +106,9 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::Binary(point.value != 0), addr);
 
-        std::cout << fmt::format("[{}] updated binary input {} to {}", config.id, addr, point.value) << std::endl;
+        if (changed.count(tag)) {
+          std::cout << fmt::format("[{}] updated binary input {} to {}", config.id, addr, point.value) << std::endl;
+        }
       } catch (const std::out_of_range&) {}
     }
 
@@ -113,7 +122,9 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::BinaryOutputStatus(point.value != 0), addr);
 
-        std::cout << fmt::format("[{}] updated binary output {} to {}", config.id, addr, point.value) << std::endl;
+        if (changed.count(tag)) {
+          std::cout << fmt::format("[{}] updated binary output {} to {}", config.id, addr, point.value) << std::endl;
+        }
       } catch (const std::out_of_range&) {}
     }
 
@@ -127,7 +138,9 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::Analog(point.value, opendnp3::Flags(1), opendnp3::DNPTime(point.ts)), addr);
 
-        std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
+        if (changed.count(tag)) {
+          std::cout << fmt::format("[{}] updated analog input {} to {}", config.id, addr, point.value) << std::endl;
+        }
       } catch (const std::out_of_range&) {}
     }
 
@@ -141,7 +154,9 @@ void Outstation::Run() {
         auto point = points.at(tag);
         builder.Update(opendnp3::AnalogOutputStatus(point.value, opendnp3::Flags(1), opendnp3::DNPTime(point.ts)), addr);
 
-        std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
+        if (changed.count(tag)) {
+          std::cout << fmt::format("[{}] updated analog output {} to {}", config.id, addr, point.value) << std::endl;
+        }
       } catch (const std::out_of_range&) {}
     }
 
@@ -270,9 +285,13 @@ void Outstation::HandleMsgBusStatus(const otsim::msgbus::Envelope<otsim::msgbus:
 
   for (auto &p : env.contents.measurements) {
     if (points.count(p.tag)) {
-      std::cout << fmt::format("[{}] status received for tag {}", config.id, p.tag) << std::endl;
-
       auto lock = std::unique_lock<std::mutex>(pointsMu);
+
+      if (debug && points[p.tag].value != p.value) {
+        std::cout << fmt::format("[{}] status received for tag {}", config.id, p.tag) << std::endl;
+        changedTags.insert(p.tag);
+      }
+
       points[p.tag] = p;
     }
   }

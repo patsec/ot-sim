@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+
+	"github.com/patsec/ot-sim/util"
 )
 
 type Register struct {
@@ -47,7 +49,9 @@ func (this *Register) Init() error {
 }
 
 func (this Register) Bytes(value any, scaling float64) ([]byte, error) {
-	fmt.Printf("getting bytes for %s\n", this.Name)
+	if util.Debug {
+		fmt.Printf("getting bytes for %s\n", this.Name)
+	}
 
 	if value == nil {
 		switch this.DataType {

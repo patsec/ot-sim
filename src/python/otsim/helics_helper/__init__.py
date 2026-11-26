@@ -383,7 +383,8 @@ class HelicsFederate(object):
         for e, endp in self._endpoints.items():
             if e.name in self.messages.send.keys():
                 for _message in self.messages.send[e.name]:
-                    self.log(f'sending raw event {_message.data} to {_message.destination} at time {_message.time}', helper=True)
+                    if DEBUG:
+                        self.log(f'sending raw event {_message.data} to {_message.destination} at time {_message.time}', helper=True)
 
                     h.helicsEndpointSendEventRaw(
                         endp, _message.destination, _message.data, _message.time

@@ -15,6 +15,7 @@ import (
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
+	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
 	"github.com/cenkalti/backoff"
@@ -295,11 +296,13 @@ func (this *MQTTClient) publish(tag string, value float64) {
 
 	token := this.client.Publish(topic, 0, false, buf.String())
 
-	this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, buf.String())
+	if util.Debug {
+		this.log("[DEBUG] publishing %s --> %s to MQTT broker", topic, buf.String())
+	}
 
 	if token.Wait() && token.Error() != nil {
 		this.log("[ERROR] publishing topic %s to MQTT broker: %v", topic, token.Error())
-	} else {
+	} else if util.Debug {
 		this.log("[DEBUG] published %s --> %f to MQTT broker", topic, value)
 	}
 }

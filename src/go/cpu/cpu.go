@@ -11,6 +11,7 @@ import (
 
 	otsim "github.com/patsec/ot-sim"
 	"github.com/patsec/ot-sim/msgbus"
+	"github.com/patsec/ot-sim/util"
 
 	"github.com/beevik/etree"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
@@ -173,10 +174,22 @@ func (this *CPU) Run(ctx context.Context, pubEndpoint, pullEndpoint string) erro
 		metricsErrors = make(chan error)
 	)
 
+	// Status messages can carry every value of a device on every step, so they
+	// are only logged when debugging. Updates and confirmations are rare.
+	runtimeLogger := func(topic, msg string) error {
+		if !util.Debug {
+			if env, err := msgbus.ParseEnvelope([]byte(msg)); err == nil && env.Kind == msgbus.ENVELOPE_STATUS {
+				return nil
+			}
+		}
+
+		return logger(topic, msg)
+	}
+
 	var (
 		logHandlers     = []MsgBusHandler{logger}
 		healthHandlers  = []MsgBusHandler{metricsHandler}
-		runtimeHandlers = []MsgBusHandler{logger}
+		runtimeHandlers = []MsgBusHandler{runtimeLogger}
 	)
 
 	go func() {

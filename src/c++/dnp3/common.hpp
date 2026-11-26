@@ -1,6 +1,9 @@
 #ifndef OTSIM_DNP3_COMMON_HPP
 #define OTSIM_DNP3_COMMON_HPP
 
+#include <cstdlib>
+#include <string>
+
 #include "msgbus/metrics.hpp"
 #include "msgbus/pusher.hpp"
 
@@ -16,6 +19,14 @@
 
 namespace otsim {
 namespace dnp3 {
+
+// Per-point lines are only logged when OTSIM_DEBUG is set.
+inline const bool debug = [] {
+  const char* env = std::getenv("OTSIM_DEBUG");
+  const std::string val = env ? env : "";
+
+  return val == "1" || val == "t" || val == "T" || val == "true" || val == "TRUE" || val == "True";
+}();
 
 template <typename S, typename E>
 struct Point {

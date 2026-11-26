@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 
 from collections import defaultdict
 
-from otsim.helics_helper     import DataType, Endpoint, HelicsFederate, Message, Publication, Subscription
+from otsim.helics_helper     import DEBUG, DataType, Endpoint, HelicsFederate, Message, Publication, Subscription
 from otsim.msgbus.envelope   import Envelope, MetricKind, Point
 from otsim.msgbus.metrics    import MetricsPusher
 from otsim.msgbus.pusher     import Pusher
@@ -228,27 +228,31 @@ class IO(HelicsFederate):
   def action_endpoints_send(self: IO, endpoints: typing.Dict, ts: int):
     '''send any update messages that have come in to HELICS'''
 
-    self.log('checking for queued messages to send to remote endpoints')
+    if DEBUG:
+      self.log('checking for queued messages to send to remote endpoints')
 
     with self.mutex:
       # key is endpoint name, value is list of dictionaries representing updates
       data = defaultdict(list)
 
       for tag in self.updated:
-        self.log(f'tag {tag} has been updated')
+        if DEBUG:
+          self.log(f'tag {tag} has been updated')
 
         if tag in self.eps:
-          self.log(f'remote endpoint(s) found for tag {tag}')
+          if DEBUG:
+            self.log(f'remote endpoint(s) found for tag {tag}')
 
           for ep in self.eps[tag]:
             endpoint = ep['endpoint']
             key      = ep['topic']
             value    = self.updated[tag]
 
-            self.log(f'updating federate topic {key} to {value} in remote endpoint {endpoint}')
+            if DEBUG:
+              self.log(f'updating federate topic {key} to {value} in remote endpoint {endpoint}')
 
             data[endpoint].append({'tag': key, 'value': value})
-        else:
+        elif DEBUG:
           self.log(f'tag {tag} not configured for any remote endpoints')
 
       for endpoint, data in data.items():
