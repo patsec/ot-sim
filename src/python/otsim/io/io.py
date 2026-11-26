@@ -188,7 +188,12 @@ class IO(HelicsFederate):
       if not tag: continue
       if isinstance(v, list):
         for i, x in enumerate(v):
-          points.append({'tag': f'{tag}_{i}', 'value': float(x), 'ts': 0})
+          value = float(x)
+
+          if not full and self.sent.get(f'{tag}_{i}') == value: continue
+
+          self.sent[f'{tag}_{i}'] = value
+          points.append({'tag': f'{tag}_{i}', 'value': value, 'ts': 0})
       else:
         value = float(v)
 
