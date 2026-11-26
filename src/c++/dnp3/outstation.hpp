@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <set>
 #include <thread>
 
 #include "common.hpp"
@@ -136,6 +137,7 @@ private:
   std::map<std::uint16_t, AnalogOutputPoint> analogOutputs;
 
   std::map<std::string, otsim::msgbus::Point> points;
+  std::set<std::string> changedTags;
   std::mutex pointsMu;
 
   std::atomic<bool> running;

@@ -29,12 +29,16 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
   values.ForeachItem([&](const opendnp3::Indexed<opendnp3::Binary>& value) {
     const char* gvar = opendnp3::GroupVariationSpec().to_string(info.gv);
 
-    std::cout << fmt::format("[{}] BOOLEAN INPUT   GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    if (debug) {
+      std::cout << fmt::format("[{}] BOOLEAN INPUT   GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    }
 
     auto tag = GetBinaryTag(value.index);
 
     if (!tag.empty()) {
-      std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      if (debug) {
+        std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      }
 
       otsim::msgbus::Points points;
       points.push_back(otsim::msgbus::Point{tag, value.value.value ? 1.0 : 0.0, value.value.time.value});
@@ -53,12 +57,16 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
   values.ForeachItem([&](const opendnp3::Indexed<opendnp3::BinaryOutputStatus>& value) {
     const char* gvar = opendnp3::GroupVariationSpec().to_string(info.gv);
 
-    std::cout << fmt::format("[{}] BOOLEAN OUTPUT  GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    if (debug) {
+      std::cout << fmt::format("[{}] BOOLEAN OUTPUT  GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    }
 
     auto tag = GetBinaryTag(value.index, true);
 
     if (!tag.empty()) {
-      std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      if (debug) {
+        std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      }
 
       otsim::msgbus::Points points;
       points.push_back(otsim::msgbus::Point{tag, value.value.value ? 1.0 : 0.0, value.value.time.value});
@@ -77,12 +85,16 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
   values.ForeachItem([&](const opendnp3::Indexed<opendnp3::Analog>& value) {
     const char* gvar = opendnp3::GroupVariationSpec().to_string(info.gv);
 
-    std::cout << fmt::format("[{}] ANALOG INPUT    GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    if (debug) {
+      std::cout << fmt::format("[{}] ANALOG INPUT    GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    }
 
     auto tag = GetAnalogTag(value.index);
 
     if (!tag.empty()) {
-      std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      if (debug) {
+        std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      }
 
       otsim::msgbus::Points points;
       points.push_back(otsim::msgbus::Point{tag, value.value.value, value.value.time.value});
@@ -101,12 +113,16 @@ void Master::Process(const opendnp3::HeaderInfo& info, const opendnp3::ICollecti
   values.ForeachItem([&](const opendnp3::Indexed<opendnp3::AnalogOutputStatus>& value) {
     const char* gvar = opendnp3::GroupVariationSpec().to_string(info.gv);
 
-    std::cout << fmt::format("[{}] ANALOG OUTPUT   GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    if (debug) {
+      std::cout << fmt::format("[{}] ANALOG OUTPUT   GV:ADDR:VALUE:TIME = {}:{}:{}:{}", id, gvar, value.index, value.value.value, value.value.time.value) << std::endl;
+    }
 
     auto tag = GetAnalogTag(value.index, true);
 
     if (!tag.empty()) {
-      std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      if (debug) {
+        std::cout << fmt::format("[{}] setting tag {} to {}", id, tag, value.value.value) << std::endl;
+      }
 
       otsim::msgbus::Points points;
       points.push_back(otsim::msgbus::Point{tag, value.value.value, value.value.time.value});

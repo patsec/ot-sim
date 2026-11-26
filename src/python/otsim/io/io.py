@@ -7,11 +7,15 @@ import xml.etree.ElementTree as ET
 
 from collections import defaultdict
 
-from otsim.helics_helper     import DataType, Endpoint, HelicsFederate, Message, Publication, Subscription
+from otsim.helics_helper     import DEBUG, DataType, Endpoint, HelicsFederate, Message, Publication, Subscription
 from otsim.msgbus.envelope   import Envelope, MetricKind, Point
 from otsim.msgbus.metrics    import MetricsPusher
 from otsim.msgbus.pusher     import Pusher
 from otsim.msgbus.subscriber import Subscriber
+
+
+# A status message carries every subscribed value on each Nth step.
+FULL_STATUS_STEPS = 60
 
 
 class IO(HelicsFederate):
@@ -40,6 +44,11 @@ class IO(HelicsFederate):
     self.mutex = threading.Lock()
     # map updated tags --> values
     self.updated: typing.Dict[str, float] = {}
+
+    # map ot-sim tags --> last value sent in a status message
+    self.sent: typing.Dict[str, float] = {}
+    # number of status rounds so far
+    self.steps = 0
 
     # map HELICS topics --> ot-sim tags
     self.tags: typing.Dict[str, str] = {}
@@ -166,13 +175,24 @@ class IO(HelicsFederate):
 
     points: typing.List[Point] = []
 
+    # Every value goes out once a minute and only the changed ones in between,
+    # so thousands of steady tags are not sent to every module each second.
+    full = self.steps % FULL_STATUS_STEPS == 0
+    self.steps += 1
+
     for k, v in data.items():
       tag = self.tags[k]
 
       if not tag: continue
 
-      points.append({'tag': tag, 'value': float(v), 'ts': 0})
-      self.metrics.incr_metric('helics_sub_count')
+      value = float(v)
+
+      if not full and self.sent.get(tag) == value: continue
+
+      self.sent[tag] = value
+      points.append({'tag': tag, 'value': value, 'ts': 0})
+
+    self.metrics.incr_metric_by('helics_sub_count', len(data))
 
     if len(points) > 0:
       env = envelope.new_status_envelope(self.name, {'measurements': points})
@@ -208,27 +228,31 @@ class IO(HelicsFederate):
   def action_endpoints_send(self: IO, endpoints: typing.Dict, ts: int):
     '''send any update messages that have come in to HELICS'''
 
-    self.log('checking for queued messages to send to remote endpoints')
+    if DEBUG:
+      self.log('checking for queued messages to send to remote endpoints')
 
     with self.mutex:
       # key is endpoint name, value is list of dictionaries representing updates
       data = defaultdict(list)
 
       for tag in self.updated:
-        self.log(f'tag {tag} has been updated')
+        if DEBUG:
+          self.log(f'tag {tag} has been updated')
 
         if tag in self.eps:
-          self.log(f'remote endpoint(s) found for tag {tag}')
+          if DEBUG:
+            self.log(f'remote endpoint(s) found for tag {tag}')
 
           for ep in self.eps[tag]:
             endpoint = ep['endpoint']
             key      = ep['topic']
             value    = self.updated[tag]
 
-            self.log(f'updating federate topic {key} to {value} in remote endpoint {endpoint}')
+            if DEBUG:
+              self.log(f'updating federate topic {key} to {value} in remote endpoint {endpoint}')
 
             data[endpoint].append({'tag': key, 'value': value})
-        else:
+        elif DEBUG:
           self.log(f'tag {tag} not configured for any remote endpoints')
 
       for endpoint, data in data.items():
